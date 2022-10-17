@@ -1,1 +1,1 @@
-# cni_projects
+# cni_bots
