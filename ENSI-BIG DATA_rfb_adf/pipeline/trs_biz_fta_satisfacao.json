@@ -1,0 +1,77 @@
+{
+	"name": "trs_biz_fta_satisfacao",
+	"properties": {
+		"description": "Run business for \"Educacao SENAI\" from trusteds unidade_atendimento and unidade_atendimento_caracteristica \n\nThe tables parameter is:\n{\"fta_unidade_atendimento_ativa\":{\"origins\": [\"/mtd/corp/unidade_atendimento\", \"/mtd/corp/unidade_atendimento_caracteristica\"], \"destination\": \"/producao/fta_unidade_atendimento_ativa\", \"databricks\": {\"notebook\": \"/biz/educacao_senai/trs_biz_fta_unidade_atendimento_ativa\"}}\n\nEvery time we define the parameters in \"Execute Pipeline\" ->\"Settings\", we should pay attention to the last hierarchy on the parameter, because the template will read the parameter defined in  \"Execute Pipeline\" -> \"Settings\", not in \"parameters\" itself. Example: If you are working in business view, set the parameter as \"@pipeline().parameters.tables.fta_unidade_atendimento_ativa\" in the execute pipeline",
+		"activities": [
+			{
+				"name": "fta_satisfacao",
+				"description": "Calls business template \"template_business\".",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "business__0__switch_env",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						},
+						"table": {
+							"value": "@pipeline().parameters.tables.fta_satisfacao",
+							"type": "Expression"
+						},
+						"adf": {
+							"value": "{'adf_factory_name': '@{pipeline().DataFactory}', 'adf_pipeline_name': '@{pipeline().Pipeline}', 'adf_pipeline_run_id': '@{pipeline().RunId}',  'adf_trigger_id': '@{pipeline().TriggerId}', 'adf_trigger_name': '@{pipeline().TriggerName}', 'adf_trigger_time': '@{pipeline().TriggerTime}',  'adf_trigger_type': '@{pipeline().TriggerType}'}",
+							"type": "Expression"
+						},
+						"user_parameters": {
+							"value": "@pipeline().parameters.user_parameters",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"concurrency": 1,
+		"parameters": {
+			"tables": {
+				"type": "object",
+				"defaultValue": {
+					"fta_satisfacao": {
+						"origins": [
+							"/universidade_corporativa/satisfacao"
+						],
+						"destination": "/unindustria_lms/fta_satisfacao",
+						"databricks": {
+							"notebook": "/biz/lms_uc/trs_biz_fta_satisfacao"
+						}
+					}
+				}
+			},
+			"user_parameters": {
+				"type": "object",
+				"defaultValue": {
+					"null": "null"
+				}
+			},
+			"env": {
+				"type": "object",
+				"defaultValue": {
+					"env": "dev"
+				}
+			}
+		},
+		"folder": {
+			"name": "biz/lms_uc"
+		},
+		"annotations": [
+			"business",
+			"parameterized",
+			"closing date"
+		]
+	}
+}

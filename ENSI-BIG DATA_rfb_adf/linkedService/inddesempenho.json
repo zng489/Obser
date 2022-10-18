@@ -1,0 +1,23 @@
+{
+	"name": "inddesempenho",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "Oracle",
+		"typeProperties": {
+			"connectionString": "host=scan-ensirac;port=1521;serviceName=ensi_rac.sistemacni.org.br;user id=usr_bigdata",
+			"password": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "cnibigdatakeyvault",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "oracledbpass"
+			}
+		},
+		"connectVia": {
+			"referenceName": "cnibigdatafactoryshir",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

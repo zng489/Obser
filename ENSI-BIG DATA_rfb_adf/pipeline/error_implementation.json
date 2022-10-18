@@ -1,0 +1,30 @@
+{
+	"name": "error_implementation",
+	"properties": {
+		"description": "With this implementation we can force errors to raise in our pipelines. Not an elegant way out, but works as expected.",
+		"activities": [
+			{
+				"name": "error_implementation",
+				"description": "Using a webhook with a bad HTTP request, we can introduce errors in out pipelines when we need.",
+				"type": "WebHook",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"url": "https://thisisthewaytosimuateanerrormyfriend.com/api",
+					"method": "POST",
+					"headers": {
+						"Content-Type": "application/json"
+					},
+					"body": {
+						"error": true
+					},
+					"timeout": "00:10:00"
+				}
+			}
+		],
+		"folder": {
+			"name": "templates/common"
+		},
+		"annotations": []
+	}
+}

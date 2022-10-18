@@ -1,0 +1,53 @@
+{
+	"name": "wkf__assuntos_legislativos",
+	"properties": {
+		"description": "Workflow for all 3 layers of assuntos_legislativos.\n\nThis is the point where we decide for dev or prod env (or any other).",
+		"activities": [
+			{
+				"name": "wkf_raw__assuntos_legislativos",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "wkf_raw__assuntos_legislativos",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "Wait1",
+				"type": "Wait",
+				"dependsOn": [
+					{
+						"activity": "wkf_raw__assuntos_legislativos",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"waitTimeInSeconds": 1
+				}
+			}
+		],
+		"concurrency": 1,
+		"parameters": {
+			"env": {
+				"type": "object",
+				"defaultValue": {
+					"env": "dev"
+				}
+			}
+		},
+		"folder": {
+			"name": "workflow/assuntos_legislativos"
+		},
+		"annotations": [
+			"workflow",
+			"assuntos_legislativos"
+		]
+	}
+}

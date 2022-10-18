@@ -1,0 +1,51 @@
+{
+	"name": "adls2_delete_photo",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "cnibigdatadlsgen2",
+			"type": "LinkedServiceReference",
+			"parameters": {
+				"url": {
+					"value": "@dataset().url",
+					"type": "Expression"
+				}
+			}
+		},
+		"parameters": {
+			"vendor": {
+				"type": "string"
+			},
+			"dir": {
+				"type": "string"
+			},
+			"default_dir": {
+				"type": "string",
+				"defaultValue": "/tmp/dev/raw/gov"
+			},
+			"container": {
+				"type": "string"
+			},
+			"url": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "gov/gen2"
+		},
+		"annotations": [],
+		"type": "Binary",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"folderPath": {
+					"value": "@{dataset().default_dir}/lnd/gov/@{dataset().vendor}/@{dataset().dir}",
+					"type": "Expression"
+				},
+				"fileSystem": {
+					"value": "@dataset().container",
+					"type": "Expression"
+				}
+			}
+		}
+	}
+}

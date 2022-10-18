@@ -1,0 +1,118 @@
+{
+	"name": "sqldw_health_check",
+	"properties": {
+		"description": "Connection for sqldw so we can check if it is healthy and running. This goes in the beginning of our templates so we don't have to worry about it being down and things loading but not updating the watermark table.",
+		"linkedServiceName": {
+			"referenceName": "cnibigdatasqldw",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "parametrized"
+		},
+		"annotations": [],
+		"type": "AzureSqlDWTable",
+		"schema": [
+			{
+				"name": "uid",
+				"type": "smallint",
+				"precision": 5
+			},
+			{
+				"name": "status",
+				"type": "smallint",
+				"precision": 5
+			},
+			{
+				"name": "name",
+				"type": "nvarchar"
+			},
+			{
+				"name": "sid",
+				"type": "varbinary"
+			},
+			{
+				"name": "roles",
+				"type": "varbinary"
+			},
+			{
+				"name": "createdate",
+				"type": "datetime",
+				"precision": 23,
+				"scale": 3
+			},
+			{
+				"name": "updatedate",
+				"type": "datetime",
+				"precision": 23,
+				"scale": 3
+			},
+			{
+				"name": "altuid",
+				"type": "smallint",
+				"precision": 5
+			},
+			{
+				"name": "password",
+				"type": "varbinary"
+			},
+			{
+				"name": "gid",
+				"type": "smallint",
+				"precision": 5
+			},
+			{
+				"name": "environ",
+				"type": "varchar"
+			},
+			{
+				"name": "hasdbaccess",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "islogin",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "isntname",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "isntgroup",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "isntuser",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "issqluser",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "isaliased",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "issqlrole",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "isapprole",
+				"type": "int",
+				"precision": 10
+			}
+		],
+		"typeProperties": {
+			"schema": "",
+			"table": ""
+		}
+	}
+}

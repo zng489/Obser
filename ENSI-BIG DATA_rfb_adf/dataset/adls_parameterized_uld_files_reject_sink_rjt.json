@@ -1,0 +1,46 @@
+{
+	"name": "adls_parameterized_uld_files_reject_sink_rjt",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "cnibigdatadlsgen2",
+			"type": "LinkedServiceReference",
+			"parameters": {
+				"url": {
+					"value": "@dataset().url",
+					"type": "Expression"
+				}
+			}
+		},
+		"parameters": {
+			"container": {
+				"type": "string"
+			},
+			"url": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "parametrized"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"folderPath": {
+					"value": "@{pipeline().parameters.dls.folders.reject}/@{pipeline().parameters.dls.sub_folders.uld}/@{pipeline().parameters.file.namespace}/@{pipeline().parameters.file.file_folder}/@{pipeline().parameters.var_dh_insercao_raw}",
+					"type": "Expression"
+				},
+				"fileSystem": {
+					"value": "@dataset().container",
+					"type": "Expression"
+				}
+			},
+			"columnDelimiter": ";",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": []
+	}
+}

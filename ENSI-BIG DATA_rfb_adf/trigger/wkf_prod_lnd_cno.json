@@ -1,0 +1,38 @@
+{
+	"name": "wkf_prod_lnd_cno",
+	"properties": {
+		"description": "Crawler execution",
+		"annotations": [],
+		"runtimeState": "Started",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "workflow_prod_lnd_cno",
+					"type": "PipelineReference"
+				},
+				"parameters": {
+					"env": {
+						"env": "dev"
+					}
+				}
+			}
+		],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Week",
+				"interval": 1,
+				"startTime": "2022-09-23T15:10:00",
+				"timeZone": "E. South America Standard Time",
+				"schedule": {
+					"hours": [
+						3
+					],
+					"weekDays": [
+						"Saturday"
+					]
+				}
+			}
+		}
+	}
+}

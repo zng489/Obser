@@ -1,0 +1,835 @@
+{
+	"name": "wkf_raw__tableau_metadados",
+	"properties": {
+		"description": "Raw tables from tableau. All of them are small objects from Tableau postgres metadata. High parallelism is encouraged.",
+		"activities": [
+			{
+				"name": "org_raw_postgres_tableau_capabilities",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_postgres_tableau_capabilities",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_postgres_tableau_data_connections",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_postgres_tableau_data_connections",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_postgres_tableau_datasources",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_postgres_tableau_datasources",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_postgres_tableau_group_users",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_postgres_tableau_group_users",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_postgres_tableau_groups",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_postgres_tableau_groups",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_postgres_tableau_ident_based_activ_admin_view",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_postgres_tableau_identity_based_activation_admin_view",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_postgres_tableau_next_gen_permissions",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_postgres_tableau_next_gen_permissions",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_postgres_tableau_projects",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_postgres_tableau_projects",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_postgres_tableau_sessions",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_postgres_tableau_sessions",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_postgres_tableau_users",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_postgres_tableau_users",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_postgres_tableau_users_view",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_postgres_tableau_users_view",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_postgres_tableau_views",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_postgres_tableau_views",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_postgres_tableau_views_stats",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_postgres_tableau_views_stats",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_postgres_tableau_workbooks",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_postgres_tableau_workbooks",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_postgres_tableau__background_tasks",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_postgres_tableau__background_tasks",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_postgres_tableau__comments",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_postgres_tableau__comments",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_postgres_tableau__customized_views",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_postgres_tableau__customized_views",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_postgres_tableau__datasources",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_postgres_tableau__datasources",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_postgres_tableau__datasources_stats",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_postgres_tableau__datasources_stats",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_postgres_tableau__groups",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_postgres_tableau__groups",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_postgres_tableau__http_requests",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_postgres_tableau__http_requests",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_postgres_tableau__projects",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_postgres_tableau__projects",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_postgres_tableau__schedules",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_postgres_tableau__schedules",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "end",
+				"type": "Wait",
+				"dependsOn": [
+					{
+						"activity": "org_raw_postgres_tableau__customized_views",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "org_raw_postgres_tableau__datasources",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "org_raw_postgres_tableau__datasources_stats",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "org_raw_postgres_tableau__groups",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "org_raw_postgres_tableau__http_requests",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "org_raw_postgres_tableau__projects",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "org_raw_postgres_tableau__schedules",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "org_raw_postgres_tableau__sessions",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "org_raw_postgres_tableau__sites",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "org_raw_postgres_tableau__subscriptions",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "org_raw_postgres_tableau__system_users",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "org_raw_postgres_tableau__tags",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "org_raw_postgres_tableau__users",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "org_raw_postgres_tableau__views",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "org_raw_postgres_tableau__views_stats",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "org_raw_postgres_tableau__workbooks",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "org_raw_postgres_tableau__comments",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "org_raw_postgres_tableau__background_tasks",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "org_raw_postgres_tableau_workbooks",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "org_raw_postgres_tableau_views_stats",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "org_raw_postgres_tableau_views",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "org_raw_postgres_tableau_users_view",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "org_raw_postgres_tableau_users",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "org_raw_postgres_tableau_sessions",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "org_raw_postgres_tableau_next_gen_permissions",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "org_raw_postgres_tableau_ident_based_activ_admin_view",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "org_raw_postgres_tableau_groups",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "org_raw_postgres_tableau_group_users",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "org_raw_postgres_tableau_datasources",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "org_raw_postgres_tableau_data_connections",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "org_raw_postgres_tableau_capabilities",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "org_raw_postgres_tableau_projects",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"waitTimeInSeconds": 1
+				}
+			},
+			{
+				"name": "org_raw_postgres_tableau__sessions",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_postgres_tableau__sessions",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_postgres_tableau__sites",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_postgres_tableau__sites",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_postgres_tableau__subscriptions",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_postgres_tableau__subscriptions",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_postgres_tableau__system_users",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_postgres_tableau__system_users",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_postgres_tableau__tags",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_postgres_tableau__tags",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_postgres_tableau__users",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_postgres_tableau__users",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_postgres_tableau__views",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_postgres_tableau__views",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_postgres_tableau__views_stats",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_postgres_tableau__views_stats",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_postgres_tableau__workbooks",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_postgres_tableau__workbooks",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"concurrency": 1,
+		"parameters": {
+			"env": {
+				"type": "object",
+				"defaultValue": {
+					"env": "prod"
+				}
+			}
+		},
+		"folder": {
+			"name": "workflow/tableau_metadados/raw"
+		},
+		"annotations": [
+			"workflow",
+			"raw",
+			"robolegisdata"
+		]
+	}
+}

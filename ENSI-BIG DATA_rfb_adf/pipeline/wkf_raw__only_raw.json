@@ -1,0 +1,166 @@
+{
+	"name": "wkf_raw__only_raw",
+	"properties": {
+		"description": "Loads all \"decoupled\" raw tables in a daily basis.",
+		"activities": [
+			{
+				"name": "wkf_raw__only_raw__full__pt1",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "wkf_raw__only_raw__full__pt1",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "wkf_raw__only_raw__full__pt2",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "wkf_raw__only_raw__full__pt2",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "wkf_raw__only_raw__full__pt3",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "wkf_raw__only_raw__full__pt3",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "wkf_raw__only_raw__full__pt4",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "wkf_raw__only_raw__full__pt4",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "wkf_raw__only_raw__incremental__pt1",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "wkf_raw__only_raw__incremental__pt1",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "wkf_raw__only_raw_end",
+				"type": "Wait",
+				"dependsOn": [
+					{
+						"activity": "wkf_raw__only_raw__full__pt1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "wkf_raw__only_raw__full__pt2",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "wkf_raw__only_raw__full__pt3",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "wkf_raw__only_raw__full__pt4",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "wkf_raw__only_raw__incremental__pt1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"waitTimeInSeconds": 1
+				}
+			}
+		],
+		"concurrency": 1,
+		"parameters": {
+			"env": {
+				"type": "object",
+				"defaultValue": {
+					"env": "dev"
+				}
+			}
+		},
+		"variables": {
+			"execution_errors": {
+				"type": "Array",
+				"defaultValue": []
+			}
+		},
+		"folder": {
+			"name": "workflow/only_raw"
+		},
+		"annotations": [
+			"workflow",
+			"raw",
+			"only_raw"
+		]
+	}
+}

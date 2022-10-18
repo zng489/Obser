@@ -1,0 +1,50 @@
+{
+	"name": "cnibigdatabricks_job_cluster_prod",
+	"properties": {
+		"description": "Service for calling job clusters in cnibigdatabricks using configuration for prod.",
+		"annotations": [],
+		"type": "AzureDatabricks",
+		"typeProperties": {
+			"domain": "https://adb-6523536500265509.9.azuredatabricks.net",
+			"authentication": "MSI",
+			"workspaceResourceId": "/subscriptions/3e3a21e3-9551-4945-8c46-c02f558392ce/resourceGroups/bigdata/providers/Microsoft.Databricks/workspaces/cnibigdatabricks1",
+			"newClusterNodeType": "Standard_DS3_v2",
+			"newClusterNumOfWorker": "1:5",
+			"newClusterSparkConf": {
+				"spark.scheduler.revive.interval": "5s",
+				"spark.databricks.delta.preview.enabled": "true",
+				"spark.sql.parquet.mergeSchema": "true",
+				"spark.sql.legacy.timeParserPolicy": "LEGACY",
+				"park.stage.maxConsecutiveAttempts": "8",
+				"spark.sql.legacy.parquet.datetimeRebaseModeInWrite": "CORRECTED",
+				"spark.databricks.passthrough.enabled": "true",
+				"spark.shuffle.memoryFraction": "0.25",
+				"spark.sql.legacy.parquet.datetimeRebaseModeInRead": "CORRECTED",
+				"spark.sql.adaptive.enabled": "false",
+				"spark.sql.adaptive.coalescePartitions.enabled": "false",
+				"spark.sql.adaptive.skewJoin.enabled": "false"
+			},
+			"newClusterSparkEnvVars": {
+				"PYSPARK_PYTHON": "/databricks/python3/bin/python3"
+			},
+			"newClusterCustomTags": {
+				"databricks_Projeto": "BigData",
+				"databricks_Area": "STI",
+				"databricks_TipoCluster": "Job",
+				"databricks_NomeCluster": "Producao"
+			},
+			"newClusterVersion": "9.1.x-scala2.12",
+			"newClusterInitScripts": [],
+			"newClusterDriverNodeType": "Standard_DS3_v2",
+			"clusterOption": "Fixed"
+		}
+	},
+	"libraries": [
+		{
+			"egg": "dbfs:/libs/impl/cni_connector.egg"
+		},
+		{
+			"egg": "dbfs:/libs/impl/raw_loader.egg"
+		}
+	]
+}

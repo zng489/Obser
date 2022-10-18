@@ -1,0 +1,44 @@
+{
+	"name": "wkf_uniepro__raw",
+	"properties": {
+		"annotations": [],
+		"runtimeState": "Started",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "workflow_prod__raw_uld",
+					"type": "PipelineReference"
+				},
+				"parameters": {
+					"env": {
+						"env": "prod"
+					}
+				}
+			}
+		],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Week",
+				"interval": 1,
+				"startTime": "2022-03-07T20:09:00",
+				"timeZone": "E. South America Standard Time",
+				"schedule": {
+					"minutes": [
+						0
+					],
+					"hours": [
+						2
+					],
+					"weekDays": [
+						"Monday",
+						"Tuesday",
+						"Wednesday",
+						"Thursday",
+						"Friday"
+					]
+				}
+			}
+		}
+	}
+}

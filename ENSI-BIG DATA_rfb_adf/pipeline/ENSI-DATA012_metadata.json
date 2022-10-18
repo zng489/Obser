@@ -1,0 +1,45 @@
+{
+	"name": "ENSI-DATA012_metadata",
+	"properties": {
+		"activities": [
+			{
+				"name": "gov_load_metadata_unified",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "gov_load_metadata_unified",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"host": "ENSI-DATA012",
+						"port": "1403",
+						"service_name": "ENSI-DATA012",
+						"username": "usr_bigdata",
+						"vendor": "sqlserver",
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						},
+						"db": {
+							"value": "@json('{host:\"ENSI-DATA012\",\"db_name\":\"PROTHEUS\",\"username\":\"usr_bigdata\",\"secret\":\"mssqlserverdbpass\",\"vendor\":\"SQLServer\"}')",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"parameters": {
+			"env": {
+				"type": "string",
+				"defaultValue": "dev"
+			}
+		},
+		"folder": {
+			"name": "gov/metadata/oracle"
+		},
+		"annotations": []
+	}
+}

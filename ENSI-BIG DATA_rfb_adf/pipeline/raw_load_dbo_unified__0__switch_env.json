@@ -1,0 +1,280 @@
+{
+	"name": "raw_load_dbo_unified__0__switch_env",
+	"properties": {
+		"description": "Checks the parameter in \"env\" variable to decide which parameters and connections to use. This will avoid having to declare a full set of parameters like db, watermark and dls. \n\nNeeded parameters:\n- db: dict type;  not the complete definition\n- tables: array type; complete definition added with partitioning definition\n- env: dict type; simple key value definition\n- adf: dict type; complete definition taking the parameters the parent pipeline (the one that entitles the process)\n\n\"adf\" parameter may be passed as string all the way down, cause it will only be evaluated in Databricks, só don't need to worry  about it now. \n\n\"dls\" parameter may be string as well.\n\nThese NEEDED PARAMS will come from the most exposed (the outer layer) of the pipeline, the one that takes the process' name. \n\nIMPORTANT: if there's no partition, you SHALL NOT declare the key  -- \"raw\": {\"partition_by\"}-- in \"tables\" array, cause in Databricks the existence of this key will be tested and if it exists, it MUST contain a VALID implementation (test it before in a notebook).\n\n\n- dbs: (add other hosts when needed)\n{\"bd_basi\":{\"host\":\"scan-rac11g\",\"port\":\"1521\",\"service_name\":\"RAC11G.SISTEMA-CNI.ORG.BR\",\"username\":\"usr_bigdata\",\"vendor\":\"Oracle\"}, \"inddesempenho\":{\"host\":\"ensi-data07-vip.sistema-cni.org.br\",\"port\":\"1521\",\"service_name\":\"ensi_rac.sistemacni.org.br\",\"username\":\"usr_bigdata\",\"vendor\":\"Oracle\"}}\n\nFor env == 'dev':\n - dls = {\"folders\":{ \"landing\":\"/tmp/dev/lnd\", \"error\":\"/tmp/dev/err\", \"staging\":\"/tmp/dev/stg\", \"log\":\"/tmp/dev/log\", \"raw\":\"/tmp/dev/raw\"}}\n\n- watermark = {\"table\":\"dev.data_factory_watermark\",\"columns\":{\"table_name\":\"table_name\",\"control_column\":\"control_column\",\"control_column_value\":\"control_column_value\",\"control_column_type_2_db\":\"control_column_type_2_db\"},\"procedures\":{\"insert_first_watermark\":\"[dev].[insert_first_watermark]\",\"update_watermark\":\"[dev].[usp_write_watermark]\"}}",
+		"activities": [
+			{
+				"name": "switch_env_parameters",
+				"description": "Checks the parameter in \"env\" variable to decide which parameters and connections to use. This will avoid having to declare these parameters, cause they are going to be set based on this switch:\n    dbs, watermark and dls. \n\nDatabase connection definitions will be set based on 'env' definition. This will allow future implementation of 'dev', 'prod' and other environments to point to distinct databases.\n\nFor MySQL databases, schema = service_name. This allows to use the already existing variables widely used for Oracle Connections. ",
+				"type": "Switch",
+				"dependsOn": [
+					{
+						"activity": "set_container",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "set_storage_url",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"on": {
+						"value": "@toLower(pipeline().parameters.env.env)",
+						"type": "Expression"
+					},
+					"cases": [
+						{
+							"value": "dev",
+							"activities": [
+								{
+									"name": "raw_load_dbo_unified__1__set_params__dev",
+									"description": "Executes the 'raw_load_dbo_unified__1__set_params' pipeline, passing 'dls' and 'watermark' parameters for 'dev'\n\nParam 'tables' will be downstreamed. \nParam 'databricks' will be deprecated by the unified implementation. ",
+									"type": "ExecutePipeline",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "raw_load_dbo_unified__1__set_params",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": true,
+										"parameters": {
+											"env": {
+												"value": "@pipeline().parameters.env",
+												"type": "Expression"
+											},
+											"tables": {
+												"value": "@pipeline().parameters.tables",
+												"type": "Expression"
+											},
+											"dls": {
+												"value": "@pipeline().globalParameters.dls_dev",
+												"type": "Expression"
+											},
+											"watermark": {
+												"value": "@json('{\"table\":\"dev.data_factory_watermark\",\"columns\":{\"table_name\":\"table_name\",\"control_column\":\"control_column\",\"control_column_value\":\"control_column_value\",\"control_column_type_2_db\":\"control_column_type_2_db\"},\"procedures\":{\"insert_first_watermark\":\"[dev].[insert_first_watermark]\",\"update_watermark\":\"[dev].[usp_write_watermark]\",\"dq_check_control_column\":\"[dev].[dq_log_table_with_inconsistent_control_column]\",\"dq_log_partition_data_loss\":\"[dev].[dq_log_table_record_loss_when_partitioning]\",\"control_column_insert\":\"[dev].[adf_insert_load_raw_max_control_column]\",\"control_column_delete\":\"[dev].[adf_delete_load_raw_max_control_column]\", \"control_column_select\": \"[dev].[adf_select_load_raw_max_control_column]\"}}')",
+												"type": "Expression"
+											},
+											"dbs": {
+												"value": "@pipeline().globalParameters.databases_dev",
+												"type": "Expression"
+											},
+											"adf": {
+												"value": "@json(string(pipeline().parameters.adf))",
+												"type": "Expression"
+											},
+											"container": {
+												"value": "@variables('container')",
+												"type": "Expression"
+											},
+											"url": {
+												"value": "@variables('storage_url')",
+												"type": "Expression"
+											}
+										}
+									}
+								}
+							]
+						},
+						{
+							"value": "prod",
+							"activities": [
+								{
+									"name": "raw_load_dbo_unified__1__set_params__prod",
+									"description": "Executes 'raw_load_dbo_unified__1__set_params' applying 'prod' params.\n\n",
+									"type": "ExecutePipeline",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "raw_load_dbo_unified__1__set_params",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": true,
+										"parameters": {
+											"env": {
+												"value": "@pipeline().parameters.env",
+												"type": "Expression"
+											},
+											"tables": {
+												"value": "@pipeline().parameters.tables",
+												"type": "Expression"
+											},
+											"dls": {
+												"value": "@pipeline().globalParameters.dls_prod",
+												"type": "Expression"
+											},
+											"watermark": {
+												"value": "@json('{\"table\":\"dbo.data_factory_watermark\",\"columns\":{\"table_name\":\"table_name\",\"control_column\":\"control_column\",\"control_column_value\":\"control_column_value\",\"control_column_type_2_db\":\"control_column_type_2_db\"},\"procedures\":{\"insert_first_watermark\":\"[dbo].[insert_first_watermark]\",\"update_watermark\":\"[dbo].[usp_write_watermark]\",\"dq_check_control_column\":\"[dbo].[dq_log_table_with_inconsistent_control_column]\",\"dq_log_partition_data_loss\":\"[dbo].[dq_log_table_record_loss_when_partitioning]\",\"control_column_insert\":\"[dbo].[adf_insert_load_raw_max_control_column]\",\"control_column_delete\":\"[dbo].[adf_delete_load_raw_max_control_column]\", \"control_column_select\": \"[dbo].[adf_select_load_raw_max_control_column]\"}}')",
+												"type": "Expression"
+											},
+											"dbs": {
+												"value": "@pipeline().globalParameters.databases_prod",
+												"type": "Expression"
+											},
+											"adf": {
+												"value": "@json(string(pipeline().parameters.adf))",
+												"type": "Expression"
+											},
+											"container": {
+												"value": "@variables('container')",
+												"type": "Expression"
+											},
+											"url": {
+												"value": "@variables('storage_url')",
+												"type": "Expression"
+											}
+										}
+									}
+								}
+							]
+						}
+					],
+					"defaultActivities": [
+						{
+							"name": "env__declaration_unsupported",
+							"description": "The value for key \"env\" in \"env\" parameters is unsupported. Please review your implementation.",
+							"type": "WebHook",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"url": "https://thisisthewaytosimuateanerrormyfriend.com/api",
+								"method": "POST",
+								"headers": {
+									"Content-Type": "application/json"
+								},
+								"body": {
+									"error": true
+								},
+								"timeout": "00:10:00"
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "send_email_on_failure",
+				"description": "Calls the pipeline that send email on  failure. As this activity will be successfully executed, it will be necessary to force a fail in the downstream.",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "switch_env_parameters",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "send_email",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"email_users": {
+							"value": "@array('default')",
+							"type": "Expression"
+						},
+						"email_groups": {
+							"value": "@array('default')",
+							"type": "Expression"
+						},
+						"adf": {
+							"value": "@json(string(pipeline().parameters.adf))",
+							"type": "Expression"
+						},
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "fail_the_pipeline",
+				"description": "Calls templates.common.error_implementation to fail this execution, as should be.",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "send_email_on_failure",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "error_implementation",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "set_container",
+				"description": "Set storage/adls container",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "container",
+					"value": {
+						"value": "@pipeline().globalParameters.datalake_container",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "set_storage_url",
+				"description": "Sets storage url for datalake.",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "storage_url",
+					"value": {
+						"value": "@pipeline().globalParameters.datalake_storage_url",
+						"type": "Expression"
+					}
+				}
+			}
+		],
+		"parameters": {
+			"env": {
+				"type": "object",
+				"defaultValue": {
+					"default": "is_useless"
+				}
+			},
+			"tables": {
+				"type": "array",
+				"defaultValue": []
+			},
+			"adf": {
+				"type": "object",
+				"defaultValue": {
+					"default": "is_useless"
+				}
+			}
+		},
+		"variables": {
+			"container": {
+				"type": "String"
+			},
+			"storage_url": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "templates/raw/bdo/raw_load_bdo_unified"
+		},
+		"annotations": []
+	}
+}

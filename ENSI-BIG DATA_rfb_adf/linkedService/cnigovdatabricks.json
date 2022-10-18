@@ -1,0 +1,14 @@
+{
+	"name": "cnigovdatabricks",
+	"properties": {
+		"description": "Databricks governance cluster connection",
+		"annotations": [],
+		"type": "AzureDatabricks",
+		"typeProperties": {
+			"domain": "https://adb-6523536500265509.9.azuredatabricks.net",
+			"authentication": "MSI",
+			"workspaceResourceId": "/subscriptions/3e3a21e3-9551-4945-8c46-c02f558392ce/resourceGroups/bigdata/providers/Microsoft.Databricks/workspaces/cnibigdatabricks1",
+			"existingClusterId": "1215-182643-gnome174"
+		}
+	}
+}

@@ -1,0 +1,85 @@
+{
+	"name": "raw_trs_lms_uc_acesso",
+	"properties": {
+		"activities": [
+			{
+				"name": "trusted__0__switch_env",
+				"description": "Calls trusted template that switches env.",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "trusted__0__switch_env",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						},
+						"tables": {
+							"value": "@pipeline().parameters.tables",
+							"type": "Expression"
+						},
+						"databricks": {
+							"value": "@pipeline().parameters.databricks",
+							"type": "Expression"
+						},
+						"adf": {
+							"value": "{'adf_factory_name': '@{pipeline().DataFactory}', 'adf_pipeline_name': '@{pipeline().Pipeline}', 'adf_pipeline_run_id': '@{pipeline().RunId}',  'adf_trigger_id': '@{pipeline().TriggerId}', 'adf_trigger_name': '@{pipeline().TriggerName}', 'adf_trigger_time': '@{pipeline().TriggerTime}',  'adf_trigger_type': '@{pipeline().TriggerType}'}",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"parameters": {
+			"tables": {
+				"type": "object",
+				"defaultValue": {
+					"origins": [
+						"/bdo/uc/classifications",
+						"/bdo/uc/groups",
+						"/bdo/uc/course_performances",
+						"/bdo/uc/users_in_groups",
+						"/bdo/uc/users_extended",
+						"/bdo/uc/groups_in_groups",
+						"/bdo/uc/assignments_in_groups",
+						"/bdo/uc/assignments",
+						"/bdo/uc/groups_extended",
+						"/bdo/uc/assignments_status",
+						"/bdo/uc/users",
+						"/bdo/uc/log_sessions"
+					],
+					"destination": "/universidade_corporativa/acesso"
+				}
+			},
+			"databricks": {
+				"type": "object",
+				"defaultValue": {
+					"trs": {
+						"notebook": "/trs/lms_uc/raw_trs_acesso"
+					}
+				}
+			},
+			"user_parameters": {
+				"type": "object",
+				"defaultValue": {
+					"null": "null"
+				}
+			},
+			"env": {
+				"type": "object",
+				"defaultValue": {
+					"env": "dev"
+				}
+			}
+		},
+		"folder": {
+			"name": "trs/lms_uc"
+		},
+		"annotations": []
+	}
+}

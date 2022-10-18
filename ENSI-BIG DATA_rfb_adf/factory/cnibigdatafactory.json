@@ -1,0 +1,409 @@
+{
+	"name": "cnibigdatafactory",
+	"properties": {
+		"globalParameters": {
+			"dls_dev": {
+				"type": "object",
+				"value": {
+					"folders": {
+						"landing": "/tmp/dev/lnd",
+						"error": "/tmp/dev/err",
+						"archive": "/tmp/dev/ach",
+						"staging": "/tmp/dev/stg",
+						"log": "/tmp/dev/log",
+						"raw": "/tmp/dev/raw",
+						"trusted": "/tmp/dev/trs",
+						"business": "/tmp/dev/biz",
+						"prm": "/tmp/dev/prm",
+						"historico": "/tmp/dev/hst"
+					}
+				}
+			},
+			"dls_prod": {
+				"type": "object",
+				"value": {
+					"folders": {
+						"landing": "/lnd",
+						"error": "/err",
+						"archive": "/ach",
+						"staging": "/stg",
+						"log": "/log",
+						"raw": "/raw",
+						"trusted": "/trs",
+						"business": "/biz",
+						"prm": "/prm",
+						"historico": "/hst"
+					}
+				}
+			},
+			"databricks_notebook_base_dev": {
+				"type": "string",
+				"value": "/KEYRUS/dev"
+			},
+			"databricks_notebook_base_prod": {
+				"type": "string",
+				"value": "/KEYRUS/prod"
+			},
+			"dls_uld_prod": {
+				"type": "object",
+				"value": {
+					"folders": {
+						"landing": "/uld",
+						"error": "/err",
+						"staging": "/stg",
+						"log": "/log",
+						"raw": "/raw",
+						"archive": "/ach"
+					},
+					"systems": {
+						"raw": "usr"
+					}
+				}
+			},
+			"dls_uld_dev": {
+				"type": "object",
+				"value": {
+					"folders": {
+						"landing": "/tmp/dev/uld",
+						"error": "/tmp/dev/err",
+						"staging": "/tmp/dev/stg",
+						"log": "/tmp/dev/log",
+						"raw": "/tmp/dev/raw",
+						"archive": "/tmp/dev/ach"
+					},
+					"systems": {
+						"raw": "usr"
+					}
+				}
+			},
+			"dls_uld_unigest_dev": {
+				"type": "object",
+				"value": {
+					"folders": {
+						"landing": "/tmp/dev/uld",
+						"error": "/tmp/dev/err",
+						"staging": "/tmp/dev/stg",
+						"log": "/tmp/dev/log",
+						"raw": "/tmp/dev/raw",
+						"archive": "/tmp/dev/ach",
+						"reject": "/tmp/dev/rjt"
+					},
+					"sub_folders": {
+						"usr": "usr",
+						"uld": "uld"
+					}
+				}
+			},
+			"dls_uld_unigest_prod": {
+				"type": "object",
+				"value": {
+					"folders": {
+						"landing": "/uld",
+						"error": "/err",
+						"staging": "/stg",
+						"log": "/log",
+						"raw": "/raw",
+						"archive": "/ach",
+						"reject": "/rjt"
+					},
+					"sub_folders": {
+						"usr": "usr",
+						"uld": "uld"
+					}
+				}
+			},
+			"databases_dev": {
+				"type": "object",
+				"value": {
+					"bd_basi": {
+						"host": "scan-rac11g",
+						"port": "1521",
+						"service_name": "RAC11G.SISTEMA-CNI.ORG.BR",
+						"username": "usr_bigdata",
+						"secret": "oracledbpass",
+						"vendor": "Oracle"
+					},
+					"gestaorh": {
+						"host": "scan-rac11g",
+						"port": "1521",
+						"service_name": "RAC11G.SISTEMA-CNI.ORG.BR",
+						"username": "usr_bigdata",
+						"secret": "oracledbpass",
+						"vendor": "Oracle"
+					},
+					"integradorweb": {
+						"host": "scan-rac11g",
+						"port": "1521",
+						"service_name": "RAC11G.SISTEMA-CNI.ORG.BR",
+						"username": "usr_bigdata",
+						"secret": "oracledbpass",
+						"vendor": "Oracle"
+					},
+					"inddesempenho": {
+						"host": "scan-ensirac.sistema-cni.org.br",
+						"port": "1521",
+						"service_name": "ensi_rac.sistemacni.org.br",
+						"username": "usr_bigdata",
+						"secret": "oracledbpass",
+						"vendor": "Oracle"
+					},
+					"corporativo": {
+						"host": "scan-ensirac.sistema-cni.org.br",
+						"port": "1521",
+						"service_name": "ensi_rac.sistemacni.org.br",
+						"username": "usr_bigdata",
+						"secret": "oracledbpass",
+						"vendor": "Oracle"
+					},
+					"oba": {
+						"host": "scan-ensirac.sistema-cni.org.br",
+						"port": "1521",
+						"service_name": "ensi_rac.sistemacni.org.br",
+						"username": "usr_bigdata",
+						"secret": "oracledbpass",
+						"vendor": "Oracle"
+					},
+					"protheus11": {
+						"host": "ensi-datavrt01",
+						"port": "1521",
+						"service_name": "odbprd",
+						"username": "usr_bigdata",
+						"secret": "oracledbpass",
+						"vendor": "Oracle"
+					},
+					"scae": {
+						"host": "scan-ensirac.sistema-cni.org.br",
+						"port": "1521",
+						"service_name": "ensi_rac.sistemacni.org.br",
+						"username": "usr_bigdata",
+						"secret": "oracledbpass",
+						"vendor": "Oracle"
+					},
+					"sors": {
+						"host": "ENSI-AZDATA010",
+						"db_name": "dbCDISOrcamento",
+						"username": "usr_bigdata",
+						"secret": "mssqlserverdbpass",
+						"vendor": "SQLServer"
+					},
+					"robo_legisdata": {
+						"host": "scan-rac11g",
+						"port": "1521",
+						"service_name": "RAC11G.SISTEMA-CNI.ORG.BR",
+						"username": "usr_bigdata",
+						"secret": "oracledbpass",
+						"vendor": "Oracle"
+					},
+					"postgres_tableau": {
+						"host": "ensi-aztableau",
+						"port": "8060",
+						"service_name": "workgroup",
+						"username": "readonly",
+						"secret": "postgrestableaupass",
+						"vendor": "Postgres"
+					},
+					"protheus": {
+						"host": "ENSI-DATA012",
+						"db_name": "PROTHEUS",
+						"username": "usr_bigdata",
+						"vendor": "SQLServer",
+						"secret": "oracledbpass"
+					},
+					"mssqlservertest": {
+						"host": "cnibigdatatestmssql.database.windows.net",
+						"db_name": "cnibigdatatestmssql",
+						"username": "keyrus",
+						"vendor": "SQLServer",
+						"secret": "cnibigdatatestmssqlpass"
+					},
+					"uc": {
+						"host": "azdata-lmssesi-prd.mysql.database.azure.com",
+						"service_name": "uc",
+						"username": "usr_tableau_uc@azdata-lmssesi-prd.mysql",
+						"port": "3306",
+						"vendor": "MySQL",
+						"secret": "mysqldbpassLMS",
+						"private_endpoint": "LMS_SESI"
+					},
+					"siga": {
+						"host": "ensi-data024",
+						"db_name": "siga",
+						"username": "usr_bigdata",
+						"vendor": "SQLServer",
+						"secret": "mssqlserverdbpass"
+					},
+					"arrecada": {
+						"host": "10.16.148.231",
+						"port": "1521",
+						"service_name": "BDATA001",
+						"username": "usr_bigdata",
+						"secret": "oracledbpass",
+						"vendor": "Oracle"
+					}
+				}
+			},
+			"databases_prod": {
+				"type": "object",
+				"value": {
+					"bd_basi": {
+						"host": "scan-rac11g",
+						"port": "1521",
+						"service_name": "RAC11G.SISTEMA-CNI.ORG.BR",
+						"username": "usr_bigdata",
+						"secret": "oracledbpass",
+						"vendor": "Oracle"
+					},
+					"gestaorh": {
+						"host": "scan-rac11g",
+						"port": "1521",
+						"service_name": "RAC11G.SISTEMA-CNI.ORG.BR",
+						"username": "usr_bigdata",
+						"secret": "oracledbpass",
+						"vendor": "Oracle"
+					},
+					"integradorweb": {
+						"host": "scan-rac11g",
+						"port": "1521",
+						"service_name": "RAC11G.SISTEMA-CNI.ORG.BR",
+						"username": "usr_bigdata",
+						"secret": "oracledbpass",
+						"vendor": "Oracle"
+					},
+					"inddesempenho": {
+						"host": "scan-ensirac.sistema-cni.org.br",
+						"port": "1521",
+						"service_name": "ensi_rac.sistemacni.org.br",
+						"username": "usr_bigdata",
+						"secret": "oracledbpass",
+						"vendor": "Oracle"
+					},
+					"corporativo": {
+						"host": "scan-ensirac.sistema-cni.org.br",
+						"port": "1521",
+						"service_name": "ensi_rac.sistemacni.org.br",
+						"username": "usr_bigdata",
+						"secret": "oracledbpass",
+						"vendor": "Oracle"
+					},
+					"oba": {
+						"host": "scan-ensirac.sistema-cni.org.br",
+						"port": "1521",
+						"service_name": "ensi_rac.sistemacni.org.br",
+						"username": "usr_bigdata",
+						"secret": "oracledbpass",
+						"vendor": "Oracle"
+					},
+					"protheus11": {
+						"host": "ensi-datavrt01",
+						"port": "1521",
+						"service_name": "odbprd",
+						"username": "usr_bigdata",
+						"secret": "oracledbpass",
+						"vendor": "Oracle"
+					},
+					"scae": {
+						"host": "scan-ensirac.sistema-cni.org.br",
+						"port": "1521",
+						"service_name": "ensi_rac.sistemacni.org.br",
+						"username": "usr_bigdata",
+						"secret": "oracledbpass",
+						"vendor": "Oracle"
+					},
+					"sors": {
+						"host": "ENSI-AZDATA010",
+						"db_name": "dbCDISOrcamento",
+						"username": "usr_bigdata",
+						"secret": "mssqlserverdbpass",
+						"vendor": "SQLServer"
+					},
+					"robo_legisdata": {
+						"host": "scan-rac11g",
+						"port": "1521",
+						"service_name": "RAC11G.SISTEMA-CNI.ORG.BR",
+						"username": "usr_bigdata",
+						"secret": "oracledbpass",
+						"vendor": "Oracle"
+					},
+					"postgres_tableau": {
+						"host": "ensi-aztableau",
+						"port": "8060",
+						"service_name": "workgroup",
+						"username": "readonly",
+						"secret": "postgrestableaupass",
+						"vendor": "Postgres"
+					},
+					"protheus": {
+						"host": "ENSI-DATA012",
+						"db_name": "PROTHEUS",
+						"username": "usr_bigdata",
+						"vendor": "SQLServer",
+						"secret": "oracledbpass"
+					},
+					"mssqlservertest": {
+						"host": "cnibigdatatestmssql.database.windows.net",
+						"db_name": "cnibigdatatestmssql",
+						"username": "keyrus",
+						"vendor": "SQLServer",
+						"secret": "cnibigdatatestmssqlpass"
+					},
+					"uc": {
+						"host": "azdata-lmssesi-prd.mysql.database.azure.com",
+						"service_name": "uc",
+						"username": "usr_tableau_uc@azdata-lmssesi-prd.mysql",
+						"port": "3306",
+						"vendor": "MySQL",
+						"secret": "mysqldbpassLMS",
+						"private_endpoint": "LMS_SESI"
+					},
+					"siga": {
+						"host": "ensi-data024",
+						"db_name": "siga",
+						"username": "usr_bigdata",
+						"vendor": "SQLServer",
+						"secret": "mssqlserverdbpass"
+					},
+					"arrecada": {
+						"host": "10.16.148.231",
+						"port": "1521",
+						"service_name": "BDATA001",
+						"username": "usr_bigdata",
+						"secret": "oracledbpass",
+						"vendor": "Oracle"
+					}
+				}
+			},
+			"watermark_prefix_dbo": {
+				"type": "string",
+				"value": "dbo"
+			},
+			"mssqlserver__function__regexp_replace": {
+				"type": "string",
+				"value": "dbo.REGEXP_REPLACE"
+			},
+			"sqldw_schemas": {
+				"type": "object",
+				"value": {
+					"development": "dev",
+					"lab": "lab",
+					"trusted": "trs",
+					"business": "biz",
+					"integration": "dbo",
+					"governance": "gov"
+				}
+			},
+			"datalake_container": {
+				"type": "string",
+				"value": "datalake"
+			},
+			"datalake_storage_url": {
+				"type": "string",
+				"value": "https://cnibigdatadlsgen2.dfs.core.windows.net"
+			},
+			"adls_path_prefix_dev": {
+				"type": "string",
+				"value": "/tmp/dev"
+			}
+		}
+	},
+	"location": "eastus2"
+}

@@ -1,0 +1,12 @@
+{
+	"name": "cnibigdatakeyvault",
+	"properties": {
+		"description": "Azure Key Vault",
+		"annotations": [],
+		"type": "AzureKeyVault",
+		"typeProperties": {
+			"baseUrl": "https://cnibigdatakeyvault.vault.azure.net/"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/linkedservices"
+}

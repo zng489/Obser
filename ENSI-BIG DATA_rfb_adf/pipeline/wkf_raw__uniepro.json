@@ -1,0 +1,1112 @@
+{
+	"name": "wkf_raw__uniepro",
+	"properties": {
+		"activities": [
+			{
+				"name": "wkf_raw__uniepro__wv1",
+				"type": "Wait",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"waitTimeInSeconds": 1
+				}
+			},
+			{
+				"name": "org_raw_ibge_pnadc",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_raw__uniepro__wv1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_ibge_pnadc",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_estrutura_territorial",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_raw__uniepro__wv3",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_estrutura_territorial",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_me_caged",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_raw__uniepro__wv1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_caged",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_me_caged_ajustes",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_raw__uniepro__wv1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_caged_ajuste",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_etapa_ensino",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_raw__uniepro__wv2",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_etapa_ensino",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_microdados_matriculas",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_raw__uniepro__wv2",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_matriculas",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_inep_censo_escolar_docente",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_raw__uniepro__wv2",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_docente",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_inep_censo_escolar_escola",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_raw__uniepro__wv2",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_escola",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "wkf_raw__uniepro__wv2",
+				"type": "Wait",
+				"dependsOn": [
+					{
+						"activity": "org_raw_ibge_pnadc",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "org_raw_me_caged",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "org_raw_me_caged_ajustes",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "org_raw_ibge_ipca",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "org_raw_taxa_rendimento_brasil_regioes",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "org_raw_taxa_rendimento_escolas",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "org_raw_taxa_rendimento_municipios",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "org_raw_curso_educacao_profissional",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"waitTimeInSeconds": 1
+				}
+			},
+			{
+				"name": "org_raw_inep_censo_escolar_gestor",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_raw__uniepro__wv2",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_gestor",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_inep_censo_escolar_turma",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_raw__uniepro__wv2",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_turmas",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "wkf_raw__uniepro__wv3",
+				"type": "Wait",
+				"dependsOn": [
+					{
+						"activity": "org_raw_etapa_ensino",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "org_raw_microdados_matriculas",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "org_raw_inep_censo_escolar_docente",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "org_raw_inep_censo_escolar_escola",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "org_raw_inep_censo_escolar_gestor",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "org_raw_inep_censo_escolar_turma",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "org_raw_icg_escolas",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "org_raw_cnae",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"waitTimeInSeconds": 1
+				}
+			},
+			{
+				"name": "org_raw_microdados_prova_brasil",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_raw__uniepro__wv3",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_prova_brasil_aluno",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_inep_ideb_brasil",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_raw__uniepro__wv3",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_ideb_ideb",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_microdados_enem",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_raw__uniepro__wv3",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_microdados_enem",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_enem_escola",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_raw__uniepro__wv3",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_enem_escola",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "wkf_raw__uniepro__wv4",
+				"type": "Wait",
+				"dependsOn": [
+					{
+						"activity": "org_raw_estrutura_territorial",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "org_raw_microdados_prova_brasil",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "org_raw_inep_ideb_brasil",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "org_raw_microdados_enem",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "org_raw_enem_escola",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "org_raw_enem_escola_dicionario",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "org_raw_deflatores",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "org_raw_inse_socioeconomico",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"waitTimeInSeconds": 1
+				}
+			},
+			{
+				"name": "org_raw_afd_escolas",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_raw__uniepro__wv4",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_afd_escolas",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_afd_brasil_regioes",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_raw__uniepro__wv4",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_afd_brasil_regioes",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_afd_municipios",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_raw__uniepro__wv4",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_afd_municipios",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_saeb_diretor",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_raw__uniepro__wv4",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_saeb_diretor",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_saeb_professor",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_raw__uniepro__wv4",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_saeb_professor",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_saeb_escola",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_raw__uniepro__wv4",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_saeb_escola",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_saeb_alunos",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_raw__uniepro__wv4",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_saeb_aluno",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_enem_escola_dicionario",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_raw__uniepro__wv3",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_enem_escola_dicionario",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_ibge_ipca",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_raw__uniepro__wv1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_ipca",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_taxa_rendimento_brasil_regioes",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_raw__uniepro__wv1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_taxa_rendimento_brasil_regioes",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_taxa_rendimento_escolas",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_raw__uniepro__wv1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_taxa_rendimento_escolas",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_taxa_rendimento_municipios",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_raw__uniepro__wv1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_taxa_rendimento_municipios",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_saeb_resultado_brasil",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_raw__uniepro__wv4",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_saeb_resultado_brasil",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_saeb_resultado_regiao",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_raw__uniepro__wv4",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_saeb_resultado_regiao",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_saeb_resultado_uf",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_raw__uniepro__wv4",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_saeb_resultado_uf",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_saeb_resultado_municipio",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_raw__uniepro__wv4",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_saeb_resultado_municipio",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_icg_escolas",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_raw__uniepro__wv2",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_icg_escolas",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_deflatores",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_raw__uniepro__wv3",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_deflatores",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_inse_socioeconomico",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_raw__uniepro__wv3",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_inse_socioeconomico",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_cnae",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_raw__uniepro__wv2",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_cnae",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_curso_educacao_profissional",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_raw__uniepro__wv1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_curso_educacao_profissional",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"parameters": {
+			"env": {
+				"type": "object",
+				"defaultValue": {
+					"env": "dev"
+				}
+			}
+		},
+		"folder": {
+			"name": "workflow/uniepro/raw"
+		},
+		"annotations": []
+	}
+}

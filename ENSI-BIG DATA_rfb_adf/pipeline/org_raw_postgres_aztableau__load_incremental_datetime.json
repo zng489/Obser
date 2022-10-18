@@ -1,0 +1,61 @@
+{
+	"name": "org_raw_postgres_aztableau__load_incremental_datetime",
+	"properties": {
+		"description": "Postgres incremental load using control_column of type datetime.\n\nThe real increment control_column for this table is not this one. This is jus for testing.\n\nPostgres does not support partitioning when copying data.\n\nThis test is using table  publlic.system_users\n",
+		"activities": [
+			{
+				"name": "raw_load_bdo_unified__0__switch_env",
+				"description": "Run template pipeline to import tables",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "raw_load_dbo_unified__0__switch_env",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						},
+						"tables": {
+							"value": "@pipeline().parameters.tables",
+							"type": "Expression"
+						},
+						"adf": {
+							"value": "{'adf_factory_name': '@{pipeline().DataFactory}', 'adf_pipeline_name': '@{pipeline().Pipeline}', 'adf_pipeline_run_id': '@{pipeline().RunId}',  'adf_trigger_id': '@{pipeline().TriggerId}', 'adf_trigger_name': '@{pipeline().TriggerName}', 'adf_trigger_time': '@{pipeline().TriggerTime}',  'adf_trigger_type': '@{pipeline().TriggerType}'}",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"concurrency": 1,
+		"parameters": {
+			"tables": {
+				"type": "array",
+				"defaultValue": [
+					"{'schema': 'postgres_tableau','table':'system_users','load_type':'incremental','partition_column':'null','control_column':'updated_at','control_column_type_2_db':'datetime', 'control_column_mask_value': 'YYYYMMDDHHMISS', 'control_column_default_value': '19000101000000', 'columns':'id,name,email,hashed_password,salt,sys,keychain,domain_id,friendly_name,custom_display_name,activation_code,activated_at,state,admin_level,created_at,updated_at,deleted_at,auth_user_id,asset_key_id,lock_version,last_password_update,force_password_update,protected_password,last_failed_login,failed_login_attempts,protected_password_bad_format'}"
+				]
+			},
+			"env": {
+				"type": "object",
+				"defaultValue": {
+					"env": "dev"
+				}
+			}
+		},
+		"folder": {
+			"name": "test/raw/postgres"
+		},
+		"annotations": [
+			"raw",
+			"postgres",
+			"test",
+			"full"
+		]
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

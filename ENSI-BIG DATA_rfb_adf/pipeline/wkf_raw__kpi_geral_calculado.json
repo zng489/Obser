@@ -1,0 +1,133 @@
+{
+	"name": "wkf_raw__kpi_geral_calculado",
+	"properties": {
+		"description": "Loads a group of tables for this business area.\n\nExpected Behavior is to fail this whole step if any of these tables fail to load.",
+		"activities": [
+			{
+				"name": "end",
+				"type": "Wait",
+				"dependsOn": [
+					{
+						"activity": "org_raw_kpi_geral_calculado_mensal",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "org_raw_kpi_geral_calculado_trimestral",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "org_raw_kpi_geral_calculado_semestral",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "org_raw_kpi_geral_calculado_anual",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"waitTimeInSeconds": 1
+				}
+			},
+			{
+				"name": "org_raw_kpi_geral_calculado_anual",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_kpi_geral_calculado_anual",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_kpi_geral_calculado_mensal",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_kpi_geral_calculado_mensal",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_kpi_geral_calculado_semestral",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_kpi_geral_calculado_semestral",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_kpi_geral_calculado_trimestral",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_kpi_geral_calculado_trimestral",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"concurrency": 1,
+		"parameters": {
+			"env": {
+				"type": "object",
+				"defaultValue": {
+					"env": "dev"
+				}
+			}
+		},
+		"folder": {
+			"name": "workflow/kpi_geral_calculado/raw"
+		},
+		"annotations": [
+			"workflow"
+		]
+	}
+}

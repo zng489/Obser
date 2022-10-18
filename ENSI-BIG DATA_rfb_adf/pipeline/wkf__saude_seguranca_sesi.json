@@ -1,0 +1,94 @@
+{
+	"name": "wkf__saude_seguranca_sesi",
+	"properties": {
+		"description": "Production workflow.\nAll raw dependencies must be executed according to the necessity of synchrony. That's why structure has layer declaration and waits in between.",
+		"activities": [
+			{
+				"name": "wkf_raw__saude_seguranca_sesi",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "wkf_raw__saude_seguranca_sesi",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "wkf_trs__saude_seguranca_sesi",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_raw__saude_seguranca_sesi",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "wkf_trs__saude_seguranca_sesi",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "wkf_biz__saude_seguranca_sesi",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_trs__saude_seguranca_sesi",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "wkf_biz__saude_seguranca_sesi",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"concurrency": 1,
+		"parameters": {
+			"env": {
+				"type": "object",
+				"defaultValue": {
+					"env": "dev"
+				}
+			}
+		},
+		"folder": {
+			"name": "workflow/saude_seguranca_sesi"
+		},
+		"annotations": [
+			"workflow"
+		]
+	}
+}

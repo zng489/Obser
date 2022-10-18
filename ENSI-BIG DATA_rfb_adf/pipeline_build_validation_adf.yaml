@@ -1,0 +1,37 @@
+# This pipeline runs on all items over ADF's pipeline folder, always
+trigger:
+- main
+- dev
+
+variables:
+- name: pipeline_file_diff
+  value: git_diff_pipeline.txt
+
+pool:
+  vmImage: ubuntu-latest
+
+jobs:
+- job: AnalyzeADFPipelines
+  strategy:
+    matrix:
+      Python38:
+        PYTHON_VERSION: '3.8'
+  steps:
+  - bash: |
+      echo 'Branches-> source: '$(System.PullRequest.SourceBranch)', target: '$(System.PullRequest.TargetBranch)
+      echo 'Active branch in build: '$(Build.SourceBranch)
+      BRANCH_SOURCE='origin/'$(echo $(System.PullRequest.SourceBranch) | awk -F '/' '{print $NF}')
+      BRANCH_TARGET='origin/'$(echo $(System.PullRequest.TargetBranch) | awk -F '/' '{print $NF}')
+
+      echo 'Modified pipeline files:'
+      GIT_DIFF_PIPELINE=$(git diff --name-only $BRANCH_TARGET $BRANCH_SOURCE -- | grep -E '^pipeline\/.*\.json')
+      echo '=========='
+      # Compare only differences in python files
+      for i in $GIT_DIFF_PIPELINE; do echo $(Build.Repository.LocalPath)/$i >> $(pipeline_file_diff); done
+  - task: PythonScript@0
+    inputs:
+      scriptSource: filePath
+      scriptPath: adf_pipeline_analyzer.py
+      arguments: --diff-file $(Build.Repository.LocalPath)/$(pipeline_file_diff)
+      #failOnStderr: true
+

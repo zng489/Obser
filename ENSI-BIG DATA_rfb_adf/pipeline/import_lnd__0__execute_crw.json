@@ -1,0 +1,661 @@
+{
+	"name": "import_lnd__0__execute_crw",
+	"properties": {
+		"description": "Implementing retry on crawler",
+		"activities": [
+			{
+				"name": "if_finished_with_errors",
+				"description": "if activity().execute_crw.finished_with_errors is true, send the mail",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "set_finished_with_errors_false_err_copy1",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@equals(variables('var_finished_with_errors'), true)",
+						"type": "Expression"
+					},
+					"ifFalseActivities": [
+						{
+							"name": "execution_successful",
+							"description": "Wait just to mark success.",
+							"type": "Wait",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"waitTimeInSeconds": 1
+							}
+						}
+					],
+					"ifTrueActivities": [
+						{
+							"name": "send_email_on_failure",
+							"description": "Calls the pipeline that send email on  failure. As this activity will be successfully executed, it will be necessary to force a fail in the downstream.",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "send_email",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"email_users": {
+										"value": "@array('default')",
+										"type": "Expression"
+									},
+									"email_groups": {
+										"value": "@array('default')",
+										"type": "Expression"
+									},
+									"adf": {
+										"value": "@pipeline().parameters.adf",
+										"type": "Expression"
+									},
+									"env": {
+										"value": "@pipeline().parameters.env",
+										"type": "Expression"
+									},
+									"message": {
+										"value": "@string(replace(string(activity('execute_crw')), '\"',''''))",
+										"type": "Expression"
+									}
+								}
+							}
+						},
+						{
+							"name": "fail_the_pipeline",
+							"description": "Calls templates.common.error_implementation to fail this execution, as should be.",
+							"type": "ExecutePipeline",
+							"dependsOn": [
+								{
+									"activity": "send_email_on_failure",
+									"dependencyConditions": [
+										"Completed"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "error_implementation",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "if_var_finished_with_errors_for_case_300",
+				"description": "Sets variable 'finished with errors to allow it to be evaluated by the next if.\nWhen status code is 300, the bot is not finished with errors or not, in fact, it's already running. That's why this flow must decide on what to do. ",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "until_crawler_reacher_retries_or_has_valid_return",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@and(equals(string(activity('execute_crw').exit), '300'), contains(activity('execute_crw').msg, 'is running'))",
+						"type": "Expression"
+					},
+					"ifFalseActivities": [
+						{
+							"name": "set_finished_with_errors_with_output_value",
+							"description": "Assumes the value from the output from crawler cause exit <> 300. \nIn cases different from 300, we've got the key 'finished_with_errors'.",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "var_finished_with_errors",
+								"value": {
+									"value": "@activity('execute_crw').finished_with_errors",
+									"type": "Expression"
+								}
+							}
+						}
+					],
+					"ifTrueActivities": [
+						{
+							"name": "set_finished_with_errors_false",
+							"description": "This is false cause exit = 300 and msg contains 'is running'.",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "var_finished_with_errors",
+								"value": false
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "until_crawler_reacher_retries_or_has_valid_return",
+				"description": "As webhook activities do not have a retry parameter for configuration, then we've got to make it happen using our creativity. We've seen many cases of intermitence interfering with this process and a simple retry could help with it.\n\nIn this case we're trying to evaluate 2 points:\n- retries count are less or equal the configured retry variable OR\n- the crawler finished with a valid return (which means: it is a dict with the 'exit' key)\n\nAny of these cases will be enough to work it out and implement the custom retry stuff. ",
+				"type": "Until",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@or(or(equals(int(variables('var_execute_crw_count')), int(variables('var_execute_crw_retries'))), contains(activity('execute_crw'), 'exit')), contains(activity('execute_crw'), 'finished_with_errors'))",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "execute_crw",
+							"type": "WebHook",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"url": {
+									"value": "https://cnibigdataproxy.azurewebsites.net/api/ApiWrapper?code=@{variables('function_app_code')}",
+									"type": "Expression"
+								},
+								"method": "POST",
+								"body": {
+									"value": "@json(concat('{\"route\":  \"v1/bot/run/', pipeline().parameters.bot, '\", \"env\": \"', pipeline().parameters.env.env,'\"}'))",
+									"type": "Expression"
+								},
+								"timeout": "12:00:00",
+								"reportStatusOnCallBack": false
+							}
+						},
+						{
+							"name": "add_1_to_var_execute_crw_count_aux",
+							"description": "Increments the variable plus 1. With this we can meet the max retries.\n\nWe need and auxiliary variable because ADF is so dumb that you cannot override a variable directly. ",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "set_return_test_if_timeout",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "var_execute_crw_count_aux",
+								"value": {
+									"value": "@string(add(1, int(variables('var_execute_crw_count'))))",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "override_var_execute_crw_count",
+							"description": "overrides the variable value to allow the next comparison",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "add_1_to_var_execute_crw_count_aux",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "var_execute_crw_count",
+								"value": {
+									"value": "@variables('var_execute_crw_count_aux')",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "wait_1_minute_to_retry",
+							"description": "Waits one minute to retry.",
+							"type": "Wait",
+							"dependsOn": [
+								{
+									"activity": "override_var_execute_crw_count",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"waitTimeInSeconds": 60
+							}
+						},
+						{
+							"name": "execute_crw_stop_by_timeout",
+							"type": "WebHook",
+							"dependsOn": [
+								{
+									"activity": "set_return_test_if_timeout",
+									"dependencyConditions": [
+										"Failed"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"url": {
+									"value": "https://cnibigdataproxy.azurewebsites.net/api/ApiWrapper?code=@{variables('function_app_code')}",
+									"type": "Expression"
+								},
+								"method": "POST",
+								"body": {
+									"value": "@json(concat('{\"route\":  \"v1/bot/stop/', pipeline().parameters.bot, '\"}'))",
+									"type": "Expression"
+								},
+								"timeout": "00:10:00",
+								"reportStatusOnCallBack": false
+							}
+						},
+						{
+							"name": "set_finished_with_errors_false_err",
+							"description": "This is true cause the webhook fail",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "set_return_test_if_timeout",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "var_finished_with_errors",
+								"value": true
+							}
+						},
+						{
+							"name": "set_return_test_if_timeout",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "execute_crw",
+									"dependencyConditions": [
+										"Failed"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "var_execute_crw_return",
+								"value": {
+									"value": "@string(length(string(activity('execute_crw').exit)))",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "set_stop_until_by_timeout",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "set_return_test_if_timeout",
+									"dependencyConditions": [
+										"Failed"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "var_execute_crw_count",
+								"value": {
+									"value": "@variables('var_execute_crw_retries')",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "wait_stop_by_timeout",
+							"type": "Wait",
+							"dependsOn": [
+								{
+									"activity": "set_stop_until_by_timeout",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								},
+								{
+									"activity": "execute_crw_stop_by_timeout",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"waitTimeInSeconds": 30
+							}
+						}
+					],
+					"timeout": "7:50:00"
+				}
+			},
+			{
+				"name": "set_finished_with_errors_false_err_copy1",
+				"description": "This is true cause something fail",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "until_crawler_reacher_retries_or_has_valid_return",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "var_finished_with_errors",
+					"value": true
+				}
+			},
+			{
+				"name": "if_var_finished_with_errors_case_300_without_message",
+				"description": "Sets variable 'finished with errors to allow it to be evaluated by the next if.\nWhen status code is 300, the bot is not finished with errors or not, in fact, it's already running. That's why this flow must decide on what to do. ",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "if_var_finished_with_errors_for_case_300",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@equals(string(activity('execute_crw').exit), '300')",
+						"type": "Expression"
+					},
+					"ifFalseActivities": [
+						{
+							"name": "set_finished_with_errors_with_output_value_wm",
+							"description": "Assumes the value from the output from crawler cause exit <> 300. \nIn cases different from 300, we've got the key 'finished_with_errors'.",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "var_finished_with_errors",
+								"value": {
+									"value": "@activity('execute_crw').finished_with_errors",
+									"type": "Expression"
+								}
+							}
+						}
+					],
+					"ifTrueActivities": [
+						{
+							"name": "set_finished_with_errors_false_wm",
+							"description": "This is false cause exit = 300 only",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "var_finished_with_errors",
+								"value": false
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "if_finished_with_errors_2",
+				"description": "if activity().execute_crw.finished_with_errors is true, send the mail",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "if_var_finished_with_errors_case_300_without_message",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@equals(variables('var_finished_with_errors'), true)",
+						"type": "Expression"
+					},
+					"ifFalseActivities": [
+						{
+							"name": "execution_successful_copy1",
+							"description": "Wait just to mark success.",
+							"type": "Wait",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"waitTimeInSeconds": 1
+							}
+						}
+					],
+					"ifTrueActivities": [
+						{
+							"name": "send_email_on_failure_2",
+							"description": "Calls the pipeline that send email on  failure. As this activity will be successfully executed, it will be necessary to force a fail in the downstream.",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "send_email",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"email_users": {
+										"value": "@array('default')",
+										"type": "Expression"
+									},
+									"email_groups": {
+										"value": "@array('default')",
+										"type": "Expression"
+									},
+									"adf": {
+										"value": "@pipeline().parameters.adf",
+										"type": "Expression"
+									},
+									"env": {
+										"value": "@pipeline().parameters.env",
+										"type": "Expression"
+									},
+									"message": {
+										"value": "@string(replace(string(activity('execute_crw')), '\"',''''))",
+										"type": "Expression"
+									}
+								}
+							}
+						},
+						{
+							"name": "fail_the_pipeline_2",
+							"description": "Calls templates.common.error_implementation to fail this execution, as should be.",
+							"type": "ExecutePipeline",
+							"dependsOn": [
+								{
+									"activity": "send_email_on_failure_2",
+									"dependencyConditions": [
+										"Completed"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "error_implementation",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "if_finished_with_errors_1",
+				"description": "if activity().execute_crw.finished_with_errors is true, send the mail",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "if_var_finished_with_errors_for_case_300",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@equals(variables('var_finished_with_errors'), true)",
+						"type": "Expression"
+					},
+					"ifFalseActivities": [
+						{
+							"name": "execution_successful_copy1_copy1",
+							"description": "Wait just to mark success.",
+							"type": "Wait",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"waitTimeInSeconds": 1
+							}
+						}
+					],
+					"ifTrueActivities": [
+						{
+							"name": "send_email_on_failure_1",
+							"description": "Calls the pipeline that send email on  failure. As this activity will be successfully executed, it will be necessary to force a fail in the downstream.",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "send_email",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"email_users": {
+										"value": "@array('default')",
+										"type": "Expression"
+									},
+									"email_groups": {
+										"value": "@array('default')",
+										"type": "Expression"
+									},
+									"adf": {
+										"value": "@pipeline().parameters.adf",
+										"type": "Expression"
+									},
+									"env": {
+										"value": "@pipeline().parameters.env",
+										"type": "Expression"
+									},
+									"message": {
+										"value": "@string(replace(string(activity('execute_crw')), '\"',''''))",
+										"type": "Expression"
+									}
+								}
+							}
+						},
+						{
+							"name": "fail_the_pipeline_1",
+							"description": "Calls templates.common.error_implementation to fail this execution, as should be.",
+							"type": "ExecutePipeline",
+							"dependsOn": [
+								{
+									"activity": "send_email_on_failure_1",
+									"dependencyConditions": [
+										"Completed"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "error_implementation",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true
+							}
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"bot": {
+				"type": "string"
+			},
+			"adf": {
+				"type": "object",
+				"defaultValue": {
+					"adf_factory_name": "not implemented for this pipeline",
+					"adf_pipeline_name": "not implemented for this pipeline",
+					"adf_pipeline_run_id": "not implemented for this pipeline",
+					"adf_trigger_id": "not implemented for this pipeline",
+					"adf_trigger_name": "not implemented for this pipeline",
+					"adf_trigger_time": "not implemented for this pipeline",
+					"adf_trigger_type": "not implemented for this pipeline"
+				}
+			},
+			"env": {
+				"type": "object",
+				"defaultValue": {
+					"env": "dev"
+				}
+			}
+		},
+		"variables": {
+			"function_app_code": {
+				"type": "String",
+				"defaultValue": "KMBSdFMfFna3x51mexCbs4zChN35PgsGo0hBFEz3TVH6zhbqx6AKbg=="
+			},
+			"var_finished_with_errors": {
+				"type": "Boolean",
+				"defaultValue": false
+			},
+			"var_execute_crw_retries": {
+				"type": "String",
+				"defaultValue": "3"
+			},
+			"var_execute_crw_has_exit": {
+				"type": "Boolean",
+				"defaultValue": false
+			},
+			"var_execute_crw_count": {
+				"type": "String",
+				"defaultValue": "1"
+			},
+			"var_execute_crw_count_aux": {
+				"type": "String",
+				"defaultValue": "1"
+			},
+			"var_finished_with_timeout": {
+				"type": "Boolean",
+				"defaultValue": false
+			},
+			"var_execute_crw_return": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "templates/lnd"
+		},
+		"annotations": [
+			"template",
+			"landing",
+			"crawler"
+		]
+	}
+}

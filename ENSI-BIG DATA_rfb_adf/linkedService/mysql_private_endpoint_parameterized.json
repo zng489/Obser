@@ -1,0 +1,46 @@
+{
+	"name": "mysql_private_endpoint_parameterized",
+	"properties": {
+		"description": "MySQL parameterized connection with private endpoint",
+		"parameters": {
+			"DBHost": {
+				"type": "string"
+			},
+			"DBPort": {
+				"type": "string"
+			},
+			"DBServiceName": {
+				"type": "string"
+			},
+			"DBUserName": {
+				"type": "string"
+			},
+			"DBPasswordSecret": {
+				"type": "string"
+			},
+			"DBPrivateEndpoint": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "AzureMySql",
+		"typeProperties": {
+			"connectionString": "Server=@{linkedService().DBHost};Port=@{linkedService().DBPort};Database=@{linkedService().DBServiceName};UID=@{linkedService().DBUserName};SSLMode=1;UseSystemTrustStore=0",
+			"password": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "cnibigdatakeyvault",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": {
+					"value": "@linkedService().DBPasswordSecret",
+					"type": "Expression"
+				}
+			}
+		},
+		"connectVia": {
+			"referenceName": "azureintegrationruntimevnet",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

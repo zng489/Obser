@@ -1,0 +1,184 @@
+{
+	"name": "wkf_trs__saude_seguranca_sesi",
+	"properties": {
+		"description": "Workflow for truted tables of domain \"saude_seguranca\"",
+		"activities": [
+			{
+				"name": "raw_trs_lancamento_servico_saude_seguranca",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "raw_trs_lancamento_servico_saude_seguranca",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "raw_trs_lancamento_saude_seguranca_metrica",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "raw_trs_lancamento_servico_saude_seguranca_metrica",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "raw_trs_lancamento_servico_saude_seguranca_caracteristi",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "raw_trs_lancamento_servico_saude_seguranca_caracteristica",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "raw_trs_valor_lancamento_ssi_pessoa_beneficiada",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "raw_trs_valor_lancamento_ssi_pessoa_beneficiada",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "raw_trs_estabelecimento_atendido",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "raw_trs_estabelecimento_atendido",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "raw_trs_estabelecimento_atendido_caracteristica",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "raw_trs_estabelecimento_atendido_caracteristica",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "end",
+				"type": "Wait",
+				"dependsOn": [
+					{
+						"activity": "raw_trs_estabelecimento_atendido",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "raw_trs_estabelecimento_atendido_caracteristica",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "raw_trs_lancamento_servico_saude_seguranca_caracteristi",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "raw_trs_valor_lancamento_ssi_pessoa_beneficiada",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "raw_trs_lancamento_saude_seguranca_metrica",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "raw_trs_lancamento_servico_saude_seguranca",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"waitTimeInSeconds": 1
+				}
+			}
+		],
+		"concurrency": 1,
+		"parameters": {
+			"env": {
+				"type": "object",
+				"defaultValue": {
+					"env": "dev"
+				}
+			}
+		},
+		"folder": {
+			"name": "workflow/saude_seguranca_sesi/trs"
+		},
+		"annotations": [
+			"workflow",
+			"trusted"
+		]
+	}
+}

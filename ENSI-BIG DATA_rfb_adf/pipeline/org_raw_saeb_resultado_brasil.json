@@ -1,0 +1,97 @@
+{
+	"name": "org_raw_saeb_resultado_brasil",
+	"properties": {
+		"description": "This pipeline loads data from crawler, there's no partitioning and it reads from 'lnd'\n\nParameters for DEV are:\n\ntables = [\"{'schema': 'inep_censo_escolar__curso_educacao_profissional','table': 'curso_educacao_profissional'}\"]\n\ndls = {\"folders\":{\"landing\":\"/tmp/dev/lnd\",\"error\":\"/tmp/lnd/err\",\"staging\":\"/tmp/dev/stg\",\"log\":\"/tmp/dev/log\",\"raw\":\"/tmp/dev/raw\",\"archive\":\"/tmp/dev/ach\"}}\n\nwatermark ={\"raw\":{\"notebook\":{\"folder\":\"/KEYRUS/dev/raw/crw/inep_censo_escolar\",\"file\":\"org_raw_censo_educacao_profissional\"}}}\n",
+		"activities": [
+			{
+				"name": "import_crw__0__switch_env",
+				"description": "",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "import_crw__0__switch_env",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						},
+						"adf": {
+							"value": "{'adf_factory_name': '@{pipeline().DataFactory}', 'adf_pipeline_name': '@{pipeline().Pipeline}', 'adf_pipeline_run_id': '@{pipeline().RunId}',  'adf_trigger_id': '@{pipeline().TriggerId}', 'adf_trigger_name': '@{pipeline().TriggerName}', 'adf_trigger_time': '@{pipeline().TriggerTime}',  'adf_trigger_type': '@{pipeline().TriggerType}'}",
+							"type": "Expression"
+						},
+						"tables": {
+							"value": "@pipeline().parameters.tables",
+							"type": "Expression"
+						},
+						"databricks": {
+							"value": "@pipeline().parameters.databricks",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"parameters": {
+			"tables": {
+				"type": "object",
+				"defaultValue": {
+					"schema": "inep_saeb",
+					"table": "resultado",
+					"prm_path": "/prm/usr/inep_saeb/FIEC_INEP_saeb_resultado_brasil_mapeamento_unificado_raw.xlsx",
+					"idp_tables": [
+						"TS_QUEST_ALUNO",
+						"TS_RESULTADO_ALUNO",
+						"TS_RESPOSTA_ALUNO"
+					],
+					"grp_tables": {
+						"2013": [
+							"2013_TS_ALUNO_5EF",
+							"2013_TS_ALUNO_9EF",
+							"2013_TS_ALUNO_3EM"
+						],
+						"2015": [
+							"2015_TS_ALUNO_5EF",
+							"2015_TS_ALUNO_9EF",
+							"2015_TS_ALUNO_3EM"
+						],
+						"2017": [
+							"2017_TS_ALUNO_5EF",
+							"2017_TS_ALUNO_9EF",
+							"2017_TS_ALUNO_3EM_ESC",
+							"2017_TS_ALUNO_3EM_AG"
+						]
+					},
+					"year_tables": {
+						"partition": "ID_PROVA_BRASIL",
+						"sheets": [
+							"Prova_Brasil_2013",
+							"Prova_Brasil_2015",
+							"Prova_Brasil_2017"
+						]
+					}
+				}
+			},
+			"databricks": {
+				"type": "object",
+				"defaultValue": {
+					"notebook": "/inep_saeb/org_raw_saeb_resultado_brasil"
+				}
+			},
+			"env": {
+				"type": "object",
+				"defaultValue": {
+					"env": "dev"
+				}
+			}
+		},
+		"folder": {
+			"name": "raw/crw/inep_saeb"
+		},
+		"annotations": []
+	}
+}

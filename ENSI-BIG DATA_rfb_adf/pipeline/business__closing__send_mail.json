@@ -1,0 +1,114 @@
+{
+	"name": "business__closing__send_mail",
+	"properties": {
+		"description": "Receives the workflow name as parameter and executes it passing the parameters received by databricks.\n\nUser email will not be evaluated in biz objects. Only this level of implementation will send email to users. The lower levels will send only to STI.\n",
+		"activities": [
+			{
+				"name": "send_email",
+				"description": "Calls the pipeline that send email on  failure. As this activity will be successfully executed, it will be necessary to force a fail in the downstream.\n\nWill only send email to declared user if this comes from a databricks trigger.",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "send_email",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"status": {
+							"value": "@pipeline().parameters.status",
+							"type": "Expression"
+						},
+						"email_users": {
+							"value": "@if(contains(pipeline().parameters.user_parameters, 'from_databricks_wrapper'), array(pipeline().parameters.user_parameters.email), array('default'))",
+							"type": "Expression"
+						},
+						"email_groups": {
+							"value": "@array('default')",
+							"type": "Expression"
+						},
+						"adf": {
+							"value": "@json(string(pipeline().parameters.adf))",
+							"type": "Expression"
+						},
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "has_it_succeeded",
+				"description": "If the received status is 'failed', then we must fail this pipeline. Else, it's fine. ",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "send_email",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@equals(pipeline().parameters.status, 'succeeded')",
+						"type": "Expression"
+					},
+					"ifFalseActivities": [
+						{
+							"name": "error_implementation",
+							"description": "Received status was 'failed'. Must fail this pipeline too.",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "error_implementation",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true
+							}
+						}
+					],
+					"ifTrueActivities": [
+						{
+							"name": "execution_succeeded",
+							"description": "Just wait, execution succeeded.",
+							"type": "Wait",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"waitTimeInSeconds": 1
+							}
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"env": {
+				"type": "object"
+			},
+			"user_parameters": {
+				"type": "object"
+			},
+			"adf": {
+				"type": "object"
+			},
+			"status": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "templates/biz"
+		},
+		"annotations": [
+			"closing",
+			"template",
+			"business"
+		]
+	}
+}

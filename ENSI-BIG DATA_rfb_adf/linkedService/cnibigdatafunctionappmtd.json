@@ -1,0 +1,19 @@
+{
+	"name": "cnibigdatafunctionappmtd",
+	"properties": {
+		"description": "Function App cnibigdatafunctionappmtd",
+		"annotations": [],
+		"type": "AzureFunction",
+		"typeProperties": {
+			"functionAppUrl": "https://bigdatafunctionappmtd.azurewebsites.net",
+			"functionKey": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "cnibigdatakeyvault",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "cnibigdatafunctionappmtd"
+			}
+		}
+	}
+}

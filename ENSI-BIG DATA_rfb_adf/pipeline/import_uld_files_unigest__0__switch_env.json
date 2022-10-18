@@ -1,0 +1,296 @@
+{
+	"name": "import_uld_files_unigest__0__switch_env",
+	"properties": {
+		"description": "Checks the parameter in \"env\" variable to decide which parameters and connections to use. This will avoid having to declare a full set of parameters like db, watermark and dls. \n\nNeeded parameters:\n- db: dict type;  not the complete definition\n- tables: array type; complete definition added with partitioning definition\n- env: dict type; simple key value definition\n- adf: dict type; complete definition taking the parameters the parent pipeline (the one that entitles the process)\n\n\"adf\" parameter may be passed as string all the way down, cause it will only be evaluated in Databricks, só don't need to worry  about it now. \n\n\"dls\" parameter may be string as well.\n\nThese NEEDED PARAMS will come from the most exposed (the outer layer) of the pipeline, the one that takes the process' name. \n\nIMPORTANT: if there's no partition, you SHALL NOT declare the key  -- \"raw\": {\"partition_by\"}-- in \"tables\" array, cause in Databricks the existence of this key will be tested and if it exists, it MUST contain a VALID implementation (test it before in a notebook).\n\n\n- dbs: (add other hosts when needed)\n{\"bd_basi\":{\"host\":\"scan-rac11g\",\"port\":\"1521\",\"service_name\":\"RAC11G.SISTEMA-CNI.ORG.BR\",\"username\":\"usr_bigdata\",\"vendor\":\"Oracle\"}, \"inddesempenho\":{\"host\":\"ensi-data07-vip.sistema-cni.org.br\",\"port\":\"1521\",\"service_name\":\"ensi_rac.sistemacni.org.br\",\"username\":\"usr_bigdata\",\"vendor\":\"Oracle\"}}\n\nFor env == 'dev':\n - dls = {\"folders\":{ \"landing\":\"/tmp/dev/lnd\", \"error\":\"/tmp/dev/err\", \"staging\":\"/tmp/dev/stg\", \"log\":\"/tmp/dev/log\", \"raw\":\"/tmp/dev/raw\"}}\n\n- watermark = {\"table\":\"dev.data_factory_watermark\",\"columns\":{\"table_name\":\"table_name\",\"control_column\":\"control_column\",\"control_column_value\":\"control_column_value\",\"control_column_type_2_db\":\"control_column_type_2_db\"},\"procedures\":{\"insert_first_watermark\":\"[dev].[insert_first_watermark]\",\"update_watermark\":\"[dev].[usp_write_watermark]\"}}",
+		"activities": [
+			{
+				"name": "switch_env_parameters",
+				"description": "Checks the parameter in \"env\" variable to decide which parameters and connections to use. This will avoid having to declare these parameters, cause they are going to be set based on this switch:\n    dbs, watermark and dls. \n\nDatabase connection definitions will be set based on 'env' definition. This will allow future implementation of 'dev', 'prod' and other environments to point to distinct databases.",
+				"type": "Switch",
+				"dependsOn": [
+					{
+						"activity": "set_notebook_path",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "set_container",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "set_storage_url",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"on": {
+						"value": "@toLower(pipeline().parameters.env.env)",
+						"type": "Expression"
+					},
+					"cases": [
+						{
+							"value": "dev",
+							"activities": [
+								{
+									"name": "import_uld_files_unigest__1__wrapper_dev",
+									"description": "Executes the 'raw_load_dbo_unified__1__set_params' pipeline, passing 'dls' and 'watermark' parameters for 'dev'\n\nParam 'tables' will be downstreamed. \nParam 'databricks' will be deprecated by the unified implementation. ",
+									"type": "ExecutePipeline",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "import_uld_files_unigest__1__wrapper",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": true,
+										"parameters": {
+											"files": {
+												"value": "@pipeline().parameters.files",
+												"type": "Expression"
+											},
+											"dls": {
+												"value": "@pipeline().globalParameters.dls_uld_unigest_dev",
+												"type": "Expression"
+											},
+											"databricks_notebook_path": {
+												"value": "@variables('notebook_path')",
+												"type": "Expression"
+											},
+											"adf": {
+												"value": "@pipeline().parameters.adf",
+												"type": "Expression"
+											},
+											"file_parse": {
+												"value": "@pipeline().parameters.file_parse",
+												"type": "Expression"
+											},
+											"container": {
+												"value": "@variables('container')",
+												"type": "Expression"
+											},
+											"url": {
+												"value": "@variables('storage_url')",
+												"type": "Expression"
+											}
+										}
+									}
+								}
+							]
+						},
+						{
+							"value": "prod",
+							"activities": [
+								{
+									"name": "import_uld_files_unigest__1__wrapper_prod",
+									"description": "Executes 'raw_load_dbo_unified__1__set_params' applying 'prod' params.\n\n",
+									"type": "ExecutePipeline",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "import_uld_files_unigest__1__wrapper",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": true,
+										"parameters": {
+											"files": {
+												"value": "@pipeline().parameters.files",
+												"type": "Expression"
+											},
+											"dls": {
+												"value": "@pipeline().globalParameters.dls_uld_unigest_prod",
+												"type": "Expression"
+											},
+											"databricks_notebook_path": {
+												"value": "@variables('notebook_path')",
+												"type": "Expression"
+											},
+											"adf": {
+												"value": "@pipeline().parameters.adf",
+												"type": "Expression"
+											},
+											"file_parse": {
+												"value": "@pipeline().parameters.file_parse",
+												"type": "Expression"
+											},
+											"container": {
+												"value": "@variables('container')",
+												"type": "Expression"
+											},
+											"url": {
+												"value": "@variables('storage_url')",
+												"type": "Expression"
+											}
+										}
+									}
+								}
+							]
+						}
+					],
+					"defaultActivities": [
+						{
+							"name": "env__declaration_unsupported",
+							"description": "The value for key \"env\" in \"env\" parameters is unsupported. Please review your implementation.",
+							"type": "WebHook",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"url": "https://thisisthewaytosimuateanerrormyfriend.com/api",
+								"method": "POST",
+								"headers": {
+									"Content-Type": "application/json"
+								},
+								"body": {
+									"error": true
+								},
+								"timeout": "00:10:00"
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "set_notebook_path",
+				"description": "based on the declared environment, sets the notebook path to be used. For this, makes use of global parameters and string concatenation.",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "notebook_path",
+					"value": {
+						"value": "@if(equals(pipeline().parameters.env.env, 'dev'), concat(pipeline().globalParameters.databricks_notebook_base_dev, '/', variables('uld_relative_path'), '/', pipeline().parameters.databricks.notebook), concat(pipeline().globalParameters.databricks_notebook_base_prod, '/', variables('uld_relative_path'), '/', pipeline().parameters.databricks.notebook))",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "send_email",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "switch_env_parameters",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "send_email",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"email_users": {
+							"value": "@array('default')",
+							"type": "Expression"
+						},
+						"email_groups": {
+							"value": "@array('default')",
+							"type": "Expression"
+						},
+						"adf": {
+							"value": "@json(string(pipeline().parameters.adf))",
+							"type": "Expression"
+						},
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "error_implementation",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "send_email",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "error_implementation",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "set_container",
+				"description": "Set storage/adls container",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "container",
+					"value": {
+						"value": "@pipeline().globalParameters.datalake_container",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "set_storage_url",
+				"description": "sets storage url",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "storage_url",
+					"value": {
+						"value": "@pipeline().globalParameters.datalake_storage_url",
+						"type": "Expression"
+					}
+				}
+			}
+		],
+		"parameters": {
+			"env": {
+				"type": "object"
+			},
+			"files": {
+				"type": "array"
+			},
+			"adf": {
+				"type": "object"
+			},
+			"file_parse": {
+				"type": "object"
+			},
+			"databricks": {
+				"type": "object"
+			}
+		},
+		"variables": {
+			"notebook_path": {
+				"type": "String"
+			},
+			"uld_relative_path": {
+				"type": "String",
+				"defaultValue": "raw/usr/unigest"
+			},
+			"container": {
+				"type": "String"
+			},
+			"storage_url": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "templates/raw/uld"
+		},
+		"annotations": []
+	}
+}

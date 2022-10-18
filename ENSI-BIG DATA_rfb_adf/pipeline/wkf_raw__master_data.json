@@ -1,0 +1,283 @@
+{
+	"name": "wkf_raw__master_data",
+	"properties": {
+		"description": "Loads a group of tables for this business area.\n\nExpected Behavior is to fail this whole step if any of these tables fail to load.",
+		"activities": [
+			{
+				"name": "org_raw_bd_basi_tb_entidade_nacional",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_bd_basi_tb_entidade_nacional",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_bd_basi_tb_entidade_regional",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_bd_basi_tb_entidade_regional",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_bd_basi_tb_pessoa_juridica",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_bd_basi_tb_pessoa_juridica",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_bd_basi_tb_pessoa_juridica_estrangeira",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_bd_basi_tb_pessoa_juridica_estrangeira",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_bd_basi_tb_curso",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_bd_basi_tb_curso",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_bd_basi_tb_produto_servico",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_bd_basi_tb_produto_servico",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_bd_basi_tb_unidade_atendimento",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_bd_basi_tb_unidade_atendimento",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_oba_industria_conhecimento",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_oba_tb_industria_conhecimento",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "wkf_raw__master_data__end",
+				"type": "Wait",
+				"dependsOn": [
+					{
+						"activity": "org_raw_bd_basi_tb_pessoa_juridica",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "org_raw_bd_basi_tb_pessoa_juridica_estrangeira",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "org_raw_bd_basi_tb_curso",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "org_raw_bd_basi_tb_unidade_atendimento",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "org_raw_oba_industria_conhecimento",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "org_raw_bd_basi_tb_produto_servico",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "org_raw_bd_basi_tb_entidade_regional",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "org_raw_protheus_ct1010",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "org_raw_protheus_ctd010",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "org_raw_bd_basi_tb_entidade_nacional",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"waitTimeInSeconds": 1
+				}
+			},
+			{
+				"name": "org_raw_protheus_ct1010",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_protheus_ct1010",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_protheus_ctd010",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_protheus_ctd010",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"concurrency": 1,
+		"parameters": {
+			"env": {
+				"type": "object",
+				"defaultValue": {
+					"env": "dev"
+				}
+			}
+		},
+		"folder": {
+			"name": "workflow/master_data/raw"
+		},
+		"annotations": [
+			"workflow"
+		]
+	}
+}

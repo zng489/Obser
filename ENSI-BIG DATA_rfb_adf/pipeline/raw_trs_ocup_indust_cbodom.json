@@ -1,0 +1,72 @@
+{
+	"name": "raw_trs_ocup_indust_cbodom",
+	"properties": {
+		"activities": [
+			{
+				"name": "trusted__0__switch_env",
+				"description": "Calls trusted template that switches env.",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "trusted__0__switch_env",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						},
+						"tables": {
+							"value": "@pipeline().parameters.tables",
+							"type": "Expression"
+						},
+						"databricks": {
+							"value": "@pipeline().parameters.databricks",
+							"type": "Expression"
+						},
+						"adf": {
+							"value": "{'adf_factory_name': '@{pipeline().DataFactory}', 'adf_pipeline_name': '@{pipeline().Pipeline}', 'adf_pipeline_run_id': '@{pipeline().RunId}',  'adf_trigger_id': '@{pipeline().TriggerId}', 'adf_trigger_name': '@{pipeline().TriggerName}', 'adf_trigger_time': '@{pipeline().TriggerTime}',  'adf_trigger_type': '@{pipeline().TriggerType}'}",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"parameters": {
+			"tables": {
+				"type": "object",
+				"defaultValue": {
+					"path_origin": "usr/uniepro/ocup_indust_cbodom",
+					"path_destination": "mtd/externo/ocup_indust_cbodom"
+				}
+			},
+			"databricks": {
+				"type": "object",
+				"defaultValue": {
+					"trs": {
+						"notebook": "/trs/mtd/externo/raw_trs_ocup_indust_cbodom"
+					}
+				}
+			},
+			"user_parameters": {
+				"type": "object",
+				"defaultValue": {
+					"null": "null"
+				}
+			},
+			"env": {
+				"type": "object",
+				"defaultValue": {
+					"env": "prod"
+				}
+			}
+		},
+		"folder": {
+			"name": "trs/mtd/externo"
+		},
+		"annotations": []
+	}
+}

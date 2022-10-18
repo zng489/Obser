@@ -1,0 +1,234 @@
+{
+	"name": "wkf_raw__saude_seguranca_sesi",
+	"properties": {
+		"description": "Workflow for raw tables of domain \"saude_seguranca\"",
+		"activities": [
+			{
+				"name": "org_raw_inddesempenho_vw_lanc_evento_vl_r_ssi",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_inddesempenho_vw_lanc_evento_vl_r_ssi",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_inddesempenho_form",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_inddesempenho_form",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_inddesempenho_variavel",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_inddesempenho_variavel",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_inddesempenho_pessoa_fisica",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_inddesempenho_pessoafisica",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_inddesempenho_valorlanc_pessoaf",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_inddesempenho_valorlanc_pessoaf",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_inddesempenho_estabelecimento",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_inddesempenho_estabelecimento",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "end",
+				"type": "Wait",
+				"dependsOn": [
+					{
+						"activity": "org_raw_inddesempenho_estabelecimento",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "org_raw_inddesempenho_variavel",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "org_raw_inddesempenho_pessoa_fisica",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "org_raw_inddesempenho_form",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "org_raw_inddesempenho_empresa_dn",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "org_raw_inddesempenho_entidade",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "org_raw_inddesempenho_valorlanc_pessoaf",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "org_raw_inddesempenho_vw_lanc_evento_vl_r_ssi",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"waitTimeInSeconds": 1
+				}
+			},
+			{
+				"name": "org_raw_inddesempenho_empresa_dn",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_inddesempenho_empresa_dn",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_inddesempenho_entidade",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_inddesempenho_entidade",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"concurrency": 1,
+		"parameters": {
+			"env": {
+				"type": "object",
+				"defaultValue": {
+					"env": "dev"
+				}
+			}
+		},
+		"folder": {
+			"name": "workflow/saude_seguranca_sesi/raw"
+		},
+		"annotations": [
+			"workflow",
+			"raw"
+		]
+	}
+}

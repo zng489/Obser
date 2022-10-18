@@ -1,0 +1,80 @@
+{
+	"name": "test__business__0__switch_env__send_email",
+	"properties": {
+		"description": "Testing the template with send mail capabilities.",
+		"activities": [
+			{
+				"name": "business__0__switch_env",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "business__0__switch_env",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						},
+						"table": {
+							"value": "@pipeline().parameters.table",
+							"type": "Expression"
+						},
+						"adf": {
+							"value": "@pipeline().parameters.adf",
+							"type": "Expression"
+						},
+						"user_parameters": {
+							"value": "@pipeline().parameters.user_parameters",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"concurrency": 1,
+		"parameters": {
+			"env": {
+				"type": "object",
+				"defaultValue": {
+					"env": "dev"
+				}
+			},
+			"table": {
+				"type": "object",
+				"defaultValue": {
+					"table": "x"
+				}
+			},
+			"user_parameters": {
+				"type": "object",
+				"defaultValue": {
+					"email": "thomaz.moreira@keyrus.com.br"
+				}
+			},
+			"adf": {
+				"type": "object",
+				"defaultValue": {
+					"adf_factory_name": "cnibigdatafactory",
+					"adf_pipeline_name": "test__business__0__switch_env__send_mail",
+					"adf_pipeline_run_id": "000",
+					"adf_trigger_id": "000",
+					"adf_trigger_name": "000",
+					"adf_trigger_time": "0000",
+					"adf_trigger_type": "Manual/Test"
+				}
+			}
+		},
+		"folder": {
+			"name": "test/biz"
+		},
+		"annotations": [
+			"test",
+			"biz",
+			"closing"
+		]
+	}
+}

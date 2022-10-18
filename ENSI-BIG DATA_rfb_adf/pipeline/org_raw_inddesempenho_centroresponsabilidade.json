@@ -1,0 +1,59 @@
+{
+	"name": "org_raw_inddesempenho_centroresponsabilidade",
+	"properties": {
+		"description": "Partitioning doesn't apply when loading in \"load_type\":\"year_overwrite\" cause CODIGO doesn't have any relation to ANO. For this case , current year is automatically loaded, so as it is only 1 year, we can't also partition this by year (will lead to only 1 partition).\n\n- For full load use:\ntables = [\"{'schema': 'INDDESEMPENHO', 'table':'CENTRORESPONSABILIDADE','load_type':'full','partition_column':'null', 'columns': 'ANO,CODIGO,NOME', 'raw':  {'partition_by': [{'col_name': 'ANO'}], 'coalesce': 1}}\"]\n\n- For \"year_overwrite\" load use:\ntables = [\"{'schema': 'INDDESEMPENHO', 'table':'CENTRORESPONSABILIDADE','load_type':'year_overwrite','control_column_filter_type':'current', 'partition_column':'null', 'control_column':'ano', 'control_column_mask_value': 'YYYY','columns': 'ANO,CODIGO,NOME', 'raw': {'partition_by': [{'col_name': 'ANO'}], 'coalesce': 1}}\"]\n\nAs this object is really small, you can add: 'raw':{'coalesce': 1}",
+		"activities": [
+			{
+				"name": "raw_load_bdo_unified__0__switch_env",
+				"description": "Invokes the \"raw_load_bdo_unified\" implementation.",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "raw_load_dbo_unified__0__switch_env",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						},
+						"tables": {
+							"value": "@pipeline().parameters.tables",
+							"type": "Expression"
+						},
+						"adf": {
+							"value": "{'adf_factory_name': '@{pipeline().DataFactory}', 'adf_pipeline_name': '@{pipeline().Pipeline}', 'adf_pipeline_run_id': '@{pipeline().RunId}',  'adf_trigger_id': '@{pipeline().TriggerId}', 'adf_trigger_name': '@{pipeline().TriggerName}', 'adf_trigger_time': '@{pipeline().TriggerTime}',  'adf_trigger_type': '@{pipeline().TriggerType}'}",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"concurrency": 1,
+		"parameters": {
+			"tables": {
+				"type": "array",
+				"defaultValue": [
+					"{'schema': 'INDDESEMPENHO', 'table':'CENTRORESPONSABILIDADE','load_type':'year_overwrite','control_column_filter_type':'current', 'partition_column':'null', 'control_column':'ano', 'control_column_mask_value': 'YYYY','columns': 'ANO,CODIGO,NOME', 'raw': {'partition_by': [{'col_name': 'ANO'}], 'coalesce': 1}}"
+				]
+			},
+			"env": {
+				"type": "object",
+				"defaultValue": {
+					"env": "dev"
+				}
+			}
+		},
+		"folder": {
+			"name": "raw/bdo/inddesempenho"
+		},
+		"annotations": [
+			"raw",
+			"inddesempenho"
+		]
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

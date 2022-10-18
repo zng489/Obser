@@ -1,0 +1,254 @@
+{
+	"name": "workflow",
+	"properties": {
+		"description": "This is the master wrapper, that is capable of handling dev, prod, homol and many other needed workflows. \n\nThe main feature of this implementation is to be able to handle SQLDW (via automation webhooks!).",
+		"activities": [
+			{
+				"name": "workflow_dev",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "workflow_planilhas_prod",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "workflow_dev",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "workflow_prod",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "sqldw_is_resumed",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "workflow_prod",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "has_error_in_completed_conditions",
+				"description": "For all activities in which we evaluate \"completed\" condition, things can fail but still go on as everything was nice and smooth. To have real control over this, the vairable \"execution_errors\" is needed and now we have to check there are no real errors. \n\nIf any of the parents fail, this workflow will already fail, cause the logic clause is AND. Think about it. ",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "workflow_dev",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@greater(length(variables('execution_errors')), 0)",
+						"type": "Expression"
+					},
+					"ifFalseActivities": [
+						{
+							"name": "workflow_success",
+							"description": "No errors in \"completed\" conditions found. ",
+							"type": "Wait",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"waitTimeInSeconds": 1
+							}
+						}
+					],
+					"ifTrueActivities": [
+						{
+							"name": "workflow_failed",
+							"description": "Using a webhook with a bad HTTP request, we can introduce errors in out pipelines when we need.\n\nYou've got errors in some \"completed\" condition.",
+							"type": "WebHook",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"url": "https://thisisthewaytosimuateanerrormyfriend.com/api",
+								"method": "POST",
+								"headers": {
+									"Content-Type": "application/json"
+								},
+								"body": {
+									"error": true
+								},
+								"timeout": "00:10:00"
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "workflow_dev__failed",
+				"description": "Appends \"workflow_dev\" to variable \"execution_errors\"",
+				"type": "AppendVariable",
+				"dependsOn": [
+					{
+						"activity": "workflow_dev",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "execution_errors",
+					"value": "'workflow_dev'"
+				}
+			},
+			{
+				"name": "workflow_prod__failed",
+				"description": "Appends \"workflow_prod\" to variable \"execution_errors\"",
+				"type": "AppendVariable",
+				"dependsOn": [
+					{
+						"activity": "workflow_prod",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "execution_errors",
+					"value": "'workflow_prod'"
+				}
+			},
+			{
+				"name": "sqldw_resume",
+				"description": "Calls webhook to resume sqldw. Timeout is 30 minutes. If things go smooth with the webhook, return to ADF is success, but you must parse the returned JSON to look for errors.",
+				"type": "WebHook",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"url": "https://f435030f-3634-4f5c-a11e-11d3c7131ce4.webhook.eus2.azure-automation.net/webhooks?token=RSYYe34DKXPWzAg2wye6CtTXLROyTuGUcmNxubS%2bjD0%3d",
+					"method": "POST",
+					"body": {
+						"action": "resume"
+					},
+					"timeout": "00:30:00"
+				}
+			},
+			{
+				"name": "sqldw_is_resumed",
+				"description": "Checks if the inner stuuf happening in the sqldw webhook_activity returned \"success\".",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "sqldw_resume",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@equals(toLower(activity('sqldw_resume').status), 'success')",
+						"type": "Expression"
+					},
+					"ifFalseActivities": [
+						{
+							"name": "sqldw_resumed__failed",
+							"description": "SQLDW failed to resume. Can't proceed.",
+							"type": "WebHook",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"url": "https://thisisthewaytosimuateanerrormyfriend.com/api",
+								"method": "POST",
+								"headers": {
+									"Content-Type": "application/json"
+								},
+								"body": {
+									"error": true
+								},
+								"timeout": "00:10:00"
+							}
+						}
+					],
+					"ifTrueActivities": [
+						{
+							"name": "sqldw_resumed__success",
+							"description": "SQLDW is resumed!",
+							"type": "Wait",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"waitTimeInSeconds": 1
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "workflow_planilhas_prod",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "workflow_prod",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "workflow_planilhas_prod",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "workflow_planilhas_prod__failed",
+				"description": "Appends \"workflow__planilhas_prod\" to variable \"execution_errors\"",
+				"type": "AppendVariable",
+				"dependsOn": [
+					{
+						"activity": "workflow_planilhas_prod",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "execution_errors",
+					"value": "'workflow_planilhas_prod'"
+				}
+			}
+		],
+		"concurrency": 1,
+		"variables": {
+			"execution_errors": {
+				"type": "Array",
+				"defaultValue": []
+			}
+		},
+		"folder": {
+			"name": "workflow"
+		},
+		"annotations": [
+			"workflow"
+		]
+	}
+}

@@ -1,0 +1,58 @@
+{
+	"name": "org_raw_scae_tb_indicador_scae",
+	"properties": {
+		"description": "Will always be loaded as full.\n\n- For full load with partitioning use:\nParameter tables =[\"{'schema': 'SCAE', 'table':'TB_INDICADOR_SCAE','load_type':'full','partition_column':'ID','partitions':5, 'columns': 'ID,DES_MODALIDADE,COD_CENTRO_RESPONSABILIDADE,TEMPO_INTEGRAL,CICLO,ANO,MES,DR,NOM_CENTRO_RESPONSABILIDADE,NOME_PRODUTO,NM_TIPO_DESCRICAO,NOM_ESTUDANTE,DAT_NASCIMENTO,COD_SITUACAO,DES_SITUACAO,NOM_TURMA,COD_TURMA,DAT_INICIO,DAT_TERMINO,NM_UNIDADE_ATENDIMENTO,LOC_NO,COD_CICLO,DS_LATITUDE,DS_LONGITUDE,UFE_SG,NOM_CURSO,DES_FINANCIAMENTO,DES_VINCULO,COD_MATRICULA,NUM_CARGA_HORARIA_HORA,MES_COMPETENCIA'}\"]\nExecute pipeline = template_import_table_full\n\nThis object is ~80MB in disk and 1M records. Still 'raw':{'coalesce': 1}",
+		"activities": [
+			{
+				"name": "raw_load_bdo_unified__0__switch_env",
+				"description": "Run template pipeline to import tables",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "raw_load_dbo_unified__0__switch_env",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"tables": {
+							"value": "@pipeline().parameters.tables",
+							"type": "Expression"
+						},
+						"adf": {
+							"value": "{'adf_factory_name': '@{pipeline().DataFactory}', 'adf_pipeline_name': '@{pipeline().Pipeline}', 'adf_pipeline_run_id': '@{pipeline().RunId}',  'adf_trigger_id': '@{pipeline().TriggerId}', 'adf_trigger_name': '@{pipeline().TriggerName}', 'adf_trigger_time': '@{pipeline().TriggerTime}',  'adf_trigger_type': '@{pipeline().TriggerType}'}",
+							"type": "Expression"
+						},
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"concurrency": 1,
+		"parameters": {
+			"tables": {
+				"type": "array",
+				"defaultValue": [
+					"{'schema': 'SCAE', 'table':'TB_INDICADOR_SCAE','load_type':'full','partition_column':'ID','partitions':5, 'columns': 'ID,DES_MODALIDADE,COD_CENTRO_RESPONSABILIDADE,TEMPO_INTEGRAL,CICLO,ANO,MES,DR,NOM_CENTRO_RESPONSABILIDADE,NOME_PRODUTO,NM_TIPO_DESCRICAO,NOM_ESTUDANTE,DAT_NASCIMENTO,COD_SITUACAO,DES_SITUACAO,NOM_TURMA,COD_TURMA,DAT_INICIO,DAT_TERMINO,NM_UNIDADE_ATENDIMENTO,LOC_NO,COD_CICLO,DS_LATITUDE,DS_LONGITUDE,UFE_SG,NOM_CURSO,DES_FINANCIAMENTO,DES_VINCULO,COD_MATRICULA,NUM_CARGA_HORARIA_HORA,MES_COMPETENCIA','raw':{'coalesce': 1}}"
+				]
+			},
+			"env": {
+				"type": "object",
+				"defaultValue": {
+					"env": "dev"
+				}
+			}
+		},
+		"folder": {
+			"name": "raw/bdo/scae"
+		},
+		"annotations": [
+			"raw"
+		]
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

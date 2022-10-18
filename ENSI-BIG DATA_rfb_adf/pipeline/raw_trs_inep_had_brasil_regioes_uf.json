@@ -1,0 +1,73 @@
+{
+	"name": "raw_trs_inep_had_brasil_regioes_uf",
+	"properties": {
+		"activities": [
+			{
+				"name": "trusted__0__switch_env",
+				"description": "Calls trusted template that switches env.",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "trusted__0__switch_env",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						},
+						"tables": {
+							"value": "@pipeline().parameters.tables",
+							"type": "Expression"
+						},
+						"databricks": {
+							"value": "@pipeline().parameters.databricks",
+							"type": "Expression"
+						},
+						"adf": {
+							"value": "{'adf_factory_name': '@{pipeline().DataFactory}', 'adf_pipeline_name': '@{pipeline().Pipeline}', 'adf_pipeline_run_id': '@{pipeline().RunId}',  'adf_trigger_id': '@{pipeline().TriggerId}', 'adf_trigger_name': '@{pipeline().TriggerName}', 'adf_trigger_time': '@{pipeline().TriggerTime}',  'adf_trigger_type': '@{pipeline().TriggerType}'}",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"parameters": {
+			"tables": {
+				"type": "object",
+				"defaultValue": {
+					"schema": "inep_had",
+					"table": "brasil_regioes_e_ufs",
+					"prm_path": "/prm/usr/inep_had/FIEC_inep_had_brasil_regioes_uf_mapeamento_unificado_trusted.xlsx"
+				}
+			},
+			"databricks": {
+				"type": "object",
+				"defaultValue": {
+					"trs": {
+						"notebook": "/trs/inep_had/raw_trs_inep_had_brasil_regioes_uf"
+					}
+				}
+			},
+			"user_parameters": {
+				"type": "object",
+				"defaultValue": {
+					"null": "null"
+				}
+			},
+			"env": {
+				"type": "object",
+				"defaultValue": {
+					"env": "dev"
+				}
+			}
+		},
+		"folder": {
+			"name": "trs/inep_had"
+		},
+		"annotations": []
+	}
+}

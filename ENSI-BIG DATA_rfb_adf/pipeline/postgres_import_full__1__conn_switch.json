@@ -1,0 +1,135 @@
+{
+	"name": "postgres_import_full__1__conn_switch",
+	"properties": {
+		"description": "As Postgres linked service does not support dynamic content for mapping the connection, each instance/db must be mapped to a specific dataset/linked service.\nTo avoid breaking our template, then this switch is enough to make decisions on which connection to use. ",
+		"activities": [
+			{
+				"name": "switch_postgres_connection",
+				"description": "Switches the parameter 'db', mapping it to a valid static Postgres connection. ",
+				"type": "Switch",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"on": {
+						"value": "@toLower(concat(pipeline().parameters.db.host, '__', pipeline().parameters.db.service_name))",
+						"type": "Expression"
+					},
+					"cases": [
+						{
+							"value": "ensi-aztableau__workgroup",
+							"activities": [
+								{
+									"name": "set_db_schema",
+									"description": "As there's no way to parameterize the linked service and we also need to avoid such names as 'public', in the adls structure, we get the name here and replace it when sending the query then.",
+									"type": "SetVariable",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"variableName": "db_schema",
+										"value": "public"
+									}
+								},
+								{
+									"name": "postgres_import_full__2__loader_ensi-aztableau",
+									"description": "Calls the next level, allowing import for this specific connection.",
+									"type": "ExecutePipeline",
+									"dependsOn": [
+										{
+											"activity": "set_db_schema",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "postgres_import_full__2__loader_ensi-tableau",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": true,
+										"parameters": {
+											"db": {
+												"value": "@pipeline().parameters.db",
+												"type": "Expression"
+											},
+											"table": {
+												"value": "@array(string(pipeline().parameters.table))",
+												"type": "Expression"
+											},
+											"dls": {
+												"value": "@pipeline().parameters.dls",
+												"type": "Expression"
+											},
+											"container": {
+												"value": "@pipeline().parameters.container",
+												"type": "Expression"
+											},
+											"schema_name": {
+												"value": "@variables('db_schema')",
+												"type": "Expression"
+											},
+											"url": {
+												"value": "@pipeline().parameters.url",
+												"type": "Expression"
+											}
+										}
+									}
+								}
+							]
+						}
+					],
+					"defaultActivities": [
+						{
+							"name": "fail__invalid_postgres_connection",
+							"description": "The declared Postgres connection is invalid. Must fail this pipeline.",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "error_implementation",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true
+							}
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"db": {
+				"type": "object"
+			},
+			"table": {
+				"type": "object"
+			},
+			"container": {
+				"type": "string"
+			},
+			"dls": {
+				"type": "object"
+			},
+			"url": {
+				"type": "string"
+			}
+		},
+		"variables": {
+			"query": {
+				"type": "String"
+			},
+			"db_schema": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "templates/raw/bdo/postgres/import_full"
+		},
+		"annotations": [
+			"raw",
+			"template",
+			"postgres"
+		]
+	}
+}

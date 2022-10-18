@@ -1,0 +1,278 @@
+{
+	"name": "import_crw__0__switch_env",
+	"properties": {
+		"activities": [
+			{
+				"name": "switch_env_parameters",
+				"description": "Checks the parameter in \"env\" variable to decide which other parametersdefaults to use. This will avoid having to declare these parameters, cause they are going to be set based on this switch:\n    dls, databricks base folder",
+				"type": "Switch",
+				"dependsOn": [
+					{
+						"activity": "set_container",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "set_storage_url",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"on": {
+						"value": "@toLower(pipeline().parameters.env.env)",
+						"type": "Expression"
+					},
+					"cases": [
+						{
+							"value": "dev",
+							"activities": [
+								{
+									"name": "import_crw__1__check_files__dev",
+									"description": "Invokes pipeline downstreaming dev parameters.",
+									"type": "ExecutePipeline",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "import_crw__1__check_files",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": true,
+										"parameters": {
+											"tables": {
+												"value": "@pipeline().parameters.tables",
+												"type": "Expression"
+											},
+											"dls": {
+												"value": "@pipeline().globalParameters.dls_dev",
+												"type": "Expression"
+											},
+											"databricks": {
+												"value": "@json(concat('{\"notebook\": \"', pipeline().globalParameters.databricks_notebook_base_dev, '/raw/crw', pipeline().parameters.databricks.notebook, '\"}'))",
+												"type": "Expression"
+											},
+											"adf": {
+												"value": "@json(string(pipeline().parameters.adf))",
+												"type": "Expression"
+											},
+											"ach_tables": {
+												"value": "@split(pipeline().parameters.ach_tables, ';')",
+												"type": "Expression"
+											},
+											"env": {
+												"value": "@pipeline().parameters.env",
+												"type": "Expression"
+											},
+											"container": {
+												"value": "@variables('container')",
+												"type": "Expression"
+											},
+											"url": {
+												"value": "@variables('storage_url')",
+												"type": "Expression"
+											}
+										}
+									}
+								}
+							]
+						},
+						{
+							"value": "prod",
+							"activities": [
+								{
+									"name": "import_crw__1__check_files__prod",
+									"description": "Invokes pipeline downstreaming prod parameters.",
+									"type": "ExecutePipeline",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "import_crw__1__check_files",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": true,
+										"parameters": {
+											"tables": {
+												"value": "@pipeline().parameters.tables",
+												"type": "Expression"
+											},
+											"dls": {
+												"value": "@pipeline().globalParameters.dls_prod",
+												"type": "Expression"
+											},
+											"databricks": {
+												"value": "@json(concat('{\"notebook\": \"', pipeline().globalParameters.databricks_notebook_base_prod,'/raw/crw', pipeline().parameters.databricks.notebook, '\"}'))",
+												"type": "Expression"
+											},
+											"adf": {
+												"value": "@json(string(pipeline().parameters.adf))",
+												"type": "Expression"
+											},
+											"ach_tables": {
+												"value": "@split(pipeline().parameters.ach_tables, ';')",
+												"type": "Expression"
+											},
+											"env": {
+												"value": "@pipeline().parameters.env",
+												"type": "Expression"
+											},
+											"container": {
+												"value": "@variables('container')",
+												"type": "Expression"
+											},
+											"url": {
+												"value": "@variables('storage_url')",
+												"type": "Expression"
+											}
+										}
+									}
+								}
+							]
+						}
+					],
+					"defaultActivities": [
+						{
+							"name": "env__declaration_unsupported",
+							"description": "The value for key \"env\" in \"env\" parameters is unsupported. Please review your implementation.",
+							"type": "WebHook",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"url": "https://thisisthewaytosimuateanerrormyfriend.com/api",
+								"method": "POST",
+								"headers": {
+									"Content-Type": "application/json"
+								},
+								"body": {
+									"error": true
+								},
+								"timeout": "00:10:00"
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "error_implementation",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "send_email_on_failure",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "error_implementation",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "send_email_on_failure",
+				"description": "Calls the pipeline that send email on  failure. As this activity will be successfully executed, it will be necessary to force a fail in the downstream.",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "switch_env_parameters",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "send_email",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"email_users": {
+							"value": "@array('default')",
+							"type": "Expression"
+						},
+						"email_groups": {
+							"value": "@array('default')",
+							"type": "Expression"
+						},
+						"adf": {
+							"value": "@json(string(pipeline().parameters.adf))",
+							"type": "Expression"
+						},
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "set_container",
+				"description": "Set storage/adls container",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "container",
+					"value": {
+						"value": "@pipeline().globalParameters.datalake_container",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "set_storage_url",
+				"description": "Sets storage url",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "storage_url",
+					"value": {
+						"value": "@pipeline().globalParameters.datalake_storage_url",
+						"type": "Expression"
+					}
+				}
+			}
+		],
+		"parameters": {
+			"env": {
+				"type": "object"
+			},
+			"adf": {
+				"type": "object"
+			},
+			"tables": {
+				"type": "object"
+			},
+			"databricks": {
+				"type": "object"
+			},
+			"ach_tables": {
+				"type": "string",
+				"defaultValue": "{'null':'null'}"
+			}
+		},
+		"variables": {
+			"container": {
+				"type": "String"
+			},
+			"storage_url": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "templates/raw/crw"
+		},
+		"annotations": []
+	}
+}

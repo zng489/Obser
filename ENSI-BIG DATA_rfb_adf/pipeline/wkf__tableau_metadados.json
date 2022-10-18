@@ -1,0 +1,38 @@
+{
+	"name": "wkf__tableau_metadados",
+	"properties": {
+		"activities": [
+			{
+				"name": "wkf_raw__tableau_metadados",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "wkf_raw__tableau_metadados",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"parameters": {
+			"env": {
+				"type": "object",
+				"defaultValue": {
+					"env": "prod"
+				}
+			}
+		},
+		"folder": {
+			"name": "workflow/tableau_metadados"
+		},
+		"annotations": []
+	}
+}

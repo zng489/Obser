@@ -1,0 +1,54 @@
+{
+	"name": "lnd_org_raw_inep_rmd",
+	"properties": {
+		"activities": [
+			{
+				"name": "import_lnd__0__execute_crw",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "import_lnd__0__execute_crw",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"bot": {
+							"value": "@pipeline().parameters.bot",
+							"type": "Expression"
+						},
+						"adf": {
+							"value": "@json(concat('{\"adf_factory_name\": \"', pipeline().DataFactory, '\", \"adf_pipeline_name\": \"', pipeline().Pipeline, '\", \"adf_pipeline_run_id\": \"', pipeline().RunId, '\",  \"adf_trigger_id\": \"', pipeline().TriggerId, '\", \"adf_trigger_name\": \"', pipeline().TriggerName, '\", \"adf_trigger_time\": \"', pipeline().TriggerTime, '\",  \"adf_trigger_type\": \"', pipeline().TriggerType, '\"}'))",
+							"type": "Expression"
+						},
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"concurrency": 1,
+		"parameters": {
+			"bot": {
+				"type": "string",
+				"defaultValue": "org_raw_inep_rmd"
+			},
+			"env": {
+				"type": "object",
+				"defaultValue": {
+					"env": "dev"
+				}
+			}
+		},
+		"folder": {
+			"name": "lnd/crw/inep_rmd"
+		},
+		"annotations": [
+			"landing",
+			"crawler"
+		]
+	}
+}

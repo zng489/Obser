@@ -1,0 +1,59 @@
+{
+	"name": "org_raw_protheus_ct1010",
+	"properties": {
+		"description": "Will always be loaded as full.\n\n- For full load with partitioning use:\nParameter tables = [\"{'schema': 'PROTHEUS', 'table':'CT1010','load_type':'full','partition_column':'R_E_C_N_O_','partitions':5, 'columns': 'CT1_FILIAL,CT1_CONTA,CT1_DESC01,CT1_DESC02,CT1_DESC03,CT1_DESC04,CT1_DESC05,CT1_CLASSE,CT1_NORMAL,CT1_RES,CT1_BLOQ,CT1_DTBLIN,CT1_DTBLFI,CT1_DC,CT1_NCUSTO,CT1_CC,CT1_CVD02,CT1_CVD03,CT1_CVD04,CT1_CVD05,CT1_CVC02,CT1_CVC03,CT1_CVC04,CT1_CVC05,CT1_CTASUP,CT1_HP,CT1_ACITEM,CT1_ACCUST,CT1_ACCLVL,CT1_DTEXIS,CT1_DTEXSF,CT1_CTAVM,CT1_CTARED,CT1_CTALP,CT1_CTAPON,CT1_BOOK,CT1_GRUPO,CT1_AGLSLD,CT1_RGNV1,CT1_RGNV2,CT1_RGNV3,CT1_CCOBRG,CT1_ITOBRG,CT1_CLOBRG,CT1_TRNSEF,CT1_AGLUT,CT1_LALUR,CT1_CTLALU,CT1_XIDESB,CT1_TPLALU,CT1_LALHIR,CT1_RATEIO,CT1_ESTOUR,CT1_CODIMP,CT1_AJ_INF,CT1_NATCTA,CT1_ACATIV,CT1_ATOBRG,CT1_ACET05,CT1_05OBRG,CT1_INDNAT,CT1_SPEDST,CT1_NTSPED,CT1_ACAT01,CT1_AT01OB,CT1_ACAT02,CT1_AT02OB,CT1_ACAT03,CT1_AT03OB,CT1_ACAT04,CT1_AT04OB,CT1_TPO01,CT1_TPO04,CT1_TPO02,CT1_TPO03,CT1_PREFIX,CT1_ACET06,CT1_06OBRG,CT1_ACET07,CT1_07OBRG,CT1_ACET08,CT1_08OBRG,CT1_ACET09,CT1_09OBRG,CT1_XSEPLA,CT1_XCTCON,D_E_L_E_T_,R_E_C_N_O_,R_E_C_D_E_L_,CT1_PVARC,CT1_CVD01,CT1_CVC01,CT1_MOEDVM,CT1_DIOPS,CT1_INTP'}\"]\nExecute pipeline = template_import_table_full",
+		"activities": [
+			{
+				"name": "raw_load_bdo_unified__0__switch_env",
+				"description": "Run template pipeline to import tables",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "raw_load_dbo_unified__0__switch_env",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						},
+						"tables": {
+							"value": "@pipeline().parameters.tables",
+							"type": "Expression"
+						},
+						"adf": {
+							"value": "{'adf_factory_name': '@{pipeline().DataFactory}', 'adf_pipeline_name': '@{pipeline().Pipeline}', 'adf_pipeline_run_id': '@{pipeline().RunId}',  'adf_trigger_id': '@{pipeline().TriggerId}', 'adf_trigger_name': '@{pipeline().TriggerName}', 'adf_trigger_time': '@{pipeline().TriggerTime}',  'adf_trigger_type': '@{pipeline().TriggerType}'}",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"concurrency": 1,
+		"parameters": {
+			"tables": {
+				"type": "array",
+				"defaultValue": [
+					"{'schema': 'PROTHEUS', 'table':'CT1010','load_type':'full','partition_column':'R_E_C_N_O_','partitions':5, 'columns': 'CT1_FILIAL,CT1_CONTA,CT1_DESC01,CT1_DESC02,CT1_DESC03,CT1_DESC04,CT1_DESC05,CT1_CLASSE,CT1_NORMAL,CT1_RES,CT1_BLOQ,CT1_DTBLIN,CT1_DTBLFI,CT1_DC,CT1_NCUSTO,CT1_CC,CT1_CVD02,CT1_CVD03,CT1_CVD04,CT1_CVD05,CT1_CVC02,CT1_CVC03,CT1_CVC04,CT1_CVC05,CT1_CTASUP,CT1_HP,CT1_ACITEM,CT1_ACCUST,CT1_ACCLVL,CT1_DTEXIS,CT1_DTEXSF,CT1_CTAVM,CT1_CTARED,CT1_CTALP,CT1_CTAPON,CT1_BOOK,CT1_GRUPO,CT1_AGLSLD,CT1_RGNV1,CT1_RGNV2,CT1_RGNV3,CT1_CCOBRG,CT1_ITOBRG,CT1_CLOBRG,CT1_TRNSEF,CT1_AGLUT,CT1_LALUR,CT1_CTLALU,CT1_XIDESB,CT1_TPLALU,CT1_LALHIR,CT1_RATEIO,CT1_ESTOUR,CT1_CODIMP,CT1_AJ_INF,CT1_NATCTA,CT1_ACATIV,CT1_ATOBRG,CT1_ACET05,CT1_05OBRG,CT1_INDNAT,CT1_SPEDST,CT1_NTSPED,CT1_ACAT01,CT1_AT01OB,CT1_ACAT02,CT1_AT02OB,CT1_ACAT03,CT1_AT03OB,CT1_ACAT04,CT1_AT04OB,CT1_TPO01,CT1_TPO04,CT1_TPO02,CT1_TPO03,CT1_PREFIX,CT1_ACET06,CT1_06OBRG,CT1_ACET07,CT1_07OBRG,CT1_ACET08,CT1_08OBRG,CT1_ACET09,CT1_09OBRG,CT1_XSEPLA,CT1_XCTCON,D_E_L_E_T_,R_E_C_N_O_,R_E_C_D_E_L_,CT1_PVARC,CT1_CVD01,CT1_CVC01,CT1_MOEDVM,CT1_DIOPS,CT1_INTP'}"
+				]
+			},
+			"env": {
+				"type": "object",
+				"defaultValue": {
+					"env": "dev"
+				}
+			}
+		},
+		"folder": {
+			"name": "raw/bdo/protheus"
+		},
+		"annotations": [
+			"raw",
+			"protheus"
+		]
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

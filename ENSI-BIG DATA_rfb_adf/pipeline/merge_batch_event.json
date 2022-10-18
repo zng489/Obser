@@ -1,0 +1,85 @@
+{
+	"name": "merge_batch_event",
+	"properties": {
+		"activities": [
+			{
+				"name": "merge_desc",
+				"type": "DatabricksNotebook",
+				"dependsOn": [
+					{
+						"activity": "set gov_table",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"notebookPath": {
+						"value": "/KEYRUS/@{pipeline().parameters.env.env}/gov/catalog/desc/merge_desc_@{variables('gov_table')}",
+						"type": "Expression"
+					},
+					"baseParameters": {
+						"env": {
+							"value": "@pipeline().parameters.env.env",
+							"type": "Expression"
+						},
+						"source_type": "DUMMY"
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "cnigovdatabricks",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "set gov_table",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "gov_table",
+					"value": {
+						"value": "@split(substring(pipeline().parameters.event_folderpath, lastindexof(pipeline().parameters.event_folderpath, '/'),\nsub(length(pipeline().parameters.event_folderpath), lastindexof(pipeline().parameters.event_folderpath, '/'))\n), '/')[1]",
+						"type": "Expression"
+					}
+				}
+			}
+		],
+		"concurrency": 1,
+		"parameters": {
+			"event_folderpath": {
+				"type": "string"
+			},
+			"env": {
+				"type": "object",
+				"defaultValue": {
+					"env": "dev"
+				}
+			},
+			"event_filename": {
+				"type": "string"
+			}
+		},
+		"variables": {
+			"gov_table": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "gov/merge_desc/event_trigger"
+		},
+		"annotations": [
+			"metadata",
+			"gov",
+			"event"
+		]
+	}
+}

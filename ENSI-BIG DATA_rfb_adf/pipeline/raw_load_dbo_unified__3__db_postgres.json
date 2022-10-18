@@ -1,0 +1,183 @@
+{
+	"name": "raw_load_dbo_unified__3__db_postgres",
+	"properties": {
+		"description": "Implements the load types for Postgres databases.",
+		"activities": [
+			{
+				"name": "mysql__switch_load_type",
+				"description": "Will switch load type. This way we avoid to run the other load type executions when we know exactly what might be implemented.\n\n\"tables\" is downstreammed as a array. That's why you have to compare with element [0]",
+				"type": "Switch",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"on": {
+						"value": "@json(pipeline().parameters.tables[0]).load_type",
+						"type": "Expression"
+					},
+					"cases": [
+						{
+							"value": "full",
+							"activities": [
+								{
+									"name": "postgres_import_full__0__wrapped",
+									"description": "Invokes the  pipeline",
+									"type": "ExecutePipeline",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "postgres_import_full__0__wrapper",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": true,
+										"parameters": {
+											"db": {
+												"value": "@pipeline().parameters.db",
+												"type": "Expression"
+											},
+											"tables": {
+												"value": "@pipeline().parameters.tables",
+												"type": "Expression"
+											},
+											"dls": {
+												"value": "@pipeline().parameters.dls",
+												"type": "Expression"
+											},
+											"watermark": {
+												"value": "@pipeline().parameters.watermark",
+												"type": "Expression"
+											},
+											"databricks": {
+												"value": "@pipeline().parameters.databricks",
+												"type": "Expression"
+											},
+											"adf": {
+												"value": "@pipeline().parameters.adf",
+												"type": "Expression"
+											},
+											"container": {
+												"value": "@pipeline().parameters.container",
+												"type": "Expression"
+											},
+											"url": {
+												"value": "@pipeline().parameters.url",
+												"type": "Expression"
+											}
+										}
+									}
+								}
+							]
+						},
+						{
+							"value": "incremental",
+							"activities": [
+								{
+									"name": "postgres_import_incremental__0__evaluator",
+									"description": "Invokes the pipeline",
+									"type": "ExecutePipeline",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "postgres_import_incremental__0__evaluator",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": true,
+										"parameters": {
+											"db": {
+												"value": "@pipeline().parameters.db",
+												"type": "Expression"
+											},
+											"tables": {
+												"value": "@pipeline().parameters.tables",
+												"type": "Expression"
+											},
+											"dls": {
+												"value": "@pipeline().parameters.dls",
+												"type": "Expression"
+											},
+											"watermark": {
+												"value": "@pipeline().parameters.watermark",
+												"type": "Expression"
+											},
+											"databricks": {
+												"value": "@pipeline().parameters.databricks",
+												"type": "Expression"
+											},
+											"adf": {
+												"value": "@pipeline().parameters.adf",
+												"type": "Expression"
+											},
+											"container": {
+												"value": "@pipeline().parameters.container",
+												"type": "Expression"
+											},
+											"url": {
+												"value": "@pipeline().parameters.url",
+												"type": "Expression"
+											}
+										}
+									}
+								}
+							]
+						}
+					],
+					"defaultActivities": [
+						{
+							"name": "error__undefined_load_type",
+							"description": "\"load_type\" is undefined, that's why you've reached the \"default\" condition in this switch. We are not assuming defaults. Please review your implementation.",
+							"type": "WebHook",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"url": "https://thisisthewaytosimuateanerrormyfriend.com/api",
+								"method": "POST",
+								"headers": {
+									"Content-Type": "application/json"
+								},
+								"body": {
+									"error": true
+								},
+								"timeout": "00:10:00"
+							}
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"tables": {
+				"type": "array"
+			},
+			"dls": {
+				"type": "object"
+			},
+			"adf": {
+				"type": "object"
+			},
+			"watermark": {
+				"type": "object"
+			},
+			"databricks": {
+				"type": "object"
+			},
+			"db": {
+				"type": "object"
+			},
+			"container": {
+				"type": "string"
+			},
+			"url": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "templates/raw/bdo/raw_load_bdo_unified"
+		},
+		"annotations": [
+			"raw",
+			"template",
+			"postgres"
+		]
+	}
+}

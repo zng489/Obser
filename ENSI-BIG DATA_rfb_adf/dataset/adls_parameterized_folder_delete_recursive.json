@@ -1,0 +1,49 @@
+{
+	"name": "adls_parameterized_folder_delete_recursive",
+	"properties": {
+		"description": "Takes directory as a parameter, to be populated by the running pipeline",
+		"linkedServiceName": {
+			"referenceName": "cnibigdatadlsgen2",
+			"type": "LinkedServiceReference",
+			"parameters": {
+				"url": {
+					"value": "@dataset().url",
+					"type": "Expression"
+				}
+			}
+		},
+		"parameters": {
+			"directory": {
+				"type": "string"
+			},
+			"container": {
+				"type": "string"
+			},
+			"url": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "parametrized"
+		},
+		"annotations": [
+			"delete",
+			"template",
+			"common"
+		],
+		"type": "Binary",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"folderPath": {
+					"value": "@dataset().directory",
+					"type": "Expression"
+				},
+				"fileSystem": {
+					"value": "@dataset().container",
+					"type": "Expression"
+				}
+			}
+		}
+	}
+}

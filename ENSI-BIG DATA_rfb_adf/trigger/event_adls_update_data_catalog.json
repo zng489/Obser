@@ -1,0 +1,35 @@
+{
+	"name": "event_adls_update_data_catalog",
+	"properties": {
+		"description": "Event trigger for uploading metadata catalog as soon as a blob is uploaded in the defined path for the Data Lake.",
+		"annotations": [
+			"event",
+			"adls",
+			"gov",
+			"metadata"
+		],
+		"runtimeState": "Started",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "merge_batch_event",
+					"type": "PipelineReference"
+				},
+				"parameters": {
+					"event_folderpath": "@triggerBody().folderPath",
+					"event_filename": "@triggerBody().fileName"
+				}
+			}
+		],
+		"type": "BlobEventsTrigger",
+		"typeProperties": {
+			"blobPathBeginsWith": "/datalake/blobs/gov/usr_upload/",
+			"blobPathEndsWith": ".csv",
+			"ignoreEmptyBlobs": true,
+			"scope": "/subscriptions/3e3a21e3-9551-4945-8c46-c02f558392ce/resourceGroups/bigdata/providers/Microsoft.Storage/storageAccounts/cnibigdatadlsgen2",
+			"events": [
+				"Microsoft.Storage.BlobCreated"
+			]
+		}
+	}
+}

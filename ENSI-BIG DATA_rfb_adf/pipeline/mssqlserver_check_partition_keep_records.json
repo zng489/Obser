@@ -1,0 +1,338 @@
+{
+	"name": "mssqlserver_check_partition_keep_records",
+	"properties": {
+		"description": "This step implements a verification, for sources of type MSSQLServer, here we verify, for incremental loads, if the the count of records just considering the range for control_column is the same as after applying partitioning. If not, then we must raise an error. \n\nAs it is implemented inside the for_each loop, \"table\" might be downstreammed as \"object\", simplifying this step.",
+		"activities": [
+			{
+				"name": "count_records_control_column_range",
+				"description": "Sends a SELECT COUNT(*) for the table considering only control_columns's range.\n\nThis number will be later compared with the count considering the partition range.",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 2,
+					"retryIntervalInSeconds": 120,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": {
+							"value": "SELECT COUNT(*) AS count_records\nFROM @{pipeline().parameters.table.schema}.@{pipeline().parameters.table.table} \nWHERE\nCOALESCE(CONVERT(BIGINT,@{pipeline().globalParameters.mssqlserver__function__regexp_replace}(CONVERT(varchar(max), @{pipeline().parameters.table.control_column}, 121),'^0-9','@{pipeline().parameters.table.control_column_mask_value}')), CAST('@{json(pipeline().parameters.query).filters.control_column.lowerbound}' AS BIGINT))\n>= CAST('@{json(pipeline().parameters.query).filters.control_column.lowerbound}' AS BIGINT) \nAND \nCOALESCE(CONVERT(BIGINT,@{pipeline().globalParameters.mssqlserver__function__regexp_replace}(CONVERT(varchar(max), @{pipeline().parameters.table.control_column}, 121),'^0-9','@{pipeline().parameters.table.control_column_mask_value}')), CAST('@{json(pipeline().parameters.query).filters.control_column.lowerbound}' AS BIGINT))\n<= CAST(@{json(pipeline().parameters.query).filters.control_column.upperbound} AS BIGINT)",
+							"type": "Expression"
+						},
+						"queryTimeout": "03:20:00",
+						"isolationLevel": "ReadCommitted",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "sqlserver_parametrized",
+						"type": "DatasetReference"
+					}
+				}
+			},
+			{
+				"name": "count_records_with_partition_range",
+				"description": "Counts the records for the increment considering also the partition range.\n\nResults must be returned as \"first row\" and in a column name \"count_records\"",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 2,
+					"retryIntervalInSeconds": 120,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": {
+							"value": "SELECT COUNT(*) AS count_records FROM @{pipeline().parameters.table.schema}.@{pipeline().parameters.table.table}\nWHERE\nCOALESCE(CONVERT(BIGINT,@{pipeline().globalParameters.mssqlserver__function__regexp_replace}(CONVERT(varchar(max), @{pipeline().parameters.table.control_column}, 121),'^0-9','@{pipeline().parameters.table.control_column_mask_value}')), CAST('@{json(pipeline().parameters.query).filters.control_column.lowerbound}' AS BIGINT))\n>= CAST('@{json(pipeline().parameters.query).filters.control_column.lowerbound}' AS BIGINT)\nAND\nCOALESCE(CONVERT(BIGINT,@{pipeline().globalParameters.mssqlserver__function__regexp_replace}(CONVERT(varchar(max), @{pipeline().parameters.table.control_column}, 121),'^0-9','@{pipeline().parameters.table.control_column_mask_value}')), CAST('@{json(pipeline().parameters.query).filters.control_column.lowerbound}' AS BIGINT))\n<= CAST('@{json(pipeline().parameters.query).filters.control_column.upperbound}' AS BIGINT)\nAND\nCAST(COALESCE(@{pipeline().parameters.table.partition_column}, '@{json(pipeline().parameters.query).filters.partition_column.lowerbound}') AS BIGINT) \n>= CAST('@{json(pipeline().parameters.query).filters.partition_column.lowerbound}' AS BIGINT) \nAND \nCAST(COALESCE(@{pipeline().parameters.table.partition_column}, '@{json(pipeline().parameters.query).filters.partition_column.lowerbound}') AS BIGINT)\n<= CAST('@{json(pipeline().parameters.query).filters.partition_column.upperbound}' AS BIGINT)",
+							"type": "Expression"
+						},
+						"queryTimeout": "05:00:00",
+						"isolationLevel": "ReadCommitted",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "sqlserver_parametrized",
+						"type": "DatasetReference"
+					}
+				}
+			},
+			{
+				"name": "if_counts_are_equal",
+				"description": "Checks if these counts are equal, wait 1 second and keep it going. This is the happy way.\n\nIf not, then raise the error. We'll later implement a table to keep these events.\n",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "count_records_with_partition_range",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "count_records_control_column_range",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@equals(activity('count_records_control_column_range').output.firstRow.count_records, activity('count_records_with_partition_range').output.firstRow.count_records)\n",
+						"type": "Expression"
+					},
+					"ifFalseActivities": [
+						{
+							"name": "counts_before_and_after_partition_differ",
+							"description": "The number of records for the increment are different before and after applying partitioning. This means you will lose records. \n\nPlease review the implementation and also the data source. Something's really wrong about it.",
+							"type": "WebHook",
+							"dependsOn": [
+								{
+									"activity": "dq_log_table_record_loss_when_partitioning",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"url": "https://thisisthewaytosimuateanerrormyfriend.com/api",
+								"method": "POST",
+								"headers": {
+									"Content-Type": "application/json"
+								},
+								"body": {
+									"error": true
+								},
+								"timeout": "00:10:00"
+							}
+						},
+						{
+							"name": "dq_log_table_record_loss_when_partitioning",
+							"description": "Invokes the procedure in SQLDW for logging this unwanted behavior. This will allow us full trace of this object.",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": {
+									"value": "@pipeline().parameters.watermark.procedures.dq_log_partition_data_loss",
+									"type": "Expression"
+								},
+								"storedProcedureParameters": {
+									"adf_factory_name": {
+										"value": {
+											"value": "@pipeline().parameters.adf.adf_factory_name",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"adf_pipeline_name": {
+										"value": {
+											"value": "@pipeline().parameters.adf.adf_pipeline_name",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"adf_pipeline_run_id": {
+										"value": {
+											"value": "@pipeline().parameters.adf.adf_pipeline_run_id",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"adf_trigger_id": {
+										"value": {
+											"value": "@pipeline().parameters.adf.adf_trigger_id",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"adf_trigger_name": {
+										"value": {
+											"value": "@pipeline().parameters.adf.adf_trigger_name",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"adf_trigger_time": {
+										"value": {
+											"value": "@pipeline().parameters.adf.adf_trigger_time",
+											"type": "Expression"
+										},
+										"type": "DateTime"
+									},
+									"adf_trigger_type": {
+										"value": {
+											"value": "@pipeline().parameters.adf.adf_trigger_type",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"control_column": {
+										"value": {
+											"value": "@pipeline().parameters.table.control_column",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"control_column_lowerbound": {
+										"value": {
+											"value": "@int(json(pipeline().parameters.query).filters.control_column.lowerbound)",
+											"type": "Expression"
+										},
+										"type": "Int64"
+									},
+									"control_column_upperbound": {
+										"value": {
+											"value": "@int(json(pipeline().parameters.query).filters.control_column.upperbound)",
+											"type": "Expression"
+										},
+										"type": "Int64"
+									},
+									"count_records_control_column_and_partition": {
+										"value": {
+											"value": "@activity('count_records_with_partition_range').output.firstRow.count_records",
+											"type": "Expression"
+										},
+										"type": "Int64"
+									},
+									"count_records_control_column_only": {
+										"value": {
+											"value": "@activity('count_records_control_column_range').output.firstRow.count_records",
+											"type": "Expression"
+										},
+										"type": "Int64"
+									},
+									"db_host": {
+										"value": {
+											"value": "@pipeline().parameters.db.host",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"db_port": {
+										"value": {
+											"value": "@int(pipeline().parameters.db.port)",
+											"type": "Expression"
+										},
+										"type": "Int32"
+									},
+									"db_schema": {
+										"value": {
+											"value": "@pipeline().parameters.table.schema",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"db_service_name": {
+										"value": {
+											"value": "@pipeline().parameters.db.service_name",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"db_table": {
+										"value": {
+											"value": "@pipeline().parameters.table.table",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"db_vendor": {
+										"value": {
+											"value": "@pipeline().parameters.db.vendor",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"load_type": {
+										"value": {
+											"value": "@pipeline().parameters.table.load_type",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"partition_column": {
+										"value": {
+											"value": "@pipeline().parameters.table.partition_column",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"partition_column_lowerbound": {
+										"value": {
+											"value": "@int(json(pipeline().parameters.query).filters.partition_column.lowerbound)",
+											"type": "Expression"
+										},
+										"type": "Int64"
+									},
+									"partition_column_upperbound": {
+										"value": {
+											"value": "@int(json(pipeline().parameters.query).filters.partition_column.upperbound)",
+											"type": "Expression"
+										},
+										"type": "Int64"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "cnibigdatasqldw",
+								"type": "LinkedServiceReference"
+							}
+						}
+					],
+					"ifTrueActivities": [
+						{
+							"name": "count_records_is_ok",
+							"description": "There was no record loss with partitioning.",
+							"type": "Wait",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"waitTimeInSeconds": 1
+							}
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"table": {
+				"type": "object"
+			},
+			"query": {
+				"type": "string"
+			},
+			"db": {
+				"type": "object"
+			},
+			"adf": {
+				"type": "object"
+			},
+			"watermark": {
+				"type": "object"
+			}
+		},
+		"folder": {
+			"name": "templates/raw/bdo/mssqlserver"
+		},
+		"annotations": [
+			"template",
+			"raw",
+			"sqlserver"
+		]
+	}
+}

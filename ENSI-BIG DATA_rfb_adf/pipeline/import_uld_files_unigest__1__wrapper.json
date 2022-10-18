@@ -1,0 +1,577 @@
+{
+	"name": "import_uld_files_unigest__1__wrapper",
+	"properties": {
+		"description": "Some users are able to add files to ADLS, and these files lead to the following behavior:\n\n1 - They are read from folder: /uld/<namespace>/<table name>\n2 - Raw object is stored in: /raw/usr/<namespace>/<table name>\n3 - Original file is copied to: /ach//uld/<namespace>/<table name/<raw processing timestamp>\n4 - In the end, file is deleted from: /uld/<namespace>/<table name>\n\nAs we are reading from files in ADLS, there's no need to check for partitions or implement any logic for partitioning. The only requirement is to have one table schema for file path.\n\nLike any raw object, this one can be an incremental/append type or a full/overwrite. This key is also available in the \"files\" dict.\n\nThis implementation will look for definitions of file_extension in  \"file\" parameter. Different types os files might map to distinct types os connections, and so we need to implement them in this pipeline.\n\nWARNING: the tables object must be type ARRAY.\nAll objects in this array must be, in reality STRING type, enclosed by \".\nInsisde this objects, you should enclose everything in SINGLE QUOTES.\nOtherwise, things are not going to work. I warned you!\n\nIMPORTANT: for text type files there are some specific requiremets:\n\tescape char: \\ (backslash)\n\tquote char: \" (double quote)\n\tfirst row needs to be header, ALWAYS!\n\n\"dls\" needs a new section \"systems\", otherwise we won't be able to save it in the correct path in ADLS. Value is note preceded by \"/\". This si useful only for databricks. \n\nHere's an example for the complete implementation:\n\nfiles=[\"{'namespace': 'oba', 'file_folder': 'prm_cod_detalhamento_negocio_x_cr', 'extension': 'txt', 'column_delimiter': ';',  'encoding': 'UTF-8', 'null_value': ''}\"]\n\ndls=\n{\"folders\":{\"landing\":\"/uld\",\"error\":\"/err\",\"staging\":\"/stg\",\"log\":\"/log\",\"raw\":\"/raw\",\"archive\":\"/ach\"},\"systems\":{\"raw\":\"usr\"}}\n\ndatabricks= {\"raw\":{\"notebook\":{\"folder\":\"/KEYRUS/dev/raw/usr/oba\",\"file\":\"org_raw_prm_cod_detalhamento_negocio_x_cr\"}}}\n",
+		"activities": [
+			{
+				"name": "filter_files_extension_eq_txt_or_csv_or_tsv",
+				"description": "Cause different files extensions lead to different connections in ADF, we need to split the implementations of possible alternatives. ",
+				"type": "Filter",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@pipeline().parameters.files",
+						"type": "Expression"
+					},
+					"condition": {
+						"value": "@or(or(equals(toLower(json(item()).extension), 'txt'), equals(toLower(json(item()).extension), 'csv')), equals(toLower(json(item()).extension), 'tsv'))",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "1_for_each_file_type_text",
+				"description": "This makes our pipeline generic and iterable. After filtering the for extensions of text type, we shall proceed working with on any of them . \n\nAfter passing through this loop, \"files\" pipeline parameter must be casted to json when needed.\n\nAnd don't worry; if output is null, the rest of the flow is not executed! At least this!",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "filter_files_extension_eq_txt_or_csv_or_tsv",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('filter_files_extension_eq_txt_or_csv_or_tsv').output.value",
+						"type": "Expression"
+					},
+					"isSequential": false,
+					"batchCount": 4,
+					"activities": [
+						{
+							"name": "1_import_uld_files_unigest__2__reject",
+							"description": "",
+							"type": "ExecutePipeline",
+							"dependsOn": [
+								{
+									"activity": "if_data_quality_successed",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "import_uld_files_unigest__2__reject",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": false,
+								"parameters": {
+									"file": {
+										"value": "@json(item())",
+										"type": "Expression"
+									},
+									"dls": {
+										"value": "@pipeline().parameters.dls",
+										"type": "Expression"
+									},
+									"var_dh_insercao_raw": {
+										"value": "@replace(replace(replace(replace(replace(string(json(string(pipeline().parameters.adf)).adf_trigger_time), '-', ''), 'T', ''), ':', ''), '.', ''), 'Z', '')\n",
+										"type": "Expression"
+									},
+									"adf": {
+										"value": "@pipeline().parameters.adf",
+										"type": "Expression"
+									},
+									"return_databricks": {
+										"value": "@array(activity('1_run_data_quality_notebook').output.runOutput.list_files_to_reject)",
+										"type": "Expression"
+									},
+									"container": {
+										"value": "@pipeline().parameters.container",
+										"type": "Expression"
+									},
+									"url": {
+										"value": "@pipeline().parameters.url",
+										"type": "Expression"
+									}
+								}
+							}
+						},
+						{
+							"name": "import_uld_files_unigest__3__archive",
+							"description": "Execute the subpipeline responsible for:\n- executing DB notebook\n- moving the original file keeping the archive property\n\nBy doing this, we avoid activity names on sink or system variables.",
+							"type": "ExecutePipeline",
+							"dependsOn": [
+								{
+									"activity": "2_wait_from_moving_rejected_files",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "import_uld_files_unigest__3__archive",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": false,
+								"parameters": {
+									"file": {
+										"value": "@json(item())",
+										"type": "Expression"
+									},
+									"dls": {
+										"value": "@pipeline().parameters.dls",
+										"type": "Expression"
+									},
+									"var_dh_insercao_raw": {
+										"value": "@replace(replace(replace(replace(replace(string(json(string(pipeline().parameters.adf)).adf_trigger_time), '-', ''), 'T', ''), ':', ''), '.', ''), 'Z', '')",
+										"type": "Expression"
+									},
+									"adf": {
+										"value": "@pipeline().parameters.adf",
+										"type": "Expression"
+									},
+									"container": {
+										"value": "@pipeline().parameters.container",
+										"type": "Expression"
+									},
+									"url": {
+										"value": "@pipeline().parameters.url",
+										"type": "Expression"
+									}
+								}
+							}
+						},
+						{
+							"name": "2_import_uld_files_unigest__2__reject",
+							"description": "",
+							"type": "ExecutePipeline",
+							"dependsOn": [
+								{
+									"activity": "if_run_raw_successed",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "import_uld_files_unigest__2__reject",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": false,
+								"parameters": {
+									"file": {
+										"value": "@json(item())",
+										"type": "Expression"
+									},
+									"dls": {
+										"value": "@pipeline().parameters.dls",
+										"type": "Expression"
+									},
+									"var_dh_insercao_raw": {
+										"value": "@replace(replace(replace(replace(replace(string(json(string(pipeline().parameters.adf)).adf_trigger_time), '-', ''), 'T', ''), ':', ''), '.', ''), 'Z', '')",
+										"type": "Expression"
+									},
+									"adf": {
+										"value": "@pipeline().parameters.adf",
+										"type": "Expression"
+									},
+									"return_databricks": {
+										"value": "@array(activity('2_run_raw_notebook').output.runOutput.list_files_to_reject)",
+										"type": "Expression"
+									},
+									"container": {
+										"value": "@pipeline().parameters.container",
+										"type": "Expression"
+									},
+									"url": {
+										"value": "@pipeline().parameters.url",
+										"type": "Expression"
+									}
+								}
+							}
+						},
+						{
+							"name": "1_wait_from_moving_rejected_files",
+							"type": "Wait",
+							"dependsOn": [
+								{
+									"activity": "1_import_uld_files_unigest__2__reject",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"waitTimeInSeconds": {
+									"value": "@if(equals(mul(length(array(activity('1_run_data_quality_notebook').output.runOutput.list_files_to_reject)), 5), 0), 1, mul(length(array(activity('1_run_data_quality_notebook').output.runOutput.list_files_to_reject)), 5))",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "2_wait_from_moving_rejected_files",
+							"type": "Wait",
+							"dependsOn": [
+								{
+									"activity": "2_import_uld_files_unigest__2__reject",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"waitTimeInSeconds": {
+									"value": "@if(equals(mul(length(array(activity('2_run_raw_notebook').output.runOutput.list_files_to_reject)), 5), 0), 1, mul(length(array(activity('2_run_raw_notebook').output.runOutput.list_files_to_reject)), 5))",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "if_data_quality_successed",
+							"type": "IfCondition",
+							"dependsOn": [
+								{
+									"activity": "1_run_data_quality_notebook",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"expression": {
+									"value": "@empty(array(activity('1_run_data_quality_notebook').output.runOutput.list_files_to_reject))",
+									"type": "Expression"
+								},
+								"ifFalseActivities": [
+									{
+										"name": "data_quality_error",
+										"description": "Appends \"data_quality_error\" to variable \"execution_errors\"",
+										"type": "AppendVariable",
+										"dependsOn": [],
+										"userProperties": [],
+										"typeProperties": {
+											"variableName": "execution_errors",
+											"value": "'data_quality_error'"
+										}
+									}
+								],
+								"ifTrueActivities": [
+									{
+										"name": "1_wait_successed",
+										"type": "Wait",
+										"dependsOn": [],
+										"userProperties": [],
+										"typeProperties": {
+											"waitTimeInSeconds": 1
+										}
+									}
+								]
+							}
+						},
+						{
+							"name": "data_quality_failed",
+							"description": "Appends \"data_quality_failed\" to variable \"execution_errors\"",
+							"type": "AppendVariable",
+							"dependsOn": [
+								{
+									"activity": "1_run_data_quality_notebook",
+									"dependencyConditions": [
+										"Failed"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "execution_errors",
+								"value": "'data_quality_failed'"
+							}
+						},
+						{
+							"name": "run_raw_failed",
+							"description": "Appends \"run_raw_failed\" to variable \"execution_errors\"",
+							"type": "AppendVariable",
+							"dependsOn": [
+								{
+									"activity": "2_run_raw_notebook",
+									"dependencyConditions": [
+										"Failed"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "execution_errors",
+								"value": "'run_raw_failed'"
+							}
+						},
+						{
+							"name": "if_run_raw_successed",
+							"type": "IfCondition",
+							"dependsOn": [
+								{
+									"activity": "2_run_raw_notebook",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"expression": {
+									"value": "@empty(array(activity('2_run_raw_notebook').output.runOutput.list_files_to_reject))",
+									"type": "Expression"
+								},
+								"ifFalseActivities": [
+									{
+										"name": "run_raw_error",
+										"description": "Appends \"run_raw_error\" to variable \"execution_errors\"",
+										"type": "AppendVariable",
+										"dependsOn": [],
+										"userProperties": [],
+										"typeProperties": {
+											"variableName": "execution_errors",
+											"value": "'run_raw_error'"
+										}
+									}
+								],
+								"ifTrueActivities": [
+									{
+										"name": "2_wait_successed",
+										"type": "Wait",
+										"dependsOn": [],
+										"userProperties": [],
+										"typeProperties": {
+											"waitTimeInSeconds": 1
+										}
+									}
+								]
+							}
+						},
+						{
+							"name": "has_error_in_completed_conditions",
+							"description": "For all activities in which we evaluate \"completed\" condition, things can fail but still go on as everything was nice and smooth. To have real control over this, the vairable \"execution_errors\" is needed and now we have to check there are no real errors. \n\nIf any of the parents fail, this workflow will already fail, cause the logic clause is AND. Think about it. ",
+							"type": "IfCondition",
+							"dependsOn": [
+								{
+									"activity": "import_uld_files_unigest__3__archive",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"expression": {
+									"value": "@greater(length(variables('execution_errors')), 0)",
+									"type": "Expression"
+								},
+								"ifFalseActivities": [
+									{
+										"name": "workflow_success",
+										"description": "No errors in \"completed\" conditions found. ",
+										"type": "Wait",
+										"dependsOn": [],
+										"userProperties": [],
+										"typeProperties": {
+											"waitTimeInSeconds": 1
+										}
+									}
+								],
+								"ifTrueActivities": [
+									{
+										"name": "workflow_failed",
+										"description": "Using a webhook with a bad HTTP request, we can introduce errors in out pipelines when we need.\n\nYou've got errors in some \"completed\" condition.",
+										"type": "WebHook",
+										"dependsOn": [],
+										"userProperties": [],
+										"typeProperties": {
+											"url": "https://thisisthewaytosimuateanerrormyfriend.com/api",
+											"method": "POST",
+											"headers": {
+												"Content-Type": "application/json"
+											},
+											"body": {
+												"error": true
+											},
+											"timeout": "00:10:00"
+										}
+									}
+								]
+							}
+						},
+						{
+							"name": "1_run_data_quality_notebook",
+							"description": "Calls data_quality notebook, which has to be called directly this way cause the returned object has to be evaluated on which files to reject. Unfortunately, this is the way to proceed here cause the unified implementation to call databricks will not allow to check any return. ",
+							"type": "DatabricksNotebook",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"notebookPath": "/KEYRUS/utils/data_quality",
+								"baseParameters": {
+									"adf": {
+										"value": "@string(pipeline().parameters.adf)",
+										"type": "Expression"
+									},
+									"dls": {
+										"value": "@string(pipeline().parameters.dls)",
+										"type": "Expression"
+									},
+									"file": {
+										"value": "@item()",
+										"type": "Expression"
+									},
+									"file_parse": {
+										"value": "@string(pipeline().parameters.file_parse)",
+										"type": "Expression"
+									}
+								},
+								"libraries": [
+									{
+										"pypi": {
+											"package": "azure-storage-file-datalake==12.1.2"
+										}
+									},
+									{
+										"pypi": {
+											"package": "xlrd==1.2.0"
+										}
+									},
+									{
+										"egg": "dbfs:/libs/impl/cni_connector.egg"
+									},
+									{
+										"egg": "dbfs:/libs/impl/crawler_functions.egg"
+									},
+									{
+										"egg": "dbfs:/libs/impl/raw_loader.egg"
+									}
+								]
+							},
+							"linkedServiceName": {
+								"referenceName": "cnibigdatabricks_job_cluster",
+								"type": "LinkedServiceReference"
+							}
+						},
+						{
+							"name": "2_run_raw_notebook",
+							"description": "Unfortunately, It won't be able to use the unified implementation for databricks because we need to evaluate the return of the execution. Subpipelines do not allow it. So, for this case, this has to run via 'notebook' activity, but at least uses a job cluster.",
+							"type": "DatabricksNotebook",
+							"dependsOn": [
+								{
+									"activity": "1_wait_from_moving_rejected_files",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"notebookPath": {
+									"value": "@pipeline().parameters.databricks_notebook_path",
+									"type": "Expression"
+								},
+								"baseParameters": {
+									"adf": {
+										"value": "@string(pipeline().parameters.adf)",
+										"type": "Expression"
+									},
+									"dls": {
+										"value": "@string(pipeline().parameters.dls)",
+										"type": "Expression"
+									},
+									"file": {
+										"value": "@string(item())",
+										"type": "Expression"
+									},
+									"file_parse": {
+										"value": "@string(pipeline().parameters.file_parse)",
+										"type": "Expression"
+									}
+								},
+								"libraries": [
+									{
+										"pypi": {
+											"package": "azure-storage-file-datalake==12.1.2"
+										}
+									},
+									{
+										"pypi": {
+											"package": "xlrd==1.2.0"
+										}
+									},
+									{
+										"egg": "dbfs:/libs/impl/raw_loader.egg"
+									},
+									{
+										"egg": "dbfs:/libs/impl/trs_loader.egg"
+									},
+									{
+										"egg": "dbfs:/libs/impl/crawler_functions.egg"
+									},
+									{
+										"egg": "dbfs:/libs/impl/cni_connector.egg"
+									}
+								]
+							},
+							"linkedServiceName": {
+								"referenceName": "cnibigdatabricks_job_cluster",
+								"type": "LinkedServiceReference"
+							}
+						}
+					]
+				}
+			}
+		],
+		"concurrency": 4,
+		"parameters": {
+			"files": {
+				"type": "array"
+			},
+			"dls": {
+				"type": "object"
+			},
+			"databricks_notebook_path": {
+				"type": "string"
+			},
+			"adf": {
+				"type": "object"
+			},
+			"file_parse": {
+				"type": "object"
+			},
+			"container": {
+				"type": "string"
+			},
+			"url": {
+				"type": "string"
+			}
+		},
+		"variables": {
+			"execution_errors": {
+				"type": "Array"
+			}
+		},
+		"folder": {
+			"name": "templates/raw/uld"
+		},
+		"annotations": []
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

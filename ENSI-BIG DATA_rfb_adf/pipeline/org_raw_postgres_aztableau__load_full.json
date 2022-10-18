@@ -1,0 +1,61 @@
+{
+	"name": "org_raw_postgres_aztableau__load_full",
+	"properties": {
+		"description": "Postgres full load test.\nPOstgres does not support partitioning when copying data.\n\nThis test is using table  publlic.customers\n",
+		"activities": [
+			{
+				"name": "raw_load_bdo_unified__0__switch_env",
+				"description": "Run template pipeline to import tables",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "raw_load_dbo_unified__0__switch_env",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						},
+						"tables": {
+							"value": "@pipeline().parameters.tables",
+							"type": "Expression"
+						},
+						"adf": {
+							"value": "{'adf_factory_name': '@{pipeline().DataFactory}', 'adf_pipeline_name': '@{pipeline().Pipeline}', 'adf_pipeline_run_id': '@{pipeline().RunId}',  'adf_trigger_id': '@{pipeline().TriggerId}', 'adf_trigger_name': '@{pipeline().TriggerName}', 'adf_trigger_time': '@{pipeline().TriggerTime}',  'adf_trigger_type': '@{pipeline().TriggerType}'}",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"concurrency": 1,
+		"parameters": {
+			"tables": {
+				"type": "array",
+				"defaultValue": [
+					"{'schema': 'postgres_tableau', 'table':'datasources','load_type':'full','partition_column':'null', 'columns': 'id,name,repository_url,owner_id,created_at,updated_at,project_id,size,lock_version,state,db_class,db_name,table_name,site_id,revision,repository_data_id,repository_extract_data_id,embedded,incrementable_extracts,refreshable_extracts,data_engine_extracts,extracts_refreshed_at,first_published_at,connectable,is_hierarchical,extracts_incremented_at,luid,asset_key_id,document_version,description,content_version,parent_workbook_id,hidden_name,last_published_at,data_id,reduced_data_id,remote_query_agent_id,using_remote_query_agent,is_certified,certification_note,certifier_user_id,certifier_details,extract_encryption_state,nlp_setting,extract_creation_pending,parent_type,nlp_setting_new,modified_by_user_id','raw':{'coalesce': 1}}"
+				]
+			},
+			"env": {
+				"type": "object",
+				"defaultValue": {
+					"env": "dev"
+				}
+			}
+		},
+		"folder": {
+			"name": "test/raw/postgres"
+		},
+		"annotations": [
+			"raw",
+			"postgres",
+			"test",
+			"full"
+		]
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

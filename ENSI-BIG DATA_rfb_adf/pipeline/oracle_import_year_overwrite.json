@@ -1,0 +1,673 @@
+{
+	"name": "oracle_import_year_overwrite",
+	"properties": {
+		"description": "Well, this one uses a Filter condition for making things work for year overwrite\n\nWARNING: the tables object must be type ARRAY.\nAll objects in this array must be, in reality STRING type, enclosed by \".\nInside this objects, you should enclose everything in SINGLE QUOTES.\nOtherwise, things are not going to work. I warned you!\n\nHere's an example:\ntables = [\"{'schema': 'INDDESEMPENHO', 'table':'CENTRORESPONSABILIDADE','load_type':'year_overwrite','control_column_filter_type':'current', 'partition_column':'null', 'control_column':'ano', 'control_column_mask_value': 'YYYY'}\"]",
+		"activities": [
+			{
+				"name": "filter_tables_load_type_year_overwrite",
+				"description": "Using filters and a definition of the table like an object, we must be able to get things going on a flux which separates incremental, full load and incremental per year. ",
+				"type": "Filter",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@pipeline().parameters.tables",
+						"type": "Expression"
+					},
+					"condition": {
+						"value": "@equals(toLower(json(item()).load_type), 'year_overwrite')",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "filter_if_control_column_filter_type_current",
+				"description": "This implementation uses the current year for filtering the data on source table. There's no external parameter to control it. Year is taken from system current date. When the year changes, the parameter will change too.",
+				"type": "Filter",
+				"dependsOn": [
+					{
+						"activity": "filter_tables_load_type_year_overwrite",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('filter_tables_load_type_year_overwrite').output.value\n",
+						"type": "Expression"
+					},
+					"condition": {
+						"value": "@equals(toLower(json(item()).control_column_filter_type), 'current')",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "filter_if_control_column_filter_parameter",
+				"description": "This implementation controls the year to be loaded by an EXTERNAL PARAMETER of type STRING  called \"year_to_load\". This is intended for abnormal cases when the year change does not represent the business rule for changing the data filtered on the source table.\nCustomer is supposed to alter \"year_to_load\" parameter by itself.",
+				"type": "Filter",
+				"dependsOn": [
+					{
+						"activity": "filter_tables_load_type_year_overwrite",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('filter_tables_load_type_year_overwrite').output.value\n",
+						"type": "Expression"
+					},
+					"condition": {
+						"value": "@equals(toLower(json(item()).control_column_filter_type), 'parameter')",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "filter_if_partitioned_year_overwrite",
+				"description": "Checks if the partition column parameter is null. If not null, the load will be partitioned from this column.",
+				"type": "Filter",
+				"dependsOn": [
+					{
+						"activity": "filter_if_control_column_filter_type_current",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('filter_if_control_column_filter_type_current').output.value",
+						"type": "Expression"
+					},
+					"condition": {
+						"value": "@not(equals(toLower(json(item()).partition_column), 'null'))",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "filter_if_not_partitioned_year_overwrite",
+				"description": "Checks if the partition column parameter is null. If null, table will be loaded without partitioning",
+				"type": "Filter",
+				"dependsOn": [
+					{
+						"activity": "filter_if_control_column_filter_type_current",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('filter_if_control_column_filter_type_current').output.value",
+						"type": "Expression"
+					},
+					"condition": {
+						"value": "@equals(toLower(json(item()).partition_column), 'null')",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "1_for_each_year_overwrite_type_current_partitioned",
+				"description": "This makes our pipeline generic and iterable. After filtering year_overwrite tables, we shall proceed working with on any of them . \n\nAfter passing through this loop, \"tables\" pipeline parameter must be casted to json when needed.\n\nAnd don't worry; if output is null, the rest of the flow is not executed! At least this!",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "filter_if_partitioned_year_overwrite",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('filter_if_partitioned_year_overwrite').output.value",
+						"type": "Expression"
+					},
+					"batchCount": 4,
+					"activities": [
+						{
+							"name": "1_get_max_min_partition_column_in_source_db",
+							"description": "Looks for the partition column in the source db. Retrieves max(partition_column) and min(partition_column). This will be used as limits for  partition definition on load.",
+							"type": "Lookup",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 1,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "OracleSource",
+									"oracleReaderQuery": {
+										"value": "SELECT MAX(CAST(@{json(item()).partition_column} AS INT)) AS max_partition_column, MIN(CAST(@{json(item()).partition_column} AS INT)) AS min_partition_column FROM  @{json(item()).schema}.@{json(item()).table} WHERE EXTRACT(YEAR FROM TO_DATE(@{json(item()).control_column},  '@{json(item()).control_column_mask_value}'))= EXTRACT(YEAR FROM CURRENT_DATE) AND TRIM(@{json(item()).control_column}) IS NOT NULL;",
+										"type": "Expression"
+									},
+									"partitionOption": "None"
+								},
+								"dataset": {
+									"referenceName": "oracle_table_parameterized",
+									"type": "DatasetReference"
+								}
+							}
+						},
+						{
+							"name": "1_load_full_table_partitioned",
+							"description": "To load the table partitioned, it is needed a lowerbound and an upperbound. These values were generated by the lookup activity \"get_max_min_partition_column_in_source_db\". This is a year_overwrite load, only current year data is loaded\n\nExpects the partition column to be type INT! This is really the best practice for this things!",
+							"type": "Copy",
+							"dependsOn": [
+								{
+									"activity": "1_get_max_min_partition_column_in_source_db",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 2,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "OracleSource",
+									"oracleReaderQuery": {
+										"value": "SELECT @{json(item()).columns} FROM @{json(item()).schema}.@{json(item()).table} WHERE EXTRACT(YEAR FROM NVL(TO_DATE(TRIM(@{json(item()).control_column}),  '@{json(item()).control_column_mask_value}'), CURRENT_DATE)) = EXTRACT(YEAR FROM CURRENT_DATE) AND CAST(NVL(TRIM(?AdfRangePartitionColumnName), @{activity('1_get_max_min_partition_column_in_source_db').output.firstRow.min_partition_column}) AS INT) <= CAST(?AdfRangePartitionUpbound AS INT) AND CAST(NVL(TRIM(?AdfRangePartitionColumnName), @{activity('1_get_max_min_partition_column_in_source_db').output.firstRow.min_partition_column}) AS INT) >= CAST(?AdfRangePartitionLowbound AS INT)",
+										"type": "Expression"
+									},
+									"partitionOption": "DynamicRange",
+									"partitionSettings": {
+										"partitionColumnName": {
+											"value": "@{json(item()).partition_column}",
+											"type": "Expression"
+										},
+										"partitionUpperBound": {
+											"value": "@{activity('1_get_max_min_partition_column_in_source_db').output.firstRow.max_partition_column}",
+											"type": "Expression"
+										},
+										"partitionLowerBound": {
+											"value": "@{activity('1_get_max_min_partition_column_in_source_db').output.firstRow.min_partition_column}",
+											"type": "Expression"
+										}
+									}
+								},
+								"sink": {
+									"type": "ParquetSink",
+									"storeSettings": {
+										"type": "AzureBlobFSWriteSettings"
+									},
+									"formatSettings": {
+										"type": "ParquetWriteSettings"
+									}
+								},
+								"enableStaging": false,
+								"parallelCopies": {
+									"value": "@json(item()).partitions",
+									"type": "Expression"
+								},
+								"enableSkipIncompatibleRow": true,
+								"redirectIncompatibleRowSettings": {
+									"linkedServiceName": {
+										"referenceName": "cnibigdatadlsgen2stg",
+										"type": "LinkedServiceReference"
+									},
+									"path": {
+										"value": "@{pipeline().parameters.container}/@{pipeline().parameters.dls.folders.error}/dbo/@{json(item()).schema}/@{json(item()).table}",
+										"type": "Expression"
+									}
+								},
+								"dataIntegrationUnits": 2
+							},
+							"inputs": [
+								{
+									"referenceName": "oracle_table_parameterized",
+									"type": "DatasetReference"
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "adls_parameterized_partitioned_source",
+									"type": "DatasetReference",
+									"parameters": {
+										"container": {
+											"value": "@pipeline().parameters.container",
+											"type": "Expression"
+										},
+										"url": {
+											"value": "@pipeline().parameters.url",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						},
+						{
+							"name": "1_run_raw_notebook",
+							"description": "Invokes the pipeline for running Databricks",
+							"type": "ExecutePipeline",
+							"dependsOn": [
+								{
+									"activity": "1_load_full_table_partitioned",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "raw_load_dbo_unified__4__run_databricks_notebook",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"databricks": {
+										"value": "@pipeline().parameters.databricks",
+										"type": "Expression"
+									},
+									"adf": {
+										"value": "@pipeline().parameters.adf",
+										"type": "Expression"
+									},
+									"dls": {
+										"value": "@pipeline().parameters.dls",
+										"type": "Expression"
+									},
+									"table": {
+										"value": "@string(item())",
+										"type": "Expression"
+									}
+								}
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "2_for_each_year_overwrite_type_current",
+				"description": "This makes our pipeline generic and iterable. After filtering the year_overwrite tables, we shall proceed working with on any of them . \n\nAfter passing through this loop, \"tables\" pipeline parameter must be casted to json when needed.\n\nAnd don't worry; if output is null, the rest of the flow is not executed! At least this!",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "filter_if_not_partitioned_year_overwrite",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('filter_if_not_partitioned_year_overwrite').output.value\n",
+						"type": "Expression"
+					},
+					"batchCount": 4,
+					"activities": [
+						{
+							"name": "2_load_year_overwrite",
+							"description": "To load the table without partitioning, just execute a simple select * from table. No need to calculate upper bound, so we don't need the activity \"get_max_partition_column_in_source_db\". This is a year_overwrite load, only current year data is loaded",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 2,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "OracleSource",
+									"oracleReaderQuery": {
+										"value": "SELECT @{json(item()).columns} FROM @{json(item()).schema}.@{json(item()).table} WHERE EXTRACT(YEAR FROM NVL(TO_DATE(TRIM(@{json(item()).control_column}),  '@{json(item()).control_column_mask_value}'), CURRENT_DATE)) = EXTRACT(YEAR FROM CURRENT_DATE)",
+										"type": "Expression"
+									},
+									"partitionOption": "None"
+								},
+								"sink": {
+									"type": "ParquetSink",
+									"storeSettings": {
+										"type": "AzureBlobFSWriteSettings"
+									},
+									"formatSettings": {
+										"type": "ParquetWriteSettings"
+									}
+								},
+								"enableStaging": false,
+								"parallelCopies": 4,
+								"enableSkipIncompatibleRow": true,
+								"redirectIncompatibleRowSettings": {
+									"linkedServiceName": {
+										"referenceName": "cnibigdatadlsgen2stg",
+										"type": "LinkedServiceReference"
+									},
+									"path": {
+										"value": "@{pipeline().parameters.container}/@{pipeline().parameters.dls.folders.error}/dbo/@{json(item()).schema}/@{json(item()).table}",
+										"type": "Expression"
+									}
+								},
+								"dataIntegrationUnits": 2
+							},
+							"inputs": [
+								{
+									"referenceName": "oracle_table_parameterized",
+									"type": "DatasetReference"
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "adls_parameterized_partitioned_source",
+									"type": "DatasetReference",
+									"parameters": {
+										"container": {
+											"value": "@pipeline().parameters.container",
+											"type": "Expression"
+										},
+										"url": {
+											"value": "@pipeline().parameters.url",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						},
+						{
+							"name": "2_run_raw_notebook",
+							"description": "Invokes the pipeline for running Databricks",
+							"type": "ExecutePipeline",
+							"dependsOn": [
+								{
+									"activity": "2_load_year_overwrite",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "raw_load_dbo_unified__4__run_databricks_notebook",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"databricks": {
+										"value": "@pipeline().parameters.databricks",
+										"type": "Expression"
+									},
+									"adf": {
+										"value": "@pipeline().parameters.adf",
+										"type": "Expression"
+									},
+									"dls": {
+										"value": "@pipeline().parameters.dls",
+										"type": "Expression"
+									},
+									"table": {
+										"value": "@string(item())",
+										"type": "Expression"
+									}
+								}
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "filter_if_parameter_partitioned",
+				"description": "Checks if the partition column parameter is null. If not null, the load will be partitioned from this column.",
+				"type": "Filter",
+				"dependsOn": [
+					{
+						"activity": "filter_if_control_column_filter_parameter",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('filter_if_control_column_filter_parameter').output.value",
+						"type": "Expression"
+					},
+					"condition": {
+						"value": "@not(equals(toLower(json(item()).partition_column), 'null'))",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "3_for_each_year_overwrite_type_parameter_partitioned",
+				"description": "This makes our pipeline generic and iterable. After filtering year_overwrite tables, we shall proceed working with on any of them . \n\nAfter passing through this loop, \"tables\" pipeline parameter must be casted to json when needed.\n\nAnd don't worry; if output is null, the rest of the flow is not executed! At least this!",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "filter_if_parameter_partitioned",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('filter_if_parameter_partitioned').output.value",
+						"type": "Expression"
+					},
+					"batchCount": 4,
+					"activities": [
+						{
+							"name": "3_get_max_min_partition_column_in_source_db",
+							"description": "Looks for the partition column in the source db. Retrieves max(partition_column) and min(partition_column). This will be used as limits for  partition definition on load.",
+							"type": "Lookup",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 1,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "OracleSource",
+									"oracleReaderQuery": {
+										"value": "SELECT MAX(CAST(@{json(item()).partition_column} AS INT)) AS max_partition_column, MIN(CAST(@{json(item()).partition_column} AS INT)) AS min_partition_column FROM  @{json(item()).schema}.@{json(item()).table} WHERE EXTRACT(YEAR FROM TO_DATE(@{json(item()).control_column},  '@{json(item()).control_column_mask_value}'))= @{json(item()).year_to_load} AND TRIM(@{json(item()).control_column}) IS NOT NULL;",
+										"type": "Expression"
+									},
+									"partitionOption": "None"
+								},
+								"dataset": {
+									"referenceName": "oracle_table_parameterized",
+									"type": "DatasetReference"
+								}
+							}
+						},
+						{
+							"name": "3_load_full_table_partitioned",
+							"description": "To load the table partitioned, it is needed a lowerbound and an upperbound. These values were generated by the lookup activity \"get_max_min_partition_column_in_source_db\". This is a year_overwrite load, only current year data is loaded\n\nExpects the partition column to be type INT! This is really the best practice for this things!",
+							"type": "Copy",
+							"dependsOn": [
+								{
+									"activity": "3_get_max_min_partition_column_in_source_db",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 2,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "OracleSource",
+									"oracleReaderQuery": {
+										"value": "SELECT @{json(item()).columns} FROM @{json(item()).schema}.@{json(item()).table} WHERE EXTRACT(YEAR FROM NVL(TO_DATE(TRIM(@{json(item()).control_column}),  '@{json(item()).control_column_mask_value}'), CURRENT_DATE)) = @{json(item()).year_to_load} AND CAST(NVL(TRIM(?AdfRangePartitionColumnName), @{activity('3_get_max_min_partition_column_in_source_db').output.firstRow.min_partition_column}) AS INT) <= CAST(?AdfRangePartitionUpbound AS INT) AND CAST(NVL(TRIM(?AdfRangePartitionColumnName), @{activity('3_get_max_min_partition_column_in_source_db').output.firstRow.min_partition_column}) AS INT) >= CAST(?AdfRangePartitionLowbound AS INT)",
+										"type": "Expression"
+									},
+									"partitionOption": "DynamicRange",
+									"partitionSettings": {
+										"partitionColumnName": {
+											"value": "@{json(item()).partition_column}",
+											"type": "Expression"
+										},
+										"partitionUpperBound": {
+											"value": "@{activity('3_get_max_min_partition_column_in_source_db').output.firstRow.max_partition_column}",
+											"type": "Expression"
+										},
+										"partitionLowerBound": {
+											"value": "@{activity('3_get_max_min_partition_column_in_source_db').output.firstRow.min_partition_column}",
+											"type": "Expression"
+										}
+									}
+								},
+								"sink": {
+									"type": "ParquetSink",
+									"storeSettings": {
+										"type": "AzureBlobFSWriteSettings"
+									},
+									"formatSettings": {
+										"type": "ParquetWriteSettings"
+									}
+								},
+								"enableStaging": false,
+								"parallelCopies": {
+									"value": "@json(item()).partitions",
+									"type": "Expression"
+								},
+								"enableSkipIncompatibleRow": true,
+								"redirectIncompatibleRowSettings": {
+									"linkedServiceName": {
+										"referenceName": "cnibigdatadlsgen2stg",
+										"type": "LinkedServiceReference"
+									},
+									"path": {
+										"value": "@{pipeline().parameters.container}/@{pipeline().parameters.dls.folders.error}/dbo/@{json(item()).schema}/@{json(item()).table}",
+										"type": "Expression"
+									}
+								},
+								"dataIntegrationUnits": 2
+							},
+							"inputs": [
+								{
+									"referenceName": "oracle_table_parameterized",
+									"type": "DatasetReference"
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "adls_parameterized_partitioned_source",
+									"type": "DatasetReference",
+									"parameters": {
+										"container": {
+											"value": "@pipeline().parameters.container",
+											"type": "Expression"
+										},
+										"url": {
+											"value": "@pipeline().parameters.url",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						},
+						{
+							"name": "3_run_raw_notebook",
+							"description": "Invokes the pipeline for running Databricks",
+							"type": "ExecutePipeline",
+							"dependsOn": [
+								{
+									"activity": "3_load_full_table_partitioned",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "raw_load_dbo_unified__4__run_databricks_notebook",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"databricks": {
+										"value": "@pipeline().parameters.databricks",
+										"type": "Expression"
+									},
+									"adf": {
+										"value": "@pipeline().parameters.adf",
+										"type": "Expression"
+									},
+									"dls": {
+										"value": "@pipeline().parameters.dls",
+										"type": "Expression"
+									},
+									"table": {
+										"value": "@string(item())",
+										"type": "Expression"
+									}
+								}
+							}
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"db": {
+				"type": "object"
+			},
+			"tables": {
+				"type": "array"
+			},
+			"dls": {
+				"type": "object"
+			},
+			"watermark": {
+				"type": "object"
+			},
+			"databricks": {
+				"type": "object"
+			},
+			"adf": {
+				"type": "string"
+			},
+			"container": {
+				"type": "string"
+			},
+			"url": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "templates/raw/bdo/oracle"
+		},
+		"annotations": []
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

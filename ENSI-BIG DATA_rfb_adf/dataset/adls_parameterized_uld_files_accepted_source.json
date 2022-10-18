@@ -1,0 +1,58 @@
+{
+	"name": "adls_parameterized_uld_files_accepted_source",
+	"properties": {
+		"description": "Connection for uld file sources. This is the file available in /uld. Databricks is the one who knows how to take files in uld and take it to raw, not ADF. \n\nAfter writing to raw, original files are still in uld; they need to be archived (moved to /ach under a subfolder of timestamp int representation, that comes from databricks). ",
+		"linkedServiceName": {
+			"referenceName": "cnibigdatadlsgen2",
+			"type": "LinkedServiceReference",
+			"parameters": {
+				"url": {
+					"value": "@dataset().url",
+					"type": "Expression"
+				}
+			}
+		},
+		"parameters": {
+			"container": {
+				"type": "string"
+			},
+			"url": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "parametrized"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"folderPath": {
+					"value": "@{pipeline().parameters.dls.folders.landing}/@{pipeline().parameters.file.namespace}/@{pipeline().parameters.file.file_folder}",
+					"type": "Expression"
+				},
+				"fileSystem": {
+					"value": "@dataset().container",
+					"type": "Expression"
+				}
+			},
+			"columnDelimiter": {
+				"value": "@pipeline().parameters.file.column_delimiter",
+				"type": "Expression"
+			},
+			"encodingName": {
+				"value": "@pipeline().parameters.file.encoding",
+				"type": "Expression"
+			},
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"nullValue": {
+				"value": "@pipeline().parameters.file.null_value",
+				"type": "Expression"
+			},
+			"quoteChar": "\""
+		},
+		"schema": []
+	}
+}

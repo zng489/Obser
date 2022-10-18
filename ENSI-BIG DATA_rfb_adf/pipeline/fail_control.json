@@ -1,0 +1,186 @@
+{
+	"name": "fail_control",
+	"properties": {
+		"description": "Testing possibility of controlling the ammount of falied execution using a pipeline variable",
+		"activities": [
+			{
+				"name": "s_raw",
+				"type": "Wait",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"waitTimeInSeconds": 1
+				}
+			},
+			{
+				"name": "s_biz",
+				"description": "Using a webhook with a bad HTTP request, we can introduce errors in out pipelines when we need.",
+				"type": "WebHook",
+				"dependsOn": [
+					{
+						"activity": "s_trs",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"url": "https://thisisthewaytosimuateanerrormyfriend.com/api",
+					"method": "POST",
+					"headers": {
+						"Content-Type": "application/json"
+					},
+					"body": {
+						"error": true
+					},
+					"timeout": "00:10:00"
+				}
+			},
+			{
+				"name": "s_trs",
+				"type": "Wait",
+				"dependsOn": [
+					{
+						"activity": "s_raw",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"waitTimeInSeconds": 1
+				}
+			},
+			{
+				"name": "s_container",
+				"type": "Wait",
+				"dependsOn": [
+					{
+						"activity": "s_biz",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"waitTimeInSeconds": 1
+				}
+			},
+			{
+				"name": "increase_error__raw",
+				"type": "AppendVariable",
+				"dependsOn": [
+					{
+						"activity": "s_raw",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "execution_errors",
+					"value": "1"
+				}
+			},
+			{
+				"name": "if_has_errors",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "s_container",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@greater(length(variables('execution_errors')), 0)",
+						"type": "Expression"
+					},
+					"ifFalseActivities": [
+						{
+							"name": "execution_succeeded",
+							"type": "Wait",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"waitTimeInSeconds": 1
+							}
+						}
+					],
+					"ifTrueActivities": [
+						{
+							"name": "execution_failed",
+							"description": "Using a webhook with a bad HTTP request, we can introduce errors in out pipelines when we need.",
+							"type": "WebHook",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"url": "https://thisisthewaytosimuateanerrormyfriend.com/api",
+								"method": "POST",
+								"headers": {
+									"Content-Type": "application/json"
+								},
+								"body": {
+									"error": true
+								},
+								"timeout": "00:10:00"
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "increase_error__trs",
+				"type": "AppendVariable",
+				"dependsOn": [
+					{
+						"activity": "s_trs",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "execution_errors",
+					"value": "1"
+				}
+			},
+			{
+				"name": "increase_error__biz",
+				"type": "AppendVariable",
+				"dependsOn": [
+					{
+						"activity": "s_biz",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "execution_errors",
+					"value": "1"
+				}
+			}
+		],
+		"concurrency": 1,
+		"variables": {
+			"execution_errors": {
+				"type": "Array",
+				"defaultValue": []
+			}
+		},
+		"folder": {
+			"name": "test"
+		},
+		"annotations": []
+	}
+}

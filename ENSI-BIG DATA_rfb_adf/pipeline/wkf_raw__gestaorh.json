@@ -1,0 +1,483 @@
+{
+	"name": "wkf_raw__gestaorh",
+	"properties": {
+		"description": "Loads a group of tables for this business area.\n\nExpected Behavior is to fail this whole step if any of these tables fail to load.",
+		"activities": [
+			{
+				"name": "end",
+				"type": "Wait",
+				"dependsOn": [
+					{
+						"activity": "org_raw_bd_basi_tb_colaborador",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "org_raw_gestaorh_rhaces_marcacao",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "org_raw_gestaorh_rhbenef_beneficio",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "org_raw_gestaorh_rhbenf_concessoes",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "org_raw_gestaorh_rhmovi_movimento",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "org_raw_gestaorh_rhorga_agrupador",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "org_raw_gestaorh_rhorga_relac_agrup",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "org_raw_gestaorh_rhparm_causa_resc",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "org_raw_gestaorh_rhpess_contrato",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "org_raw_gestaorh_rhpess_forma_prov",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "org_raw_gestaorh_rhpess_pessoa",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "org_raw_gestaorh_rhpess_tp_contrato",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "org_raw_gestaorh_rhplcs_cargo",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "org_raw_gestaorh_rhpont_res_sit_dia",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "org_raw_gestaorh_rhtabs_est_civil",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "org_raw_gestaorh_rhtabs_grau_inst",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "org_raw_gestaorh_rhtabs_reg_ponto",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "org_raw_gestaorh_rhtabs_vinculo_emp",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"waitTimeInSeconds": 1
+				}
+			},
+			{
+				"name": "org_raw_bd_basi_tb_colaborador",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_bd_basi_tb_colaborador",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_gestaorh_rhaces_marcacao",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_gestaorh_rhaces_marcacao",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_gestaorh_rhbenef_beneficio",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_gestaorh_rhbenef_beneficio",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_gestaorh_rhbenf_concessoes",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_gestaorh_rhbenf_concessoes",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_gestaorh_rhmovi_movimento",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_gestaorh_rhmovi_movimento",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_gestaorh_rhorga_agrupador",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_gestaorh_rhorga_agrupador",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_gestaorh_rhorga_relac_agrup",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_gestaorh_rhorga_relac_agrup",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_gestaorh_rhparm_causa_resc",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_gestaorh_rhparm_causa_resc",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_gestaorh_rhpess_contrato",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_gestaorh_rhpess_contrato",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_gestaorh_rhpess_forma_prov",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_gestaorh_rhpess_forma_prov",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_gestaorh_rhpess_pessoa",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_gestaorh_rhpess_pessoa",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_gestaorh_rhpess_tp_contrato",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_gestaorh_rhpess_tp_contrato",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_gestaorh_rhplcs_cargo",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_gestaorh_rhplcs_cargo",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_gestaorh_rhpont_res_sit_dia",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_gestaorh_rhpont_res_sit_dia",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_gestaorh_rhtabs_est_civil",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_gestaorh_rhtabs_est_civil",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_gestaorh_rhtabs_grau_inst",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_gestaorh_rhtabs_grau_inst",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_gestaorh_rhtabs_reg_ponto",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_gestaorh_rhtabs_reg_ponto",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "org_raw_gestaorh_rhtabs_vinculo_emp",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "org_raw_gestaorh_rhtabs_vinculo_emp",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"concurrency": 1,
+		"parameters": {
+			"env": {
+				"type": "object",
+				"defaultValue": {
+					"env": "dev"
+				}
+			}
+		},
+		"folder": {
+			"name": "workflow/gestaorh/raw"
+		},
+		"annotations": [
+			"workflow"
+		]
+	}
+}

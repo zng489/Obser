@@ -1,0 +1,72 @@
+{
+	"name": "trusted__1__run_databricks_notebook",
+	"properties": {
+		"description": "Executes trusted transformations",
+		"activities": [
+			{
+				"name": "databricks_run_notebook",
+				"description": "Invokes the common template that calls Databricks' pipelines. This template is used in all layers.",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "databricks_run_notebook",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"databricks_notebook_path": {
+							"value": "@{pipeline().parameters.databricks_notebook_prefix}@{pipeline().parameters.databricks.trs.notebook}\n",
+							"type": "Expression"
+						},
+						"adf": {
+							"value": "@pipeline().parameters.adf",
+							"type": "Expression"
+						},
+						"dls": {
+							"value": "@pipeline().parameters.dls",
+							"type": "Expression"
+						},
+						"user_parameters": {
+							"value": "@pipeline().parameters.user_parameters",
+							"type": "Expression"
+						},
+						"tables": {
+							"value": "@pipeline().parameters.tables",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"parameters": {
+			"dls": {
+				"type": "object"
+			},
+			"tables": {
+				"type": "object"
+			},
+			"databricks": {
+				"type": "object"
+			},
+			"user_parameters": {
+				"type": "object",
+				"defaultValue": {
+					"null": "null"
+				}
+			},
+			"databricks_notebook_prefix": {
+				"type": "string",
+				"defaultValue": "\"/KEYRUS/dev\""
+			},
+			"adf": {
+				"type": "object"
+			}
+		},
+		"folder": {
+			"name": "templates/trs"
+		},
+		"annotations": []
+	}
+}

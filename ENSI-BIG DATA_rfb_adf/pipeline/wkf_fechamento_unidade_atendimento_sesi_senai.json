@@ -1,0 +1,73 @@
+{
+	"name": "wkf_fechamento_unidade_atendimento_sesi_senai",
+	"properties": {
+		"description": "Loads a group of tables for this business area.\n\nExpected Behavior is to fail this whole step if any of these tables fail to load.",
+		"activities": [
+			{
+				"name": "trs_biz_fta_unidade_atendimento_ativa",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "trs_biz_fta_unidade_atendimento_ativa",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"user_parameters": {
+							"value": "@pipeline().parameters.user_parameters",
+							"type": "Expression"
+						},
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "wait_success",
+				"type": "Wait",
+				"dependsOn": [
+					{
+						"activity": "trs_biz_fta_unidade_atendimento_ativa",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"waitTimeInSeconds": 1
+				}
+			}
+		],
+		"concurrency": 1,
+		"parameters": {
+			"env": {
+				"type": "object",
+				"defaultValue": {
+					"env": "dev"
+				}
+			},
+			"user_parameters": {
+				"type": "object",
+				"defaultValue": {
+					"null": "null"
+				}
+			}
+		},
+		"variables": {
+			"execution_errors": {
+				"type": "Array"
+			}
+		},
+		"folder": {
+			"name": "workflow/fechamentos/unidade_atendimento_sesi_senai"
+		},
+		"annotations": [
+			"workflow"
+		]
+	}
+}

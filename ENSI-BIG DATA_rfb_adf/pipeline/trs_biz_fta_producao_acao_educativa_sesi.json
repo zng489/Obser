@@ -1,0 +1,121 @@
+{
+	"name": "trs_biz_fta_producao_acao_educativa_sesi",
+	"properties": {
+		"description": "Run business for \"Educação SESI\" from trusteds participacao_acao_educativa_sesi e participacao_acao_educativa_sesi_caracteristica\n\nThe tables parameter is:\n{\"fte_producao_acao_educativa_sesi\": {\"origins\": [\"/evt/participacao_acao_educativa_sesi\", \"/evt/participacao_acao_educativa_sesi_caracteristica\"], \"destination\": \"/producao/fte_producao_acao_educativa_sesi\", \"databricks\": {\"notebook\": \"/biz/educacao_sesi/trs_biz_fte_producao_acao_educativa_sesi\"}}, \"fta_producao_acao_educativa_sesi_kpi_pivot\": {\"origins\": [\"/producao/fte_producao_acao_educativa_sesi\"], \"destination\": \"/producao/fta_producao_acao_educativa_sesi_kpi_pivot\", \"databricks\": {\"notebook\": \"/biz/educacao_sesi/biz_biz_fta_producao_acao_educativa_sesi_kpi_pivot\"}}}",
+		"activities": [
+			{
+				"name": "fte_producao_acao_educativa_sesi_business_0_switch_env",
+				"description": "Calls business template \"template_business\".",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "business__0__switch_env",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						},
+						"table": {
+							"value": "@pipeline().parameters.tables.fte_producao_acao_educativa_sesi",
+							"type": "Expression"
+						},
+						"adf": {
+							"value": "{'adf_factory_name': '@{pipeline().DataFactory}', 'adf_pipeline_name': '@{pipeline().Pipeline}', 'adf_pipeline_run_id': '@{pipeline().RunId}',  'adf_trigger_id': '@{pipeline().TriggerId}', 'adf_trigger_name': '@{pipeline().TriggerName}', 'adf_trigger_time': '@{pipeline().TriggerTime}',  'adf_trigger_type': '@{pipeline().TriggerType}'}",
+							"type": "Expression"
+						},
+						"user_parameters": {
+							"value": "@pipeline().parameters.user_parameters",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "fta_prod_acao_educ_sesi_kpi_pivot_business_0_switch_env",
+				"description": "Calls business template \"template_business\".",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "fte_producao_acao_educativa_sesi_business_0_switch_env",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "business__0__switch_env",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						},
+						"table": {
+							"value": "@pipeline().parameters.tables.fta_producao_acao_educativa_sesi_kpi_pivot",
+							"type": "Expression"
+						},
+						"adf": {
+							"value": "{'adf_factory_name': '@{pipeline().DataFactory}', 'adf_pipeline_name': '@{pipeline().Pipeline}', 'adf_pipeline_run_id': '@{pipeline().RunId}',  'adf_trigger_id': '@{pipeline().TriggerId}', 'adf_trigger_name': '@{pipeline().TriggerName}', 'adf_trigger_time': '@{pipeline().TriggerTime}',  'adf_trigger_type': '@{pipeline().TriggerType}'}",
+							"type": "Expression"
+						},
+						"user_parameters": {
+							"value": "@pipeline().parameters.user_parameters",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"parameters": {
+			"tables": {
+				"type": "object",
+				"defaultValue": {
+					"fte_producao_acao_educativa_sesi": {
+						"origins": [
+							"/evt/participacao_acao_educativa_sesi",
+							"/evt/participacao_acao_educativa_sesi_caracteristica"
+						],
+						"destination": "/producao/fte_producao_acao_educativa_sesi",
+						"databricks": {
+							"notebook": "/biz/educacao_sesi/trs_biz_fte_producao_acao_educativa_sesi"
+						}
+					},
+					"fta_producao_acao_educativa_sesi_kpi_pivot": {
+						"origins": [
+							"/producao/fte_producao_acao_educativa_sesi"
+						],
+						"destination": "/producao/fta_producao_acao_educativa_sesi_kpi_pivot",
+						"databricks": {
+							"notebook": "/biz/educacao_sesi/biz_biz_fta_producao_acao_educativa_sesi_kpi_pivot"
+						}
+					}
+				}
+			},
+			"user_parameters": {
+				"type": "object",
+				"defaultValue": {
+					"null": "null"
+				}
+			},
+			"env": {
+				"type": "object",
+				"defaultValue": {
+					"env": "dev"
+				}
+			}
+		},
+		"folder": {
+			"name": "biz/educacao_sesi"
+		},
+		"annotations": []
+	}
+}

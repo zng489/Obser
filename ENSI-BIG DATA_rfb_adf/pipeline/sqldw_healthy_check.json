@@ -1,0 +1,93 @@
+{
+	"name": "sqldw_healthy_check",
+	"properties": {
+		"description": "Check if SQLDW is up and healthy in order to be able to write in watermark table used later in the pipeline. It prevents us to save data without refreshing the watermark table.",
+		"activities": [
+			{
+				"name": "lookup_healthy_check",
+				"description": "Check if SQLDW is up and healthy checking if the uid of user \"bigdatafactory\" if correct.",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": "select uid from [dbo].[sysusers] where name = 'cnibigdatafactory'"
+					},
+					"dataset": {
+						"referenceName": "sqldw_health_check",
+						"type": "DatasetReference"
+					}
+				}
+			},
+			{
+				"name": "If Condition1",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "lookup_healthy_check",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@equals(activity('lookup_healthy_check').output.firstrow.uid, 17)",
+						"type": "Expression"
+					},
+					"ifFalseActivities": [
+						{
+							"name": "My_failed_table",
+							"description": "This is a dumb object that should fail everytime! Only with a failure we can tell data factory to not proceed.",
+							"type": "Lookup",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "SqlDWSource",
+									"sqlReaderQuery": "select * from myfailedtable;"
+								},
+								"dataset": {
+									"referenceName": "sqldw_health_check",
+									"type": "DatasetReference"
+								}
+							}
+						}
+					],
+					"ifTrueActivities": [
+						{
+							"name": "Success_wait",
+							"description": "Wait 1 second to celebrate success. ",
+							"type": "Wait",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"waitTimeInSeconds": 1
+							}
+						}
+					]
+				}
+			}
+		],
+		"folder": {
+			"name": "templates/common"
+		},
+		"annotations": []
+	}
+}

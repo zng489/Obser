@@ -1,0 +1,308 @@
+{
+	"name": "import_uld_files__0__wrapper",
+	"properties": {
+		"description": "Some users are able to add files to ADLS, and these files lead to the following behavior:\n\n1 - They are read from folder: /uld/<namespace>/<table name>\n2 - Raw object is stored in: /raw/usr/<namespace>/<table name>\n3 - Original file is copied to: /ach//uld/<namespace>/<table name/<raw processing timestamp>\n4 - In the end, file is deleted from: /uld/<namespace>/<table name>\n\nAs we are reading from files in ADLS, there's no need to check for partitions or implement any logic for partitioning. The only requirement is to have one table schema for file path.\n\nLike any raw object, this one can be an incremental/append type or a full/overwrite. This key is also available in the \"files\" dict.\n\nThis implementation will look for definitions of file_extension in  \"file\" parameter. Different types os files might map to distinct types os connections, and so we need to implement them in this pipeline.\n\nWARNING: the tables object must be type ARRAY.\nAll objects in this array must be, in reality STRING type, enclosed by \".\nInsisde this objects, you should enclose everything in SINGLE QUOTES.\nOtherwise, things are not going to work. I warned you!\n\nIMPORTANT: for text type files there are some specific requiremets:\n\tescape char: \\ (backslash)\n\tquote char: \" (double quote)\n\tfirst row needs to be header, ALWAYS!\n\n\"dls\" needs a new section \"systems\", otherwise we won't be able to save it in the correct path in ADLS. Value is note preceded by \"/\". This si useful only for databricks. \n\nHere's an example for the complete implementation:\n\nfiles=[\"{'namespace': 'oba', 'file_folder': 'prm_cod_detalhamento_negocio_x_cr', 'extension': 'txt', 'column_delimiter': ';',  'encoding': 'UTF-8', 'null_value': ''}\"]\n\ndls=\n{\"folders\":{\"landing\":\"/uld\",\"error\":\"/err\",\"staging\":\"/stg\",\"log\":\"/log\",\"raw\":\"/raw\",\"archive\":\"/ach\"},\"systems\":{\"raw\":\"usr\"}}\n\ndatabricks= {\"raw\":{\"notebook\":{\"folder\":\"/KEYRUS/dev/raw/usr/oba\",\"file\":\"org_raw_prm_cod_detalhamento_negocio_x_cr\"}}}\n",
+		"activities": [
+			{
+				"name": "filter_files_extension_eq_txt_or_csv_or_tsv",
+				"description": "Cause different files extensions lead to different connections in ADF, we need to split the implementations of possible alternatives. ",
+				"type": "Filter",
+				"dependsOn": [
+					{
+						"activity": "set_dls",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "set_notebook_path",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "set_container",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "set_storage_url",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@pipeline().parameters.files",
+						"type": "Expression"
+					},
+					"condition": {
+						"value": "@or(or(equals(toLower(json(item()).extension), 'txt'), equals(toLower(json(item()).extension), 'csv')), equals(toLower(json(item()).extension), 'tsv'))",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "1_for_each_file_type_text",
+				"description": "This makes our pipeline generic and iterable. After filtering the for extensions of text type, we shall proceed working with on any of them . \n\nAfter passing through this loop, \"files\" pipeline parameter must be casted to json when needed.\n\nAnd don't worry; if output is null, the rest of the flow is not executed! At least this!",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "filter_files_extension_eq_txt_or_csv_or_tsv",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('filter_files_extension_eq_txt_or_csv_or_tsv').output.value",
+						"type": "Expression"
+					},
+					"isSequential": false,
+					"batchCount": 4,
+					"activities": [
+						{
+							"name": "import_uld_files__1__archive",
+							"description": "Execute the subpipeline responsible for:\n- executing DB notebook\n- moving the original file keeping the archive property\n\nBy doing this, we avoid activity names on sink or system variables.",
+							"type": "ExecutePipeline",
+							"dependsOn": [
+								{
+									"activity": "run_raw_notebook",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "import_uld_files__1__archive",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"file": {
+										"value": "@json(item())",
+										"type": "Expression"
+									},
+									"dls": {
+										"value": "@json(variables('dls'))",
+										"type": "Expression"
+									},
+									"var_dh_insercao_raw": {
+										"value": "@replace(replace(replace(replace(replace(string(pipeline().parameters.adf.adf_trigger_time), '-', ''), 'T', ''), ':', ''), '.', ''), 'Z', '')",
+										"type": "Expression"
+									},
+									"adf": {
+										"value": "@pipeline().parameters.adf",
+										"type": "Expression"
+									},
+									"container": {
+										"value": "@variables('container')",
+										"type": "Expression"
+									},
+									"url": {
+										"value": "@variables('storage_url')",
+										"type": "Expression"
+									}
+								}
+							}
+						},
+						{
+							"name": "run_raw_notebook",
+							"description": "Calls the template for running raw pipelines. Works for any level. ",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "databricks_run_notebook",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"databricks_notebook_path": {
+										"value": "@variables('notebook_path')",
+										"type": "Expression"
+									},
+									"adf": {
+										"value": "@pipeline().parameters.adf",
+										"type": "Expression"
+									},
+									"dls": {
+										"value": "@json(variables('dls'))",
+										"type": "Expression"
+									},
+									"file": {
+										"value": "@json(item())",
+										"type": "Expression"
+									}
+								}
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "set_dls",
+				"description": "'dls' variable is set accordingly to the defined 'env' variable. Variables still don't support object type, so it's needed to be stored as string at first.",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "dls",
+					"value": {
+						"value": "@if(equals(pipeline().parameters.env.env, 'dev'), string(pipeline().globalParameters.dls_uld_dev), string(pipeline().globalParameters.dls_uld_prod))",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "set_notebook_path",
+				"description": "based on the declared environment, sets the notebook path to be used. For this, makes use of global parameters and string concatenation.",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "notebook_path",
+					"value": {
+						"value": "@if(equals(pipeline().parameters.env.env, 'dev'), concat(pipeline().globalParameters.databricks_notebook_base_dev, '/', variables('uld_relative_path'), '/', pipeline().parameters.databricks.notebook), concat(pipeline().globalParameters.databricks_notebook_base_prod, '/', variables('uld_relative_path'), '/', pipeline().parameters.databricks.notebook))",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "send_email",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "1_for_each_file_type_text",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "send_email",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"email_users": {
+							"value": "@array('default')",
+							"type": "Expression"
+						},
+						"email_groups": {
+							"value": "@array('default')",
+							"type": "Expression"
+						},
+						"adf": {
+							"value": "@json(string(pipeline().parameters.adf))",
+							"type": "Expression"
+						},
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "error_implementation",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "send_email",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "error_implementation",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "set_container",
+				"description": "Set storage/adls container",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "container",
+					"value": {
+						"value": "@pipeline().globalParameters.datalake_container",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "set_storage_url",
+				"description": "Sets storage url",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "storage_url",
+					"value": {
+						"value": "@pipeline().globalParameters.datalake_storage_url",
+						"type": "Expression"
+					}
+				}
+			}
+		],
+		"concurrency": 4,
+		"parameters": {
+			"files": {
+				"type": "array"
+			},
+			"databricks": {
+				"type": "object"
+			},
+			"adf": {
+				"type": "object"
+			},
+			"env": {
+				"type": "object",
+				"defaultValue": {
+					"env": "dev"
+				}
+			}
+		},
+		"variables": {
+			"uld_relative_path": {
+				"type": "String",
+				"defaultValue": "raw/usr"
+			},
+			"notebook_path": {
+				"type": "String"
+			},
+			"dls": {
+				"type": "String"
+			},
+			"container": {
+				"type": "String"
+			},
+			"storage_url": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "templates/raw/uld"
+		},
+		"annotations": []
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

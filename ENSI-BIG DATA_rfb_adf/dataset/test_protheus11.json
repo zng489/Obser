@@ -1,0 +1,20 @@
+{
+	"name": "test_protheus11",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "protheus",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "test"
+		},
+		"annotations": [],
+		"type": "OracleTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": "PROTHEUS11",
+			"table": "AKD010"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

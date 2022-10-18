@@ -1,0 +1,166 @@
+{
+	"name": "postgres_import_full__0__wrapper",
+	"properties": {
+		"description": "Well, this one uses a Filter condition for making thing work for full loads.\n\nMySQL connector does not support partitioning.\n\nWARNING: the tables object must be type ARRAY.\nAll objects in this array must be, in reality STRING type, enclosed by \".\nInsisde this objects, you should enclose everything in SINGLE QUOTES.\nOtherwise, things are not going to work. I warned you!\n\nHere's an example:\n[\"{'schema': 'systemx', 'table':'customers','load_type':'full', 'raw': {'coalesce': 1}}\"]",
+		"activities": [
+			{
+				"name": "filter_tables_load_type_is_full",
+				"description": "Using filters and a definition of the table like an object, we must be able to get things going on a flux which separates incremental and full load. ",
+				"type": "Filter",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@pipeline().parameters.tables",
+						"type": "Expression"
+					},
+					"condition": {
+						"value": "@or(equals(toLower(json(item()).load_type), 'full'), equals(toLower(json(item()).load_type), 'full_balance'))",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "for_each_table_load_type_full",
+				"description": "MySQL does not support partitions when copying data. \n\nThis makes our pipeline generic and iterable. After filtering the full tables, we shall proceed working with on any of them . \n\nAfter passing through this loop, \"tables\" pipeline parameter must be casted to json when needed.\n\nAnd don't worry; if output is null, the rest of the flow is not executed! At least this!",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "filter_tables_load_type_is_full",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('filter_tables_load_type_is_full').output.value",
+						"type": "Expression"
+					},
+					"isSequential": false,
+					"batchCount": 4,
+					"activities": [
+						{
+							"name": "postgres_import_full__1__conn_switch",
+							"description": "Invokes the next level,allowing for switching between the many static connections for Postgres.",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "postgres_import_full__1__conn_switch",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"db": {
+										"value": "@pipeline().parameters.db",
+										"type": "Expression"
+									},
+									"table": {
+										"value": "@json(item())",
+										"type": "Expression"
+									},
+									"container": {
+										"value": "@pipeline().parameters.container",
+										"type": "Expression"
+									},
+									"dls": {
+										"value": "@pipeline().parameters.dls",
+										"type": "Expression"
+									},
+									"url": {
+										"value": "@pipeline().parameters.url",
+										"type": "Expression"
+									}
+								}
+							}
+						},
+						{
+							"name": "1_run_raw_notebook",
+							"type": "ExecutePipeline",
+							"dependsOn": [
+								{
+									"activity": "postgres_import_full__1__conn_switch",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "raw_load_dbo_unified__4__run_databricks_notebook",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"databricks": {
+										"value": "@pipeline().parameters.databricks",
+										"type": "Expression"
+									},
+									"adf": {
+										"value": "@pipeline().parameters.adf",
+										"type": "Expression"
+									},
+									"dls": {
+										"value": "@pipeline().parameters.dls",
+										"type": "Expression"
+									},
+									"table": {
+										"value": "@first(pipeline().parameters.tables)",
+										"type": "Expression"
+									},
+									"container": {
+										"value": "@pipeline().parameters.container",
+										"type": "Expression"
+									},
+									"url": {
+										"value": "@pipeline().parameters.url",
+										"type": "Expression"
+									}
+								}
+							}
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"db": {
+				"type": "object"
+			},
+			"tables": {
+				"type": "array"
+			},
+			"dls": {
+				"type": "object"
+			},
+			"watermark": {
+				"type": "object"
+			},
+			"databricks": {
+				"type": "object"
+			},
+			"adf": {
+				"type": "string"
+			},
+			"container": {
+				"type": "string"
+			},
+			"url": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "templates/raw/bdo/postgres/import_full"
+		},
+		"annotations": [
+			"raw",
+			"template",
+			"postgres"
+		]
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

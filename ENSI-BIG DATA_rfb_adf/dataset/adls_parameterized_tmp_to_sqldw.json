@@ -1,0 +1,48 @@
+{
+	"name": "adls_parameterized_tmp_to_sqldw",
+	"properties": {
+		"description": "ALDS connection for exporting objects in business layer. This one should be kept as straight and simple as possbile, not depending on any:\n- dls folder structure\n- array and iteration\n\nObject should be passed strict (for now)",
+		"linkedServiceName": {
+			"referenceName": "cnibigdatadlsgen2",
+			"type": "LinkedServiceReference",
+			"parameters": {
+				"url": {
+					"value": "@dataset().url",
+					"type": "Expression"
+				}
+			}
+		},
+		"parameters": {
+			"filepath": {
+				"type": "string"
+			},
+			"container": {
+				"type": "string"
+			},
+			"url": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "parametrized/test"
+		},
+		"annotations": [],
+		"type": "Parquet",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"folderPath": {
+					"value": "@dataset().filepath",
+					"type": "Expression"
+				},
+				"fileSystem": {
+					"value": "@dataset().container",
+					"type": "Expression"
+				}
+			},
+			"compressionCodec": "snappy"
+		},
+		"schema": []
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

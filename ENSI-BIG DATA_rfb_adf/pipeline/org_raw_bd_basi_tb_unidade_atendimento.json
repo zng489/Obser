@@ -1,0 +1,55 @@
+{
+	"name": "org_raw_bd_basi_tb_unidade_atendimento",
+	"properties": {
+		"description": "We will always run as incremental. In the first run, it will load the whole table and write the last record loaded in watermark table. The next time you load will be really incremental.\n\n- For incremental load use:\nParameter tables = [\"{'schema': 'BD_BASI', 'table':'TB_UNIDADE_ATENDIMENTO','load_type':'incremental','partition_column':'null','control_column':'DT_ATUALIZACAO','control_column_type_2_db':'datetime', 'control_column_default_value': '190001010000', 'control_column_mask_value': 'DD/MM/YYHH24:MI:SSFF', 'columns': 'NM_HOME_PAGE,DS_EMAIL_FALE_CONOSCO,FL_EXCLUIDO_LOGICAMENTE,DT_ATUALIZACAO,CD_INEP_SUPERIOR,DS_LONGITUDE,CD_TIPO_CATEGORIA_ATIVO,NR_TELEFONE_UNIDADE,DS_LATITUDE,DT_FIM_VIGENCIA,CD_ENTIDADE_NACIONAL,CD_PESSOA,FL_ATIVO,NR_TELEFONE_SAC1,CD_UNIDADE_ATENDIMENTO_SCOP,CD_TIPO_VINCULO_ATIVO,DT_ATUALIZACAO_OBA,NR_TELEFONE_SAC2,CD_PESSOA_UNID_RESPONSAVEL,NM_COLABORADOR_UNIDADE,DS_EMAIL_COLABORADOR,CD_DETALHAMTO_MOBILIDD,CD_UNIDADE_ATENDIMENTO_OBA,CD_ENTIDADE_REGIONAL,FL_POSSUI_INSTITUTO,CD_TIPO_DESCRICAO,CD_STATUS_FINANC_BNDES,NR_CPF_COLABORADOR,CD_INEP,CD_PESSOA_JURIDICA,CD_STATUS_INTEGRACAO,CD_UNIDADE_ATENDIMENTO_DR,NM_UNIDADE_ATENDIMENTO,CD_UNIDADE_ATENDIMENTO_SISTEC,DT_INICIO_VIGENCIA',\n'raw': {'partition_by': [\n    {'col_name': 'YEAR', 'implementation': 'df.withColumn(\\\\'YEAR\\\\', functions.year(functions.col(\\\\'DT_ATUALIZACAO\\\\')))'},\n    {'col_name': 'MONTH', 'implementation': 'df.withColumn(\\\\'MONTH\\\\', functions.month(functions.col(\\\\'DT_ATUALIZACAO\\\\')))'}\n  ]}}\"]",
+		"activities": [
+			{
+				"name": "raw_load_bdo_unified__0__switch_env",
+				"description": "Run template pipeline to import tables",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "raw_load_dbo_unified__0__switch_env",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						},
+						"tables": {
+							"value": "@pipeline().parameters.tables",
+							"type": "Expression"
+						},
+						"adf": {
+							"value": "{'adf_factory_name': '@{pipeline().DataFactory}', 'adf_pipeline_name': '@{pipeline().Pipeline}', 'adf_pipeline_run_id': '@{pipeline().RunId}',  'adf_trigger_id': '@{pipeline().TriggerId}', 'adf_trigger_name': '@{pipeline().TriggerName}', 'adf_trigger_time': '@{pipeline().TriggerTime}',  'adf_trigger_type': '@{pipeline().TriggerType}'}",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"parameters": {
+			"tables": {
+				"type": "array",
+				"defaultValue": [
+					"{'schema': 'BD_BASI', 'table':'TB_UNIDADE_ATENDIMENTO','load_type':'incremental','partition_column':'null','control_column':'DT_ATUALIZACAO','control_column_type_2_db':'datetime', 'control_column_default_value': '190001010000', 'control_column_mask_value': 'DD/MM/YYHH24:MI:SSFF', 'columns': 'CD_PESSOA,CD_PESSOA_JURIDICA,CD_UNIDADE_ATENDIMENTO_DR,CD_UNIDADE_ATENDIMENTO_OBA,CD_ENTIDADE_NACIONAL,CD_TIPO_DESCRICAO,CD_STATUS_INTEGRACAO,CD_TIPO_CATEGORIA_ATIVO,CD_TIPO_VINCULO_ATIVO,CD_ENTIDADE_REGIONAL,CD_PESSOA_UNID_RESPONSAVEL,CD_INEP,CD_STATUS_FINANC_BNDES,CD_DETALHAMTO_MOBILIDD,NM_UNIDADE_ATENDIMENTO,NR_TELEFONE_UNIDADE,NM_COLABORADOR_UNIDADE,DS_EMAIL_COLABORADOR,FL_ATIVO,FL_EXCLUIDO_LOGICAMENTE,DT_ATUALIZACAO,CD_UNIDADE_ATENDIMENTO_SCOP,CD_UNIDADE_ATENDIMENTO_SISTEC,NM_HOME_PAGE,FL_POSSUI_INSTITUTO,DS_LATITUDE,DS_LONGITUDE,DT_ATUALIZACAO_OBA,NR_CPF_COLABORADOR,DT_INICIO_VIGENCIA,DT_FIM_VIGENCIA,DS_EMAIL_FALE_CONOSCO,NR_TELEFONE_SAC1,NR_TELEFONE_SAC2,CD_INEP_SUPERIOR,CD_USUARIO_RESP,DS_STREET_DIRECAO_OLHAR,DS_STREET_INCLINACAO_CABECA,FL_POSSUI_UNIDADE_INTEGRADA,UNIDADE_INTEGRADA_1,UNIDADE_INTEGRADA_2,UNIDADE_INTEGRADA_3,DS_STREETVIEW,FL_MESMA_LOCALIZACAO,PARAMSV01,PARAMSV02,PARAMSV03,PARAMSV04,PARAMSV05,PARAMSV06,CNPJ_UNIDADE,NM_FANTASIA,CD_STATUS,DS_MOTIVO_REPROVACAO,ID_USUARIO_OS', 'raw': {'partition_by': [     {'col_name': 'YEAR', 'implementation': 'df.withColumn(\\'YEAR\\', functions.year(functions.col(\\'DT_ATUALIZACAO\\')))'},     {'col_name': 'MONTH', 'implementation': 'df.withColumn(\\'MONTH\\', functions.month(functions.col(\\'DT_ATUALIZACAO\\')))'}   ]}}"
+				]
+			},
+			"env": {
+				"type": "object",
+				"defaultValue": {
+					"env": "dev"
+				}
+			}
+		},
+		"folder": {
+			"name": "raw/bdo/bd_basi"
+		},
+		"annotations": []
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

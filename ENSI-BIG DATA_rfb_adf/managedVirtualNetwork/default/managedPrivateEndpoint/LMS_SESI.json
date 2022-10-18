@@ -1,0 +1,7 @@
+{
+	"name": "LMS_SESI",
+	"properties": {
+		"privateLinkResourceId": "/subscriptions/5fd50948-b4d2-41ca-b6e9-4f90a2e07160/resourceGroups/LMS-SESI-PRD/providers/Microsoft.DBforMySQL/servers/azdata-lmssesi-prd",
+		"groupId": "mysqlServer"
+	}
+}

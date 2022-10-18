@@ -1,0 +1,94 @@
+{
+	"name": "wkf__master_data",
+	"properties": {
+		"description": "Production workflow.\nAll raw dependencies must be executed according to the necessity of synchrony. That's why structure has layer declaration and waits in between.",
+		"activities": [
+			{
+				"name": "wkf_raw__master_data",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "wkf_raw__master_data",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "wkf_trs__master_data",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_raw__master_data",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "wkf_trs__master_data",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "wkf_biz__master_data",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_trs__master_data",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "wkf_biz__master_data",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"concurrency": 1,
+		"parameters": {
+			"env": {
+				"type": "object",
+				"defaultValue": {
+					"env": "prod"
+				}
+			}
+		},
+		"folder": {
+			"name": "workflow/master_data"
+		},
+		"annotations": [
+			"workflow"
+		]
+	}
+}

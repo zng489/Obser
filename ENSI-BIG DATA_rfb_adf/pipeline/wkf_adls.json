@@ -1,0 +1,65 @@
+{
+	"name": "wkf_adls",
+	"properties": {
+		"activities": [
+			{
+				"name": "lnd_acl_adls",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "containerAdls_start",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "lnd_acl_adls",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "containerAdls_start",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "containerAdls_start",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "containerAdls_stop",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "lnd_acl_adls",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "containerAdls_stop",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			}
+		],
+		"concurrency": 1,
+		"folder": {
+			"name": "workflow/permissoes_adls"
+		},
+		"annotations": []
+	}
+}

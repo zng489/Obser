@@ -1,0 +1,1338 @@
+{
+	"name": "org_to_landing_incremental",
+	"properties": {
+		"description": "Well, this one uses a Filter condition for making things work for incremental loads.\n\nWARNING: \"tables\" object must be type ARRAY.\nAll objects in this array must be, in reality STRING type, enclosed by \".\nInside this objects, you should enclose everything in SINGLE QUOTES.\nOtherwise, things are not going to work. I warned you!\n\nHere's an example:\n[\"{'schema': 'INDDESEMPENHO', 'table':'ESTABELECIMENTO','load_type':'incremental','partition_column':'DATAATUALIZACAO','partitions':5,'control_column':'DATAATUALIZACAO','control_column_type_2_db':'datetime', 'control_column_default_value': '19000101',\n'control_column_mask_value': 'DD/MM/YYYY HH24:MI:SS'}\"]\n\n",
+		"activities": [
+			{
+				"name": "filter_tables_load_type_incremental",
+				"description": "Using filters and a definition of the table like an object, we must be able to get things going on a flux which separates incremental and full load. ",
+				"type": "Filter",
+				"dependsOn": [
+					{
+						"activity": "sqldw_healthy_check",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@pipeline().parameters.tables",
+						"type": "Expression"
+					},
+					"condition": {
+						"value": "@equals(toLower(json(item()).load_type), 'incremental')",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "filter_control_column_type_2_db_int",
+				"description": "Filtering control column type as int, if parameter \"control_column_type_2_db\" in table dictionary is integer and sequential.",
+				"type": "Filter",
+				"dependsOn": [
+					{
+						"activity": "filter_if_partition_columns_eq_control_column",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('filter_if_partition_columns_eq_control_column').output.value",
+						"type": "Expression"
+					},
+					"condition": {
+						"value": "@equals(toLower(json(item()).control_column_type_2_db), 'int')",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "filter_control_column_type_2_db_datetime",
+				"description": "Filtering control column type as int, if parameter \"control_column_type_2_db\" in table dictionary is datetime.\n\nThis parameter \"control_column_type_2_db\" isn't the original type from database, but rather the behavior of the data. So it could be a string, int or datetime. It will work only if the column represents a datetime format.",
+				"type": "Filter",
+				"dependsOn": [
+					{
+						"activity": "filter_if_partition_columns_eq_control_column",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('filter_if_partition_columns_eq_control_column').output.value",
+						"type": "Expression"
+					},
+					"condition": {
+						"value": "@equals(toLower(json(item()).control_column_type_2_db), 'datetime')",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "filter_control_column_type_2_db_string",
+				"description": "Filtering control column type as string, if parameter \"control_column_type_2_db\" in table dictionary is string",
+				"type": "Filter",
+				"dependsOn": [
+					{
+						"activity": "filter_if_partition_columns_eq_control_column",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('filter_if_partition_columns_eq_control_column').output.value",
+						"type": "Expression"
+					},
+					"condition": {
+						"value": "@equals(toLower(json(item()).control_column_type_2_db), 'string')",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "filter_if_partitioned_incremental",
+				"description": "Checks if the partition column parameter is null. If not null, the load will be partitioned from this column.",
+				"type": "Filter",
+				"dependsOn": [
+					{
+						"activity": "filter_tables_load_type_incremental",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('filter_tables_load_type_incremental').output.value\n",
+						"type": "Expression"
+					},
+					"condition": {
+						"value": "@not(equals(toLower(json(item()).partition_column), 'null'))",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "filter_if_not_partitioned_incremental",
+				"description": "Checks if the partition column parameter is null. If null, table will be loaded without partitioning",
+				"type": "Filter",
+				"dependsOn": [
+					{
+						"activity": "filter_tables_load_type_incremental",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('filter_tables_load_type_incremental').output.value\n",
+						"type": "Expression"
+					},
+					"condition": {
+						"value": "@equals(toLower(json(item()).partition_column), 'null')",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "filter_if_partition_columns_eq_control_column",
+				"description": "Checks if partition column is the same as the control column defined on the parameters as 'partition_column' and 'control_column'",
+				"type": "Filter",
+				"dependsOn": [
+					{
+						"activity": "filter_if_partitioned_incremental",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('filter_if_partitioned_incremental').output.value",
+						"type": "Expression"
+					},
+					"condition": {
+						"value": "@equals(toLower(json(item()).partition_column), toLower(json(item()).control_column))",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "filter_if_partition_columns_noteq_control_column",
+				"description": "Checks if partition column is distinct from the control column defined on the parameters as 'partition_column' and 'control_column'",
+				"type": "Filter",
+				"dependsOn": [
+					{
+						"activity": "filter_if_partitioned_incremental",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('filter_if_partitioned_incremental').output.value",
+						"type": "Expression"
+					},
+					"condition": {
+						"value": "@not(equals(toLower(json(item()).partition_column), toLower(json(item()).control_column)))",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "1_for_each_incremental_control_column_datetime",
+				"description": "This makes our pipeline generic and iterable. After filtering the incremental tables that have the control column that behaves like a datetime and you want to load all the data until the current date (not by year), we shall proceed working with on any of them . \n\nAfter passing through this loop, \"tables\" pipeline parameter must be casted to json when needed.\n\nWARNING: We tested this pipeline only for the table INDDESEMPENHO.ESTABELECIMENTO that has the control column of datetime type. It has not been already tested for a case in which the control column has a integer type that behaves like a datetime. It should work, but we don't have a test case yet.\n\n",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "filter_control_column_type_2_db_datetime",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('filter_control_column_type_2_db_datetime').output.value",
+						"type": "Expression"
+					},
+					"batchCount": 4,
+					"activities": [
+						{
+							"name": "1_get_max_control_column_in_source_db",
+							"description": "In source db, executes a query for retrieving the maximum available value in the parameterized \"control_column\".\n\nAs this pipeline is responsible for processing datetime type and integer type that behaves like a datetime column (indicated by the parameter 'control_column_type_2_db'), this query transforms the control column to DATE AS INTEGER IN FORMAT YYYYMMDD and retrieves only dates before or equal than the YESTERDAY.  It prevents us to get data from a strange year that haven't already happened.\n\nWARNING 1: The Max value of the control columns MUST BE AN INTEGER because it will be used later for partitioning. Data Factory only accepts integer as partition lowerbound and upperbound.\nThe parameter \"control_column_default_value\" also must be a integer in format YYYYMMDD for the same reason.\n\nWARNING 2: The control column must be chosen in a way that we won't have any RETROACTIVE RECORDS, because we will save in watermark table the current day and it will be the lowerbound for the next load.\n\nWe had so many trouble with some string columns, so we decided to use REGEX and TRIM to ensure the we trim all the characters that aren't STRICTLY NUMBERS or elements of datetime such as \":\", \"/\", \"-\" and whitespace.\n\nHINT: If you want to test with a fictional upperbound date, replace \"CURRENT_DATE - 1\" by TO_DATE(CAST('20190810' AS INT), '@{json(item()).control_column_mask_value}').",
+							"type": "Lookup",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 2,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "OracleSource",
+									"oracleReaderQuery": {
+										"value": "SELECT MAX(CAST(TO_CHAR(TO_TIMESTAMP(TRIM(REGEXP_REPLACE(@{json(item()).control_column}, '[^0-9:\\/\\s-]', '' )), '@{json(item()).control_column_mask_value}'), 'YYYYMMDDHH24MISS' ) AS INT)) AS max_control_column\n  FROM @{json(item()).schema}.@{json(item()).table}\n  WHERE TO_TIMESTAMP(TRIM(REGEXP_REPLACE(@{json(item()).control_column}, '[^0-9:\\/\\s-]', '' )), '@{json(item()).control_column_mask_value}')\n  <= CURRENT_TIMESTAMP",
+										"type": "Expression"
+									},
+									"partitionOption": "None"
+								},
+								"dataset": {
+									"referenceName": "oracle_table_parameterized",
+									"type": "DatasetReference"
+								}
+							}
+						},
+						{
+							"name": "1_create_watermark_row_for_table_if_not_exists",
+							"description": "Calls the procedure that creates a new entry in the watermark control table in SQLDW case the table is not already created in it. \nDon't worry, there's a clause in the procedure that guarantees that only non-existing tables will be created. There's no possibility of overwrite. So keep this component as it is. It looks strange but works!\n\nThe first value of the control column in the watermark table is set in the properties of each table by the variable 'control_column_default_value'",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "1_get_max_control_column_in_source_db",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 2,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": {
+									"value": "@pipeline().parameters.watermark.procedures.insert_first_watermark",
+									"type": "Expression"
+								},
+								"storedProcedureParameters": {
+									"ControlColumn": {
+										"value": {
+											"value": "@toLower(json(item()).control_column)",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"ControlColumnType2Db": {
+										"value": {
+											"value": "@toLower(json(item()).control_column_type_2_db)",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"ControlColumnValue": {
+										"value": {
+											"value": "@toLower(json(item()).control_column_default_value)",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"TableDatabaseVendor": {
+										"value": {
+											"value": "@toLower(pipeline().parameters.db.vendor)",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"TableName": {
+										"value": {
+											"value": "dbo.@{toLower(json(item()).schema)}.@{toLower(json(item()).table)}",
+											"type": "Expression"
+										},
+										"type": "String"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "cnibigdatasqldw",
+								"type": "LinkedServiceReference"
+							}
+						},
+						{
+							"name": "1_get_watermark_row_for_table",
+							"description": "This lookup goes in the watermark table and fetches the entire row. \nWith this activity, we're setting the lower bound for the incremental load process. Now we need to check for datetime typed columns, so we'll be able to avoid values for a non-existing future.\n\nAfter fetching this row, we'll check for it's consistency and values. ",
+							"type": "Lookup",
+							"dependsOn": [
+								{
+									"activity": "1_create_watermark_row_for_table_if_not_exists",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 2,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "SqlDWSource",
+									"sqlReaderQuery": {
+										"value": "SELECT  * FROM @{toLower(pipeline().parameters.watermark.table)} WHERE @{toLower(pipeline().parameters.watermark.columns.table_name)}  = @{toLower(concat('''dbo.', json(item()).schema, '.', json(item()).table, ''''))}",
+										"type": "Expression"
+									},
+									"partitionOption": "None"
+								},
+								"dataset": {
+									"referenceName": "sqldw_parameterized_watermark_table",
+									"type": "DatasetReference"
+								}
+							}
+						},
+						{
+							"name": "1_load_delta_incremental_table_partitioned",
+							"description": "Loading the incremental delta requires a lowerbound and an upperbound. \nUpperbound was generated by the lookup activity \"1_get_max_control_column_in_source_db\". And lowerbound was generated by the lookup activity \"1_get_watermark_row_for_table\".\nFor this case, the we'll partition the load by the control column.\n\nIn order to be able to receive control column as integer or datetimes, we generalized converting to timestamp, then to string and then to int.\n\nWe had so many trouble with some string columns, so we decided to use REGEX and TRIM to ensure the we trim all the characters that aren't STRICTLY NUMBERS or elements of datetime such as \":\", \"/\", \"-\" and whitespace.\n\nWARNING: All the limits must be inclusive, that is, the the control column should be => lowerbound and <= upperbound!! It's possible that we are getting redundant compared to the last load, because all the limits are inclusive. Don't worry, it will be considered in the processing pipeline with Spark.\n\nRemember to change the sink dataset to \"adls_parametrized_partitioned_source_v2\" when databricks implementation is finished! ",
+							"type": "Copy",
+							"dependsOn": [
+								{
+									"activity": "1_sqldw_healthy_check",
+									"dependencyConditions": [
+										"Succeeded",
+										"Failed"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 2,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "OracleSource",
+									"oracleReaderQuery": {
+										"value": "SELECT @{json(item()).columns} FROM @{json(item()).schema}.@{json(item()).table} \nWHERE CAST(TO_CHAR(TO_TIMESTAMP(TRIM(REGEXP_REPLACE(?AdfRangePartitionColumnName, '[^0-9:\\/\\s-]', '' )), '@{json(item()).control_column_mask_value}'), 'YYYYMMDDHH24MISS' ) AS INT) >= ?AdfRangePartitionLowbound AND CAST(TO_CHAR(TO_TIMESTAMP(TRIM(REGEXP_REPLACE(?AdfRangePartitionColumnName, '[^0-9:\\/\\s-]', '' )), '@{json(item()).control_column_mask_value}'), 'YYYYMMDDHH24MISS' ) AS INT) <= ?AdfRangePartitionUpbound",
+										"type": "Expression"
+									},
+									"partitionOption": "DynamicRange",
+									"partitionSettings": {
+										"partitionColumnName": {
+											"value": "@{json(item()).partition_column}",
+											"type": "Expression"
+										},
+										"partitionUpperBound": {
+											"value": "@{activity('1_get_max_control_column_in_source_db').output.firstRow.max_control_column}",
+											"type": "Expression"
+										},
+										"partitionLowerBound": {
+											"value": "@{activity('1_get_watermark_row_for_table').output.firstRow.control_column_value}",
+											"type": "Expression"
+										}
+									}
+								},
+								"sink": {
+									"type": "ParquetSink",
+									"storeSettings": {
+										"type": "AzureBlobFSWriteSettings"
+									},
+									"formatSettings": {
+										"type": "ParquetWriteSettings"
+									}
+								},
+								"enableStaging": false,
+								"parallelCopies": {
+									"value": "@json(item()).partitions",
+									"type": "Expression"
+								},
+								"enableSkipIncompatibleRow": true,
+								"redirectIncompatibleRowSettings": {
+									"linkedServiceName": {
+										"referenceName": "cnibigdatadlsgen2stg",
+										"type": "LinkedServiceReference"
+									},
+									"path": {
+										"value": "@{pipeline().parameters.container}/@{pipeline().parameters.dls.folders.error}/dbo/@{json(item()).schema}/@{json(item()).table}",
+										"type": "Expression"
+									}
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "oracle_table_parameterized",
+									"type": "DatasetReference"
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "adls_parameterized_partitioned_source",
+									"type": "DatasetReference",
+									"parameters": {
+										"container": {
+											"value": "@variables('container')",
+											"type": "Expression"
+										},
+										"url": {
+											"value": "@variables('storage_url')",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						},
+						{
+							"name": "1_update_watermark_row_for_table",
+							"description": "Calls the storage procedure that updates the control_column_value in SQLDW to upperbound value from activity '1_get_max_control_column_in_source_db'.\nIt will ensure that the next incremental load will get only the records from this value.\n\n",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "1_load_delta_incremental_table_partitioned",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 2,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": {
+									"value": "@pipeline().parameters.watermark.procedures.update_watermark",
+									"type": "Expression"
+								},
+								"storedProcedureParameters": {
+									"ControlColumnValue": {
+										"value": {
+											"value": "@{string(activity('1_get_max_control_column_in_source_db').output.firstRow.max_control_column)}",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"TableName": {
+										"value": {
+											"value": "dbo.@{toLower(json(item()).schema)}.@{toLower(json(item()).table)}",
+											"type": "Expression"
+										},
+										"type": "String"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "cnibigdatasqldw",
+								"type": "LinkedServiceReference"
+							}
+						},
+						{
+							"name": "1_sqldw_healthy_check",
+							"description": "Check if SQLDW is up and healthy in order to be able to write in watermark table used later in the pipeline. It prevents us to save data without refreshing the watermark table.",
+							"type": "ExecutePipeline",
+							"dependsOn": [
+								{
+									"activity": "1_get_watermark_row_for_table",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "sqldw_healthy_check",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "filter_control_column_type_2_db_datetime_noteq",
+				"description": "Filtering control column type as int, if parameter \"control_column_type_2_db\" in table dictionary is datetime, if control column is not equal to partition column.\n\nThis parameter \"control_column_type_2_db\" isn't the original type from database, but rather the behavior of the data. So it could be a string, int or datetime. It will work only if the column represents a datetime format.",
+				"type": "Filter",
+				"dependsOn": [
+					{
+						"activity": "filter_if_partition_columns_noteq_control_column",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('filter_if_partition_columns_noteq_control_column').output.value",
+						"type": "Expression"
+					},
+					"condition": {
+						"value": "@equals(toLower(json(item()).control_column_type_2_db), 'datetime')",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "2_for_each_incremental_control_column_datetime",
+				"description": "This makes our pipeline generic and iterable. After filtering the incremental tables that have the control column that behaves like a datetime and you want to load all the data until the current date (not by year), we shall proceed working with on any of them . \n\nAfter passing through this loop, \"tables\" pipeline parameter must be casted to json when needed.\n\nWARNING: We tested this pipeline only for the table INDDESEMPENHO.ESTABELECIMENTO that has the control column of datetime type. It has not been already tested for a case in which the control column has a integer type that behaves like a datetime. It should work, but we don't have a test case yet.\n\n",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "filter_control_column_type_2_db_datetime_noteq",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('filter_control_column_type_2_db_datetime_noteq').output.value",
+						"type": "Expression"
+					},
+					"batchCount": 4,
+					"activities": [
+						{
+							"name": "2_get_max_control_column_in_source_db",
+							"description": "In source db, executes a query for retrieving the maximum available value in the parameterized \"control_column\".\n\nAs this pipeline is responsible for processing datetime type and integer type that behaves like a datetime column (indicated by the parameter 'control_column_type_2_db'), this query transforms the control column to DATE AS INTEGER IN FORMAT YYYYMMDD and retrieves only dates before or equal than the YESTERDAY.  It prevents us to get data from a strange year that haven't already happened.\n\nWARNING 1: The Max value of the control columns MUST BE AN INTEGER because it will be used later for partitioning. Data Factory only accepts integer as partition lowerbound and upperbound.\nThe parameter \"control_column_default_value\" also must be a integer in format YYYYMMDD for the same reason.\n\nWARNING 2: The control column must be chosen in a way that we won't have any RETROACTIVE RECORDS, because we will save in watermark table the current day and it will be the lowerbound for the next load.\n\nWe had so many trouble with some string columns, so we decided to use REGEX and TRIM to ensure the we trim all the characters that aren't STRICTLY NUMBERS or elements of datetime such as \":\", \"/\", \"-\" and whitespace.\n\nHINT: If you want to test with a fictional upperbound date, replace \"CURRENT_DATE - 1\" by TO_DATE(CAST('20190810' AS INT), '@{json(item()).control_column_mask_value}').",
+							"type": "Lookup",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 2,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "OracleSource",
+									"oracleReaderQuery": {
+										"value": "SELECT MAX(CAST(TO_CHAR(TO_TIMESTAMP(TRIM(REGEXP_REPLACE(@{json(item()).control_column}, '[^0-9:\\/\\s-]', '' )), '@{json(item()).control_column_mask_value}'), 'YYYYMMDDHH24MISS' ) AS INT)) AS max_control_column\n  FROM @{json(item()).schema}.@{json(item()).table}\n  WHERE TO_TIMESTAMP(TRIM(REGEXP_REPLACE(@{json(item()).control_column}, '[^0-9:\\/\\s-]', '' )), '@{json(item()).control_column_mask_value}')\n  <= CURRENT_TIMESTAMP",
+										"type": "Expression"
+									},
+									"partitionOption": "None"
+								},
+								"dataset": {
+									"referenceName": "oracle_table_parameterized",
+									"type": "DatasetReference"
+								}
+							}
+						},
+						{
+							"name": "2_create_watermark_row_for_table_if_not_exists",
+							"description": "Calls the procedure that creates a new entry in the watermark control table in SQLDW case the table is not already created in it. \nDon't worry, there's a clause in the procedure that guarantees that only non-existing tables will be created. There's no possibility of overwrite. So keep this component as it is. It looks strange but works!\n\nThe first value of the control column in the watermark table is set in the properties of each table by the variable 'control_column_default_value'",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "2_get_max_control_column_in_source_db",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 2,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": {
+									"value": "@pipeline().parameters.watermark.procedures.insert_first_watermark",
+									"type": "Expression"
+								},
+								"storedProcedureParameters": {
+									"ControlColumn": {
+										"value": {
+											"value": "@toLower(json(item()).control_column)",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"ControlColumnType2Db": {
+										"value": {
+											"value": "@toLower(json(item()).control_column_type_2_db)",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"ControlColumnValue": {
+										"value": {
+											"value": "@toLower(json(item()).control_column_default_value)",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"TableDatabaseVendor": {
+										"value": {
+											"value": "@toLower(pipeline().parameters.db.vendor)",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"TableName": {
+										"value": {
+											"value": "dbo.@{toLower(json(item()).schema)}.@{toLower(json(item()).table)}",
+											"type": "Expression"
+										},
+										"type": "String"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "cnibigdatasqldw",
+								"type": "LinkedServiceReference"
+							}
+						},
+						{
+							"name": "2_get_watermark_row_for_table",
+							"description": "This lookup goes in the watermark table and fetches the entire row. \nWith this activity, we're setting the lower bound for the incremental load process. Now we need to check for datetime typed columns, so we'll be able to avoid values for a non-existing future.\n\nAfter fetching this row, we'll check for it's consistency and values. ",
+							"type": "Lookup",
+							"dependsOn": [
+								{
+									"activity": "2_create_watermark_row_for_table_if_not_exists",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 2,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "SqlDWSource",
+									"sqlReaderQuery": {
+										"value": "SELECT  * FROM @{toLower(pipeline().parameters.watermark.table)} WHERE @{toLower(pipeline().parameters.watermark.columns.table_name)}  = @{toLower(concat('''dbo.', json(item()).schema, '.', json(item()).table, ''''))}",
+										"type": "Expression"
+									},
+									"partitionOption": "None"
+								},
+								"dataset": {
+									"referenceName": "sqldw_parameterized_watermark_table",
+									"type": "DatasetReference"
+								}
+							}
+						},
+						{
+							"name": "2_load_delta_incremental_table_partitioned",
+							"description": "Loading the incremental delta requires a lowerbound and an upperbound. \nUpperbound was generated by the lookup activity \"2_get_max_control_column_in_source_db\". And lowerbound was generated by the lookup activity \"2_get_watermark_row_for_table\".\nFor this case, the we'll partition the load by the control column.\n\nIn order to be able to receive control column as integer or datetimes, we generalized converting to timestamp, then to string and then to int.\n\nWe had so many trouble with some string columns, so we decided to use REGEX and TRIM to ensure the we trim all the characters that aren't STRICTLY NUMBERS or elements of datetime such as \":\", \"/\", \"-\" and whitespace.\n\nWARNING: All the limits must be inclusive, that is, the the control column should be => lowerbound and <= upperbound!! It's possible that we are getting redundant compared to the last load, because all the limits are inclusive. Don't worry, it will be considered in the processing pipeline with Spark.\n\nRemember to change the sink dataset to \"adls_parametrized_partitioned_source_v2\" when databricks implementation is finished! ",
+							"type": "Copy",
+							"dependsOn": [
+								{
+									"activity": "2_sqldw_healthy_check",
+									"dependencyConditions": [
+										"Succeeded",
+										"Failed"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 2,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "OracleSource",
+									"oracleReaderQuery": {
+										"value": "SELECT @{json(item()).columns} FROM @{json(item()).schema}.@{json(item()).table} WHERE CAST(TO_CHAR(TO_TIMESTAMP(TRIM(REGEXP_REPLACE(@{json(item()).control_column}, '[^0-9:\\/\\s-]', '' )), '@{json(item()).control_column_mask_value}'), 'YYYYMMDDHH24MISS' ) AS INT) >= CAST('@{activity('2_get_watermark_row_for_table').output.firstRow.control_column_value}' AS INT) AND CAST(TO_CHAR(TO_TIMESTAMP(TRIM(REGEXP_REPLACE(@{json(item()).control_column}, '[^0-9:\\/\\s-]', '' )), '@{json(item()).control_column_mask_value}'), 'YYYYMMDDHH24MISS' ) AS INT) <= CAST(@{activity('2_get_max_control_column_in_source_db').output.firstRow.max_control_column} AS INT)\n  AND CAST(?AdfRangePartitionColumnName AS INT)\n  >= ?AdfRangePartitionLowbound\n  AND CAST(?AdfRangePartitionColumnName AS INT)\n  <= ?AdfRangePartitionUpbound",
+										"type": "Expression"
+									},
+									"partitionOption": "DynamicRange",
+									"partitionSettings": {
+										"partitionColumnName": {
+											"value": "@{json(item()).partition_column}",
+											"type": "Expression"
+										},
+										"partitionUpperBound": {
+											"value": "@{activity('2_get_max_partition_column').output.firstRow.max_partition_column}",
+											"type": "Expression"
+										},
+										"partitionLowerBound": {
+											"value": "@{activity('2_get_min_partition_column').output.firstRow.min_partition_column}",
+											"type": "Expression"
+										}
+									}
+								},
+								"sink": {
+									"type": "ParquetSink",
+									"storeSettings": {
+										"type": "AzureBlobFSWriteSettings"
+									},
+									"formatSettings": {
+										"type": "ParquetWriteSettings"
+									}
+								},
+								"enableStaging": false,
+								"parallelCopies": {
+									"value": "@json(item()).partitions",
+									"type": "Expression"
+								},
+								"enableSkipIncompatibleRow": true,
+								"redirectIncompatibleRowSettings": {
+									"linkedServiceName": {
+										"referenceName": "cnibigdatadlsgen2stg",
+										"type": "LinkedServiceReference"
+									},
+									"path": {
+										"value": "@{pipeline().parameters.container}/@{pipeline().parameters.dls.folders.error}/dbo/@{json(item()).schema}/@{json(item()).table}",
+										"type": "Expression"
+									}
+								},
+								"dataIntegrationUnits": 2
+							},
+							"inputs": [
+								{
+									"referenceName": "oracle_table_parameterized",
+									"type": "DatasetReference"
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "adls_parameterized_partitioned_source",
+									"type": "DatasetReference",
+									"parameters": {
+										"container": {
+											"value": "@variables('container')",
+											"type": "Expression"
+										},
+										"url": {
+											"value": "@variables('storage_url')",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						},
+						{
+							"name": "2_update_watermark_row_for_table",
+							"description": "Calls the storage procedure that updates the control_column_value in SQLDW to upperbound value from activity '2_get_max_control_column_in_source_db'.\nIt will ensure that the next incremental load will get only the records from this value.\n\n",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "2_load_delta_incremental_table_partitioned",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 2,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": {
+									"value": "@pipeline().parameters.watermark.procedures.update_watermark",
+									"type": "Expression"
+								},
+								"storedProcedureParameters": {
+									"ControlColumnValue": {
+										"value": {
+											"value": "@{string(activity('2_get_max_control_column_in_source_db').output.firstRow.max_control_column)}",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"TableName": {
+										"value": {
+											"value": "dbo.@{toLower(json(item()).schema)}.@{toLower(json(item()).table)}",
+											"type": "Expression"
+										},
+										"type": "String"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "cnibigdatasqldw",
+								"type": "LinkedServiceReference"
+							}
+						},
+						{
+							"name": "2_get_max_partition_column",
+							"description": "This query gets the maximum partition column value that is between the control column's limits.",
+							"type": "Lookup",
+							"dependsOn": [
+								{
+									"activity": "2_get_watermark_row_for_table",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 2,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "OracleSource",
+									"oracleReaderQuery": {
+										"value": "SELECT \nMAX(@{json(item()).partition_column}) as max_partition_column \nFROM @{json(item()).schema}.@{json(item()).table}\nWHERE \nCAST(TO_CHAR(TO_TIMESTAMP(TRIM(REGEXP_REPLACE(@{json(item()).control_column}, '[^0-9:\\/\\s-]', '' )), '@{json(item()).control_column_mask_value}'), 'YYYYMMDDHH24MISS' ) AS INT)\n>= \nCAST(@{activity('2_get_watermark_row_for_table').output.firstRow.control_column_value} AS INT)\nAND \nCAST(TO_CHAR(TO_TIMESTAMP(TRIM(REGEXP_REPLACE(@{json(item()).control_column}, '[^0-9:\\/\\s-]', '' )), '@{json(item()).control_column_mask_value}'), 'YYYYMMDDHH24MISS' ) AS INT)\n<= \nCAST(@{activity('2_get_max_control_column_in_source_db').output.firstRow.max_control_column} AS INT)",
+										"type": "Expression"
+									},
+									"partitionOption": "None"
+								},
+								"dataset": {
+									"referenceName": "oracle_table_parameterized",
+									"type": "DatasetReference"
+								}
+							}
+						},
+						{
+							"name": "2_get_min_partition_column",
+							"description": "This query gets the minimum partition column value that is between the control column's limits.",
+							"type": "Lookup",
+							"dependsOn": [
+								{
+									"activity": "2_get_max_partition_column",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 2,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "OracleSource",
+									"oracleReaderQuery": {
+										"value": "SELECT \nMIN(@{json(item()).partition_column}) as min_partition_column \nFROM @{json(item()).schema}.@{json(item()).table}\nWHERE \nCAST(TO_CHAR(TO_TIMESTAMP(TRIM(REGEXP_REPLACE(@{json(item()).control_column}, '[^0-9:\\/\\s-]', '' )), '@{json(item()).control_column_mask_value}'), 'YYYYMMDDHH24MISS' ) AS INT)\n>= \nCAST(@{activity('2_get_watermark_row_for_table').output.firstRow.control_column_value} AS INT)\nAND \nCAST(TO_CHAR(TO_TIMESTAMP(TRIM(REGEXP_REPLACE(@{json(item()).control_column}, '[^0-9:\\/\\s-]', '' )), '@{json(item()).control_column_mask_value}'), 'YYYYMMDDHH24MISS' ) AS INT)\n<= \nCAST(@{activity('2_get_max_control_column_in_source_db').output.firstRow.max_control_column} AS INT)",
+										"type": "Expression"
+									},
+									"partitionOption": "None"
+								},
+								"dataset": {
+									"referenceName": "oracle_table_parameterized",
+									"type": "DatasetReference"
+								}
+							}
+						},
+						{
+							"name": "2_sqldw_healthy_check",
+							"description": "Check if SQLDW is up and healthy in order to be able to write in watermark table used later in the pipeline. It prevents us to save data without refreshing the watermark table.",
+							"type": "ExecutePipeline",
+							"dependsOn": [
+								{
+									"activity": "2_get_min_partition_column",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "sqldw_healthy_check",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "filter_control_column_type_2_db_datetime_notpart",
+				"description": "Filtering control column type as int, if parameter \"control_column_type_2_db\" in table dictionary is datetime.\n\nThis parameter \"control_column_type_2_db\" isn't the original type from database, but rather the behavior of the data. So it could be a string, int or datetime. It will work only if the column represents a datetime format.",
+				"type": "Filter",
+				"dependsOn": [
+					{
+						"activity": "filter_if_not_partitioned_incremental",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('filter_if_not_partitioned_incremental').output.value\n",
+						"type": "Expression"
+					},
+					"condition": {
+						"value": "@equals(toLower(json(item()).control_column_type_2_db), 'datetime')",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "sqldw_healthy_check",
+				"description": "Check if SQLDW is up and healthy in order to be able to write in watermark table used later in the pipeline. It prevents us to save data without refreshing the watermark table.",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "set_storage_url",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "set_container",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "sqldw_healthy_check",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "3_for_each_incremental_control_column_datetime_copy1",
+				"description": "This makes our pipeline generic and iterable. After filtering the incremental tables that have the control column that behaves like a datetime and you want to load all the data until the current date (not by year), we shall proceed working with on any of them . \n\nAfter passing through this loop, \"tables\" pipeline parameter must be casted to json when needed.\n\nWARNING: We tested this pipeline only for the table INDDESEMPENHO.ESTABELECIMENTO that has the control column of datetime type. It has not been already tested for a case in which the control column has a integer type that behaves like a datetime. It should work, but we don't have a test case yet.\n\n",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "filter_control_column_type_2_db_datetime_notpart",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('filter_if_not_partitioned_incremental').output.value\n",
+						"type": "Expression"
+					},
+					"isSequential": false,
+					"batchCount": 4,
+					"activities": [
+						{
+							"name": "3_get_max_control_column_in_source_db",
+							"description": "In source db, executes a query for retrieving the maximum available value in the parameterized \"control_column\".\n\nWARNING 1: The Max value of the control columns MUST BE AN INTEGER because it will be used later for partitioning. Data Factory only accepts integer as partition lowerbound and upperbound.\nThe parameter \"control_column_default_value\" also must be a integer in format YYYYMMDD for the same reason.\n\nWARNING 2: The control column must be chosen in a way that we won't have any RETROACTIVE RECORDS, because we will save in watermark table the current day and it will be the lowerbound for the next load.\n\nWe had so many trouble with some string columns, so we decided to use REGEX and TRIM to ensure the we trim all the characters that aren't STRICTLY NUMBERS or elements of datetime such as \":\", \"/\", \"-\" and whitespace.\n\nHINT: If you want to test with a fictional upperbound date, replace \"CURRENT_DATE - 1\" by TO_DATE(CAST('20190810' AS INT), '@{json(item()).control_column_mask_value}').",
+							"type": "Lookup",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 2,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "OracleSource",
+									"oracleReaderQuery": {
+										"value": "SELECT MAX(CAST(TO_CHAR(TO_TIMESTAMP(TRIM(REGEXP_REPLACE(@{json(item()).control_column}, '[^0-9:\\/\\s-]', '' )), '@{json(item()).control_column_mask_value}'), 'YYYYMMDDHH24MISS' ) AS INT)) AS max_control_column\n  FROM @{json(item()).schema}.@{json(item()).table}\n  WHERE TO_TIMESTAMP(TRIM(REGEXP_REPLACE(@{json(item()).control_column}, '[^0-9:\\/\\s-]', '' )), '@{json(item()).control_column_mask_value}')\n  <= CURRENT_TIMESTAMP",
+										"type": "Expression"
+									},
+									"partitionOption": "None"
+								},
+								"dataset": {
+									"referenceName": "oracle_table_parameterized",
+									"type": "DatasetReference"
+								}
+							}
+						},
+						{
+							"name": "3_create_watermark_row_for_table_if_not_exists",
+							"description": "Calls the procedure that creates a new entry in the watermark control table in SQLDW case the table is not already created in it. \nDon't worry, there's a clause in the procedure that guarantees that only non-existing tables will be created. There's no possibility of overwrite. So keep this component as it is. It looks strange but works!\n\nThe first value of the control column in the watermark table is set in the properties of each table by the variable 'control_column_default_value'",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "3_get_max_control_column_in_source_db",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 2,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": {
+									"value": "@pipeline().parameters.watermark.procedures.insert_first_watermark",
+									"type": "Expression"
+								},
+								"storedProcedureParameters": {
+									"ControlColumn": {
+										"value": {
+											"value": "@toLower(json(item()).control_column)",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"ControlColumnType2Db": {
+										"value": {
+											"value": "@toLower(json(item()).control_column_type_2_db)",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"ControlColumnValue": {
+										"value": {
+											"value": "@toLower(json(item()).control_column_default_value)",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"TableDatabaseVendor": {
+										"value": {
+											"value": "@toLower(pipeline().parameters.db.vendor)",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"TableName": {
+										"value": {
+											"value": "dbo.@{toLower(json(item()).schema)}.@{toLower(json(item()).table)}",
+											"type": "Expression"
+										},
+										"type": "String"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "cnibigdatasqldw",
+								"type": "LinkedServiceReference"
+							}
+						},
+						{
+							"name": "3_get_watermark_row_for_table",
+							"description": "This lookup goes in the watermark table and fetches the entire row. \nWith this activity, we're setting the lower bound for the incremental load process. Now we need to check for datetime typed columns, so we'll be able to avoid values for a non-existing future.\n\nAfter fetching this row, we'll check for it's consistency and values. ",
+							"type": "Lookup",
+							"dependsOn": [
+								{
+									"activity": "3_create_watermark_row_for_table_if_not_exists",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 2,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "SqlDWSource",
+									"sqlReaderQuery": {
+										"value": "SELECT  * FROM @{toLower(pipeline().parameters.watermark.table)} WHERE @{toLower(pipeline().parameters.watermark.columns.table_name)}  = @{toLower(concat('''dbo.', json(item()).schema, '.', json(item()).table, ''''))}",
+										"type": "Expression"
+									},
+									"partitionOption": "None"
+								},
+								"dataset": {
+									"referenceName": "sqldw_parameterized_watermark_table",
+									"type": "DatasetReference"
+								}
+							}
+						},
+						{
+							"name": "3_load_delta_incremental_table",
+							"description": "Loading the incremental delta requires a lowerbound and an upperbound. \nUpperbound was generated by the lookup activity \"1_get_max_control_column_in_source_db\". And lowerbound was generated by the lookup activity \"1_get_watermark_row_for_table\".\nFor this case, the we'll partition the load by the control column.\n\nIn order to be able to receive control column as integer or datetimes, we generalized converting to timestamp, then to string and then to int.\n\nWe had so many trouble with some string columns, so we decided to use REGEX and TRIM to ensure the we trim all the characters that aren't STRICTLY NUMBERS or elements of datetime such as \":\", \"/\", \"-\" and whitespace.\n\nWARNING: All the limits must be inclusive, that is, the the control column should be => lowerbound and <= upperbound!! It's possible that we are getting redundant compared to the last load, because all the limits are inclusive. Don't worry, it will be considered in the processing pipeline with Spark.\n\nRemember to change the sink dataset to \"adls_parametrized_partitioned_source_v2\" when databricks implementation is finished! ",
+							"type": "Copy",
+							"dependsOn": [
+								{
+									"activity": "3_sqldw_healthy_check",
+									"dependencyConditions": [
+										"Succeeded",
+										"Failed"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 2,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "OracleSource",
+									"oracleReaderQuery": {
+										"value": "SELECT @{json(item()).columns} FROM @{json(item()).schema}.@{json(item()).table} WHERE CAST(TO_CHAR(TO_TIMESTAMP(TRIM(REGEXP_REPLACE(@{json(item()).control_column}, '[^0-9:\\/\\s-]', '' )), '@{json(item()).control_column_mask_value}'), 'YYYYMMDDHH24MISS' ) AS INT) >= CAST('@{activity('3_get_watermark_row_for_table').output.firstRow.control_column_value}' AS INT) AND CAST(TO_CHAR(TO_TIMESTAMP(TRIM(REGEXP_REPLACE(@{json(item()).control_column}, '[^0-9:\\/\\s-]', '' )), '@{json(item()).control_column_mask_value}'), 'YYYYMMDDHH24MISS' ) AS INT) <= @{activity('3_get_max_control_column_in_source_db').output.firstRow.max_control_column}",
+										"type": "Expression"
+									},
+									"partitionOption": "None"
+								},
+								"sink": {
+									"type": "ParquetSink",
+									"storeSettings": {
+										"type": "AzureBlobFSWriteSettings",
+										"maxConcurrentConnections": 4
+									},
+									"formatSettings": {
+										"type": "ParquetWriteSettings"
+									}
+								},
+								"enableStaging": false,
+								"enableSkipIncompatibleRow": true,
+								"redirectIncompatibleRowSettings": {
+									"linkedServiceName": {
+										"referenceName": "cnibigdatadlsgen2stg",
+										"type": "LinkedServiceReference"
+									},
+									"path": {
+										"value": "@{pipeline().parameters.container}/@{pipeline().parameters.dls.folders.error}/dbo/@{json(item()).schema}/@{json(item()).table}",
+										"type": "Expression"
+									}
+								},
+								"dataIntegrationUnits": 2
+							},
+							"inputs": [
+								{
+									"referenceName": "oracle_table_parameterized",
+									"type": "DatasetReference"
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "adls_parameterized_partitioned_source",
+									"type": "DatasetReference",
+									"parameters": {
+										"container": {
+											"value": "@variables('container')",
+											"type": "Expression"
+										},
+										"url": {
+											"value": "@variables('storage_url')",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						},
+						{
+							"name": "3_update_watermark_row_for_table",
+							"description": "Calls the storage procedure that updates the control_column_value in SQLDW to upperbound value from activity '1_get_max_control_column_in_source_db'.\nIt will ensure that the next incremental load will get only the records from this value.\n\n",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "3_load_delta_incremental_table",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 2,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": {
+									"value": "@pipeline().parameters.watermark.procedures.update_watermark",
+									"type": "Expression"
+								},
+								"storedProcedureParameters": {
+									"ControlColumnValue": {
+										"value": {
+											"value": "@{string(activity('3_get_max_control_column_in_source_db').output.firstRow.max_control_column)}",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"TableName": {
+										"value": {
+											"value": "dbo.@{toLower(json(item()).schema)}.@{toLower(json(item()).table)}",
+											"type": "Expression"
+										},
+										"type": "String"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "cnibigdatasqldw",
+								"type": "LinkedServiceReference"
+							}
+						},
+						{
+							"name": "3_sqldw_healthy_check",
+							"description": "Check if SQLDW is up and healthy in order to be able to write in watermark table used later in the pipeline. It prevents us to save data without refreshing the watermark table.",
+							"type": "ExecutePipeline",
+							"dependsOn": [
+								{
+									"activity": "3_get_watermark_row_for_table",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "sqldw_healthy_check",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "set_storage_url",
+				"description": "Sets storage url",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "storage_url",
+					"value": {
+						"value": "@pipeline().globalParameters.datalake_storage_url",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "set_container",
+				"description": "Sets storage container",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "container",
+					"value": {
+						"value": "@pipeline().globalParameters.datalake_container",
+						"type": "Expression"
+					}
+				}
+			}
+		],
+		"parameters": {
+			"db": {
+				"type": "object"
+			},
+			"tables": {
+				"type": "array"
+			},
+			"dls": {
+				"type": "object"
+			},
+			"watermark": {
+				"type": "object"
+			},
+			"databricks": {
+				"type": "object"
+			},
+			"container": {
+				"type": "string",
+				"defaultValue": "datalake"
+			}
+		},
+		"variables": {
+			"storage_url": {
+				"type": "String"
+			},
+			"container": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "test"
+		},
+		"annotations": []
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

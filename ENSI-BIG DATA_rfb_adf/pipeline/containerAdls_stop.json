@@ -1,0 +1,35 @@
+{
+	"name": "containerAdls_stop",
+	"properties": {
+		"activities": [
+			{
+				"name": "CrawlerStop",
+				"type": "AzureFunctionActivity",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.00:01:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"functionName": "ContainerAdlsStop",
+					"method": "POST",
+					"body": {
+						"null": "null"
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "cnibigdatafunctionapp",
+					"type": "LinkedServiceReference"
+				}
+			}
+		],
+		"folder": {
+			"name": "aut"
+		},
+		"annotations": []
+	}
+}

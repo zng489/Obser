@@ -1,0 +1,220 @@
+{
+	"name": "trusted__0__switch_env",
+	"properties": {
+		"description": "Checks the parameter in \"env\" variable to decide which parameters and connections to use. This will avoid having to declare a full set of parameters like db, watermark and dls. \n\n\n- tables: array type; complete definition added with partitioning definition\n- env: dict type; simple key value definition\n\n- adf: dict type; complete definition taking the parameters the parent pipeline (the one that entitles the process)\n\n- databricks: dict type;  simplified definition pointing to the notebook_path\n\n- user_params: dict type; declares as {\"null\":\"null\"} as default\n",
+		"activities": [
+			{
+				"name": "switch_env_to_watermark_table",
+				"description": "Checks the parameter in \"env\" variable to decide which parameters and connections to use. This will avoid having to declare these parameters, cause they are going to be set based on this switch:\n    dbs, watermark and dls. \n\nDatabase connection definitions will be set based on 'env' definition. This will allow future implementation of 'dev', 'prod' and other environments to point to distinct databases.",
+				"type": "Switch",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"on": {
+						"value": "@toLower(pipeline().parameters.env.env)",
+						"type": "Expression"
+					},
+					"cases": [
+						{
+							"value": "dev",
+							"activities": [
+								{
+									"name": "trusted__1__run_databricks_notebook__dev",
+									"description": "Executes the 'trusted__1_run_databricks_notebook' pipeline, downstreaming 'dls', 'databricks_notebook_prefix' based on env definition.\n\nParam 'tables' will be downstreamed. \nParam 'databricks' will be deprecated by the unified implementation. ",
+									"type": "ExecutePipeline",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "trusted__1__run_databricks_notebook",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": true,
+										"parameters": {
+											"dls": {
+												"value": "@pipeline().globalParameters.dls_dev",
+												"type": "Expression"
+											},
+											"tables": {
+												"value": "@pipeline().parameters.tables",
+												"type": "Expression"
+											},
+											"databricks": {
+												"value": "@pipeline().parameters.databricks",
+												"type": "Expression"
+											},
+											"user_parameters": {
+												"value": "@pipeline().parameters.user_params",
+												"type": "Expression"
+											},
+											"databricks_notebook_prefix": {
+												"value": "@pipeline().globalParameters.databricks_notebook_base_dev",
+												"type": "Expression"
+											},
+											"adf": {
+												"value": "@json(pipeline().parameters.adf)",
+												"type": "Expression"
+											}
+										}
+									}
+								}
+							]
+						},
+						{
+							"value": "prod",
+							"activities": [
+								{
+									"name": "trusted__1__run_databricks_notebook__prod",
+									"description": "Executes the 'trusted__1_run_databricks_notebook' pipeline, downstreaming 'dls', 'databricks_notebook_prefix' based on env definition.\n\nParam 'tables' will be downstreamed. \nParam 'databricks' will be deprecated by the unified implementation. ",
+									"type": "ExecutePipeline",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "trusted__1__run_databricks_notebook",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": true,
+										"parameters": {
+											"dls": {
+												"value": "@pipeline().globalParameters.dls_prod",
+												"type": "Expression"
+											},
+											"tables": {
+												"value": "@pipeline().parameters.tables",
+												"type": "Expression"
+											},
+											"databricks": {
+												"value": "@pipeline().parameters.databricks",
+												"type": "Expression"
+											},
+											"user_parameters": {
+												"value": "@pipeline().parameters.user_params",
+												"type": "Expression"
+											},
+											"databricks_notebook_prefix": {
+												"value": "@pipeline().globalParameters.databricks_notebook_base_prod",
+												"type": "Expression"
+											},
+											"adf": {
+												"value": "@json(pipeline().parameters.adf)",
+												"type": "Expression"
+											}
+										}
+									}
+								}
+							]
+						}
+					],
+					"defaultActivities": [
+						{
+							"name": "env__declaration_unsupported",
+							"description": "The value for key \"env\" in \"env\" parameters is unsupported. Please review your implementation.",
+							"type": "WebHook",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"url": "https://thisisthewaytosimuateanerrormyfriend.com/api",
+								"method": "POST",
+								"headers": {
+									"Content-Type": "application/json"
+								},
+								"body": {
+									"error": true
+								},
+								"timeout": "00:10:00"
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "send_email_on_failure",
+				"description": "Calls the pipeline that send email on  failure. As this activity will be successfully executed, it will be necessary to force a fail in the downstream.",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "switch_env_to_watermark_table",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "send_email",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"email_users": {
+							"value": "@array('default')",
+							"type": "Expression"
+						},
+						"email_groups": {
+							"value": "@array('default')",
+							"type": "Expression"
+						},
+						"adf": {
+							"value": "@json(string(pipeline().parameters.adf))",
+							"type": "Expression"
+						},
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "fail_the_pipeline",
+				"description": "Calls templates.common.error_implementation to fail this execution, as should be.",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "send_email_on_failure",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "error_implementation",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			}
+		],
+		"parameters": {
+			"env": {
+				"type": "object",
+				"defaultValue": {
+					"env": "dev"
+				}
+			},
+			"tables": {
+				"type": "object"
+			},
+			"databricks": {
+				"type": "object"
+			},
+			"user_params": {
+				"type": "object",
+				"defaultValue": {
+					"null": "null"
+				}
+			},
+			"adf": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "templates/trs"
+		},
+		"annotations": []
+	}
+}

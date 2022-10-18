@@ -1,0 +1,1162 @@
+{
+	"name": "wkf_trs__uniepro",
+	"properties": {
+		"activities": [
+			{
+				"name": "raw_trs_base_escolas",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_trs__uniepro__wv1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "raw_trs_base_escolas",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "raw_trs_cadastro_cbo",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_trs__uniepro__wv1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "raw_trs_cadastro_cbo",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "raw_trs_cnae_industriais",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_trs__uniepro__wv1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "raw_trs_cnae_industrial",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "raw_trs_cnae",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_trs__uniepro__wv1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "raw_trs_cnae",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "raw_trs_estrutura_territorial",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_trs__uniepro__wv1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "raw_trs_estrutura_territorial",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "raw_trs_faixa_etaria",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_trs__uniepro__wv1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "raw_trs_faixa_etaria",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "raw_trs_grau_instrucao",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_trs__uniepro__wv1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "raw_trs_grau_instrucao",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "raw_trs_ocup_industriais",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_trs__uniepro__wv1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "raw_trs_ocup_indust_cbodom",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "raw_trs_caged",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_trs__uniepro__wv2",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "raw_trs_caged",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "raw_trs_pnadc",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_trs__uniepro__wv2",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "raw_trs_pnadc",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "raw_trs_intensidade_tecnol",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_trs__uniepro__wv1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "raw_trs_intensidade_tecnol",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "raw_trs_curso_educacao_profissional",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_trs__uniepro__wv2",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "raw_trs_curso_educacao_profissional",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "raw_trs_etapa_ensino",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_trs__uniepro__wv2",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "raw_trs_etapa_ensino",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "raw_trs_matricula",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_trs__uniepro__wv2",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "raw_trs_matricula",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "raw_trs_docente",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_trs__uniepro__wv2",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "raw_trs_docente",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "raw_trs_escola",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_trs__uniepro__wv4",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "raw_trs_escola",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "raw_trs_gestor",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_trs__uniepro__wv3",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "raw_trs_gestor",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "raw_trs_turma",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_trs__uniepro__wv3",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "raw_trs_turma",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "raw_trs_competencias_habilidades",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_trs__uniepro__wv2",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "raw_trs_competencias_habilidades",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "raw_trs_competencias_habilidades_ajuste",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_trs__uniepro__wv2",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "raw_trs_competencias_habilidades_ajuste",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "raw_trs_mascara_escola_sesi",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_trs__uniepro__wv2",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "raw_trs_mascara_escola_sesi",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "raw_trs_microdados_prova_brasil",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_trs__uniepro__wv3",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "raw_trs_microdados_prova_brasil",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "raw_trs_prova_brasil_aluno",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_trs__uniepro__wv3",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "raw_trs_prova_brasil_aluno",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "raw_trs_elegiveis",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_trs__uniepro__wv4",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "raw_trs_elegiveis",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "raw_trs_turmas",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_trs__uniepro__wv4",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "raw_trs_turmas",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "raw_trs_enem_escola",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_trs__uniepro__wv4",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "raw_trs_enem_escola",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "raw_trs_enem",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_trs__uniepro__wv4",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "raw_trs_enem",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "raw_trs_nota_maxima_turma",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_trs__uniepro__wv1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "raw_trs_nota_maxima_turma",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "raw_trs_parametros_rampa_projec",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_trs__uniepro__wv1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "raw_trs_parametros_rampa_projec",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "wkf_trs__uniepro__wv1",
+				"type": "Wait",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"waitTimeInSeconds": 1
+				}
+			},
+			{
+				"name": "wkf_trs__uniepro__wv2",
+				"type": "Wait",
+				"dependsOn": [
+					{
+						"activity": "raw_trs_cadastro_cbo",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "raw_trs_base_escolas",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "raw_trs_cnae_industriais",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "raw_trs_cnae",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "raw_trs_estrutura_territorial",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "raw_trs_faixa_etaria",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "raw_trs_grau_instrucao",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "raw_trs_ocup_industriais",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "raw_trs_intensidade_tecnol",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "raw_trs_nota_maxima_turma",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "raw_trs_parametros_rampa_projec",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"waitTimeInSeconds": 1
+				}
+			},
+			{
+				"name": "wkf_trs__uniepro__wv3",
+				"type": "Wait",
+				"dependsOn": [
+					{
+						"activity": "raw_trs_pnadc",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "raw_trs_curso_educacao_profissional",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "raw_trs_caged",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "raw_trs_etapa_ensino",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "raw_trs_matricula",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "raw_trs_docente",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "raw_trs_competencias_habilidades",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "raw_trs_competencias_habilidades_ajuste",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "raw_trs_mascara_escola_sesi",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"waitTimeInSeconds": 1
+				}
+			},
+			{
+				"name": "wkf_trs__uniepro__wv4",
+				"type": "Wait",
+				"dependsOn": [
+					{
+						"activity": "raw_trs_gestor",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "raw_trs_turma",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "raw_trs_microdados_prova_brasil",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "raw_trs_prova_brasil_aluno",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "raw_trs_taxa_rendimento_brasil_regioes",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "raw_trs_taxa_rendimento_escolas",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "raw_trs_taxa_rendimento_municipios",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "raw_trs_icg_escolas",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"waitTimeInSeconds": 1
+				}
+			},
+			{
+				"name": "raw_trs_taxa_rendimento_brasil_regioes",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_trs__uniepro__wv3",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "raw_trs_taxa_rendimento_brasil_regioes",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "raw_trs_taxa_rendimento_escolas",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_trs__uniepro__wv3",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "raw_trs_taxa_rendimento_escolas",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "raw_trs_taxa_rendimento_municipios",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_trs__uniepro__wv3",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "raw_trs_taxa_rendimento_municipios",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "raw_trs_icg_escolas",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_trs__uniepro__wv3",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "raw_trs_icg_escolas",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "raw_trs_inep_atu_brasil_regioes_uf",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_trs__uniepro__wv4",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "raw_trs_inep_atu_brasil_regioes_uf",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "raw_trs_inep_atu_escolas",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_trs__uniepro__wv4",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "raw_trs_inep_atu_escolas",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "raw_trs_inep_atu_municipios",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_trs__uniepro__wv4",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "raw_trs_inep_atu_municipios",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"parameters": {
+			"env": {
+				"type": "object",
+				"defaultValue": {
+					"env": "dev"
+				}
+			}
+		},
+		"folder": {
+			"name": "workflow/uniepro/trs"
+		},
+		"annotations": []
+	}
+}

@@ -1,0 +1,12 @@
+{
+	"name": "cnibigdatasqldw",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"description": "Azure SQL DW",
+		"annotations": [],
+		"type": "AzureSqlDW",
+		"typeProperties": {
+			"connectionString": "Integrated Security=False;Encrypt=True;Connection Timeout=30;Data Source=cnibigdatasqldw.database.windows.net;Initial Catalog=cnibigdatasqldw"
+		}
+	}
+}

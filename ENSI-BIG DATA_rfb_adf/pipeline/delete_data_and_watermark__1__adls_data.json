@@ -1,0 +1,177 @@
+{
+	"name": "delete_data_and_watermark__1__adls_data",
+	"properties": {
+		"description": "Deletes data in ADLS.\n\nIf the table is raw, then both parameters 'table' and 'dls' are needed. If not, just dls will do. You only need to specify the relative path, the environment prefixes will be derived from 'env'\n\nKeep in mind that the origins that need watermark are type 'dbo' (so far). If needed you can override this variable, but there's no case available until now. \n\nParameters:\n\n- datalake: {\"relative_path\": \"raw/bdo/test\"}\n  \n  The relative path should not start with '/'.\n\n- env: {\"env\": \"dev\"}\n\n\n",
+		"activities": [
+			{
+				"name": "switch_env_parameters",
+				"description": "Checks the parameter in \"env\" variable to decide which parameters and connections to use. This will avoid having to declare these parameters, cause they are going to be set based on this switch:\n    dbs, watermark and dls. \n\nDatabase connection definitions will be set based on 'env' definition. This will allow future implementation of 'dev', 'prod' and other environments to point to distinct databases.",
+				"type": "Switch",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"on": {
+						"value": "@toLower(pipeline().parameters.env.env)",
+						"type": "Expression"
+					},
+					"cases": [
+						{
+							"value": "dev",
+							"activities": [
+								{
+									"name": "set_dls_prefix__dev",
+									"description": "'prefix_adls_path' will point to dev in adls",
+									"type": "SetVariable",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"variableName": "prefix_adls_path",
+										"value": "/tmp/dev"
+									}
+								}
+							]
+						},
+						{
+							"value": "prod",
+							"activities": [
+								{
+									"name": "set_dls_prefix__prod",
+									"description": "'prefix_adls_path' will point to prod in adls",
+									"type": "SetVariable",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"variableName": "prefix_adls_path",
+										"value": "tmp/dev"
+									}
+								}
+							]
+						}
+					],
+					"defaultActivities": [
+						{
+							"name": "unsupported_environment",
+							"description": "The declared environment is not a valid one.",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "error_implementation",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "delete_data_from_adls",
+				"description": "Deletes the data in adls folder recursively.",
+				"type": "Delete",
+				"dependsOn": [
+					{
+						"activity": "set_delete_directory",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "adls_parameterized_folder_delete_recursive",
+						"type": "DatasetReference",
+						"parameters": {
+							"directory": {
+								"value": "@variables('delete_directory')",
+								"type": "Expression"
+							},
+							"container": {
+								"value": "@pipeline().parameters.container",
+								"type": "Expression"
+							},
+							"url": {
+								"value": "@pipeline().parameters.url",
+								"type": "Expression"
+							}
+						}
+					},
+					"enableLogging": false,
+					"storeSettings": {
+						"type": "AzureBlobFSReadSettings",
+						"recursive": true,
+						"enablePartitionDiscovery": false
+					}
+				}
+			},
+			{
+				"name": "set_delete_directory",
+				"description": "Concatenates the environment prefixes and the parameter datalake.realtive_path. This will be used to pass to the delete operation a valid path to operate recursively. ",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "switch_env_parameters",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "delete_directory",
+					"value": {
+						"value": "@{variables('prefix_adls_path')}/@{pipeline().parameters.datalake.relative_path}",
+						"type": "Expression"
+					}
+				}
+			}
+		],
+		"concurrency": 20,
+		"parameters": {
+			"env": {
+				"type": "object",
+				"defaultValue": {
+					"env": "dev"
+				}
+			},
+			"datalake": {
+				"type": "object"
+			},
+			"container": {
+				"type": "string"
+			},
+			"url": {
+				"type": "string"
+			}
+		},
+		"variables": {
+			"prefix_adls_path": {
+				"type": "String"
+			},
+			"prefix_origin": {
+				"type": "String",
+				"defaultValue": "dbo"
+			},
+			"delete_directory": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "templates/common/delete_data_and_watermark"
+		},
+		"annotations": [
+			"delete",
+			"template",
+			"common"
+		]
+	}
+}

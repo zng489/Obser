@@ -1,0 +1,126 @@
+{
+	"name": "merge_all_desc",
+	"properties": {
+		"activities": [
+			{
+				"name": "oracle_desc",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "merge_batch_desc",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						},
+						"source_type": "oracle"
+					}
+				}
+			},
+			{
+				"name": "ext_desc",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "oracle_desc",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "merge_batch_desc",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						},
+						"source_type": "external"
+					}
+				}
+			},
+			{
+				"name": "bigdata_desc",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "ext_desc",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "merge_bigdata",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "merge_steward",
+				"type": "DatabricksNotebook",
+				"dependsOn": [
+					{
+						"activity": "bigdata_desc",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"notebookPath": {
+						"value": "/KEYRUS/@{pipeline().parameters.env}/gov/catalog/desc/merge_desc_steward",
+						"type": "Expression"
+					},
+					"baseParameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "cnigovdatabricks",
+					"type": "LinkedServiceReference"
+				}
+			}
+		],
+		"parameters": {
+			"env": {
+				"type": "string",
+				"defaultValue": "dev"
+			}
+		},
+		"folder": {
+			"name": "gov/merge_desc"
+		},
+		"annotations": []
+	}
+}

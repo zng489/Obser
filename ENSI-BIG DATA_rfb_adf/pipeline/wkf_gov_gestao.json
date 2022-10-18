@@ -1,0 +1,89 @@
+{
+	"name": "wkf_gov_gestao",
+	"properties": {
+		"activities": [
+			{
+				"name": "wkf_gov_desc",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "wkf_gov_desc",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "wkf_gov_csv",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_dbfs_tables",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "wkf_gov_csv",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "wkf_dbfs_tables",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_gov_desc",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "wkf_gov_dbfs_tables",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"concurrency": 1,
+		"parameters": {
+			"env": {
+				"type": "string",
+				"defaultValue": "prod"
+			}
+		},
+		"folder": {
+			"name": "workflow/gov"
+		},
+		"annotations": []
+	}
+}

@@ -1,0 +1,90 @@
+{
+	"name": "workflow_dev",
+	"properties": {
+		"description": "Dev workflow.\nAll raw dependencies must be executed according to the necessity of synchrony. That's why structure has layer declaration and waits in between.",
+		"activities": [
+			{
+				"name": "has_error_in_completed_conditions",
+				"description": "For all activities in which we evaluate \"completed\" condition, things can fail but still go on as everything was nice and smooth. To have real control over this, the vairable \"execution_errors\" is needed and now we have to check there are no real errors. \n\nIf any of the parents fail, this workflow will already fail, cause the logic clause is AND. Think about it. ",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "workflow_dev_succeeded",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@greater(length(variables('execution_errors')), 0)",
+						"type": "Expression"
+					},
+					"ifFalseActivities": [
+						{
+							"name": "workflow_success",
+							"description": "No errors in \"completed\" conditions found. ",
+							"type": "Wait",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"waitTimeInSeconds": 1
+							}
+						}
+					],
+					"ifTrueActivities": [
+						{
+							"name": "workflow_failed",
+							"description": "Using a webhook with a bad HTTP request, we can introduce errors in out pipelines when we need.\n\nYou've got errors in some \"completed\" condition.",
+							"type": "WebHook",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"url": "https://thisisthewaytosimuateanerrormyfriend.com/api",
+								"method": "POST",
+								"headers": {
+									"Content-Type": "application/json"
+								},
+								"body": {
+									"error": true
+								},
+								"timeout": "00:10:00"
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "workflow_dev_succeeded",
+				"type": "Wait",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"waitTimeInSeconds": 1
+				}
+			}
+		],
+		"concurrency": 1,
+		"parameters": {
+			"env": {
+				"type": "object",
+				"defaultValue": {
+					"env": "dev"
+				}
+			}
+		},
+		"variables": {
+			"execution_errors": {
+				"type": "Array",
+				"defaultValue": []
+			}
+		},
+		"folder": {
+			"name": "workflow"
+		},
+		"annotations": [
+			"workflow"
+		]
+	}
+}

@@ -1,0 +1,125 @@
+{
+	"name": "control_column_checker__1__set_params",
+	"properties": {
+		"activities": [
+			{
+				"name": "for_each_table",
+				"description": "Will iterate through tables (obviously there's only 1 in the definition), get the schema name and then switch it to the right implementation for the db vendor.\n\nParameters:\n- tables: array; comes from the outer implementation and is absolutely necessary to load the table and filter for the vendor\n- dls: dict; will be passed as parameter from the parent pipeline and contains the structure for folders in case of dev or prod\n- watermark, will be passed as parameter from the parent pipeline and will route to the correct impl of watermark based on 'env'\n\n- databricks: ??",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "set_databricks_variable",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@pipeline().parameters.tables",
+						"type": "Expression"
+					},
+					"isSequential": false,
+					"batchCount": 4,
+					"activities": [
+						{
+							"name": "control_column_checker__2__switch_db",
+							"description": "Calls \"switch_env_execute_load_level_1\" pipeline",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "control_column_checker__2__switch_db",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"tables": {
+										"value": "@pipeline().parameters.tables",
+										"type": "Expression"
+									},
+									"dls": {
+										"value": "@pipeline().parameters.dls",
+										"type": "Expression"
+									},
+									"adf": {
+										"value": "@pipeline().parameters.adf",
+										"type": "Expression"
+									},
+									"watermark": {
+										"value": "@pipeline().parameters.watermark",
+										"type": "Expression"
+									},
+									"databricks": {
+										"value": "@json(variables('databricks_raw_notebook'))",
+										"type": "Expression"
+									},
+									"db": {
+										"value": "@pipeline().parameters.dbs[json(item()).schema]",
+										"type": "Expression"
+									},
+									"container": {
+										"value": "@pipeline().parameters.container",
+										"type": "Expression"
+									},
+									"url": {
+										"value": "@pipeline().parameters.url",
+										"type": "Expression"
+									}
+								}
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "set_databricks_variable",
+				"description": "Sets the value for databricks variable cause when it is triggered by other pipeline, it won't be able to assume the default value.",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "databricks_raw_notebook",
+					"value": "{\"raw\":{\"notebook\":{\"folder\":\"/KEYRUS/utils\",\"file\":\"raw_load_bdo_unified\"}}}"
+				}
+			}
+		],
+		"parameters": {
+			"env": {
+				"type": "object"
+			},
+			"tables": {
+				"type": "array"
+			},
+			"dls": {
+				"type": "string"
+			},
+			"watermark": {
+				"type": "object"
+			},
+			"dbs": {
+				"type": "object"
+			},
+			"adf": {
+				"type": "string"
+			},
+			"container": {
+				"type": "string"
+			},
+			"url": {
+				"type": "string"
+			}
+		},
+		"variables": {
+			"databricks_raw_notebook": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "templates/raw/bdo/tools/control_column_checker"
+		},
+		"annotations": []
+	}
+}

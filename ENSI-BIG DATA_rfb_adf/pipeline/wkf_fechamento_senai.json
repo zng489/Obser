@@ -1,0 +1,175 @@
+{
+	"name": "wkf_fechamento_senai",
+	"properties": {
+		"description": "Loads a group of tables for this business area.\n\nExpected Behavior is to fail this whole step if any of these tables fail to load.",
+		"activities": [
+			{
+				"name": "biz_fta_gestao_ensino_prof___failed",
+				"description": "Appends \"fta_gestao_ensino_profissional\" to variable \"execution_errors\"",
+				"type": "AppendVariable",
+				"dependsOn": [
+					{
+						"activity": "biz_biz_fta_gestao_ensino_profissional",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "execution_errors",
+					"value": "'fta_gestao_ensino_profissional'"
+				}
+			},
+			{
+				"name": "has_error_in_completed_conditions",
+				"description": "For all activities in which we evaluate \"completed\" condition, things can fail but still go on as everything was nice and smooth. To have real control over this, the vairable \"execution_errors\" is needed and now we have to check there are no real errors. \n\nIf any of the parents fail, this workflow will already fail, cause the logic clause is AND. Think about it. ",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "trs_biz_fta_producao_tecnologia_inovacao",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@greater(length(variables('execution_errors')), 0)",
+						"type": "Expression"
+					},
+					"ifFalseActivities": [
+						{
+							"name": "workflow_success",
+							"description": "No errors in \"completed\" conditions found. ",
+							"type": "Wait",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"waitTimeInSeconds": 1
+							}
+						}
+					],
+					"ifTrueActivities": [
+						{
+							"name": "workflow_failed",
+							"description": "Using a webhook with a bad HTTP request, we can introduce errors in out pipelines when we need.\n\nYou've got errors in some \"completed\" condition.",
+							"type": "WebHook",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"url": "https://thisisthewaytosimuateanerrormyfriend.com/api",
+								"method": "POST",
+								"headers": {
+									"Content-Type": "application/json"
+								},
+								"body": {
+									"error": true
+								},
+								"timeout": "00:10:00"
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "biz_fta_prod_sti___failed",
+				"description": "Appends \"fta_producao_tecnologia_inovacao\" to variable \"execution_errors\"",
+				"type": "AppendVariable",
+				"dependsOn": [
+					{
+						"activity": "trs_biz_fta_producao_tecnologia_inovacao",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "execution_errors",
+					"value": "'fta_producao_tecnologia_inovacao'"
+				}
+			},
+			{
+				"name": "biz_biz_fta_gestao_ensino_profissional",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "biz_biz_fta_gestao_ensino_profissional",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"user_parameters": {
+							"value": "@pipeline().parameters.user_parameters",
+							"type": "Expression"
+						},
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "trs_biz_fta_producao_tecnologia_inovacao",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "biz_biz_fta_gestao_ensino_profissional",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "trs_biz_fta_producao_tecnologia_inovacao",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"user_parameters": {
+							"value": "@pipeline().parameters.user_parameters",
+							"type": "Expression"
+						},
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"concurrency": 1,
+		"parameters": {
+			"env": {
+				"type": "object",
+				"defaultValue": {
+					"env": "dev"
+				}
+			},
+			"user_parameters": {
+				"type": "object",
+				"defaultValue": {
+					"null": "null"
+				}
+			}
+		},
+		"variables": {
+			"execution_errors": {
+				"type": "Array"
+			}
+		},
+		"folder": {
+			"name": "workflow/fechamentos/senai"
+		},
+		"annotations": [
+			"workflow"
+		]
+	}
+}

@@ -1,0 +1,321 @@
+{
+	"name": "lnd_acl_adls",
+	"properties": {
+		"description": "Pipeline responsável pela execução da api adls_reporter e carga dos dados de acl do adls no datalake (adls) ou no sqldw",
+		"activities": [
+			{
+				"name": "adls_reporter",
+				"description": "Calls adls_reporter, implemented on a container instance. For outputs, use only 'adls', cause the implementation for sqldw works fine just for small data volumes. It uses pandas and a chunking  strategy to copy data to SQLDW; for big volumes it is really slow. \nThat is why we are implementing the copy stage to happen here, ADF moves larger volumes way faster. ",
+				"type": "WebHook",
+				"dependsOn": [
+					{
+						"activity": "set_sqldw_schema",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "set_adls_base_path",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "check_reporter_output",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "set_storage_url",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "set_container",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"url": "https://cnibigdataproxy.azurewebsites.net/api/ApiWrapper?code=70MQjT4yJfhXcj4A3cE4awSs34IOXWIm/LEGjQsmPKygcukykweOmw==",
+					"method": "POST",
+					"headers": {
+						"Content-Type": "application/json"
+					},
+					"body": {
+						"value": "@pipeline().parameters.webhook_body",
+						"type": "Expression"
+					},
+					"timeout": "12:00:00"
+				}
+			},
+			{
+				"name": "set_adls_base_path",
+				"description": "Sets the base path for adls_based on 'env' variable declaration",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "adls_base_path",
+					"value": {
+						"value": "@if(equals(pipeline().parameters.webhook_body.env, 'dev'), pipeline().globalParameters.dls_dev.folders.raw, pipeline().globalParameters.dls_prod.folders.raw)",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "set_sqldw_schema",
+				"description": "Sets SQLDW schema based on 'env' declaration.\nSQLDW mapping:\ndev=dev\nprod=dbo",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "sqldw_schema",
+					"value": {
+						"value": "@if(equals(toLower(pipeline().parameters.webhook_body.env), 'dev'), 'dev', 'dbo')",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "check_reporter_output",
+				"description": "Checks if the declared outputs for sqldw equals the allowed outputs. Otherwise, will fail the pipeline before proceeding",
+				"type": "IfCondition",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@and(lessOrEquals(length(pipeline().parameters.webhook_body.output), length(variables('reporter_output_allowed'))), greaterOrEquals(length(intersection(variables('reporter_output_allowed'), pipeline().parameters.webhook_body.output)), 1))",
+						"type": "Expression"
+					},
+					"ifFalseActivities": [
+						{
+							"name": "output_not_allowed",
+							"description": "One or more of the declared outputs is not allowed.",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "error_implementation",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true
+							}
+						}
+					],
+					"ifTrueActivities": [
+						{
+							"name": "reporter_outputs_allowed",
+							"description": "All outputs are in the allowed outputs.",
+							"type": "Wait",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"waitTimeInSeconds": 1
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "load_files",
+				"description": "For each file, load to sqldw. We can use  batch for doing this.",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "adls_reporter",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@pipeline().parameters.config.files",
+						"type": "Expression"
+					},
+					"batchCount": 5,
+					"activities": [
+						{
+							"name": "copy_table_to_sqldw",
+							"description": "Copies the table to sqldw.",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 2,
+								"retryIntervalInSeconds": 120,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "ParquetSource",
+									"storeSettings": {
+										"type": "AzureBlobFSReadSettings",
+										"recursive": true,
+										"enablePartitionDiscovery": false
+									}
+								},
+								"sink": {
+									"type": "SqlDWSink",
+									"preCopyScript": {
+										"value": "TRUNCATE TABLE [@{variables('sqldw_schema')}].[@{concat(pipeline().parameters.config.sqldw_table_name_prefix, item())}]",
+										"type": "Expression"
+									},
+									"tableOption": "autoCreate",
+									"disableMetricsCollection": false
+								},
+								"enableStaging": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"typeConversion": true,
+									"typeConversionSettings": {
+										"allowDataTruncation": true,
+										"treatBooleanAsNumber": false
+									}
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "adls_parameterized_adls_reporter",
+									"type": "DatasetReference",
+									"parameters": {
+										"folder": {
+											"value": "@concat(variables('adls_base_path'), '/', pipeline().parameters.config.adls_base_path)",
+											"type": "Expression"
+										},
+										"container": {
+											"value": "@variables('container')",
+											"type": "Expression"
+										},
+										"file": {
+											"value": "@concat(item(), '.parquet')",
+											"type": "Expression"
+										},
+										"url": {
+											"value": "@variables('storage_url')",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "sqldw_parameterized",
+									"type": "DatasetReference",
+									"parameters": {
+										"schema": {
+											"value": "@variables('sqldw_schema')",
+											"type": "Expression"
+										},
+										"table": {
+											"value": "@concat(pipeline().parameters.config.sqldw_table_name_prefix, item())",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						}
+					]
+				}
+			},
+			{
+				"name": "set_storage_url",
+				"description": "Sets storage url",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "storage_url",
+					"value": {
+						"value": "@pipeline().globalParameters.datalake_storage_url",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "set_container",
+				"description": "Sets storage container",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "container",
+					"value": {
+						"value": "@pipeline().globalParameters.datalake_container",
+						"type": "Expression"
+					}
+				}
+			}
+		],
+		"concurrency": 1,
+		"parameters": {
+			"webhook_body": {
+				"type": "object",
+				"defaultValue": {
+					"container": {
+						"name": "cnibigdatadlsreporter",
+						"resource_group": "bigdata"
+					},
+					"dir": "/",
+					"user": "staff-bsb-bigdata@cni.com.br",
+					"password": "",
+					"output": [
+						"adls"
+					],
+					"size": false,
+					"route": "1.0/report",
+					"env": "prod"
+				}
+			},
+			"config": {
+				"type": "object",
+				"defaultValue": {
+					"adls_base_path": "gov/adls_reporter",
+					"sqldw_table_name_prefix": "adls_acl_report__",
+					"files": [
+						"graph",
+						"adls",
+						"group_members"
+					]
+				}
+			}
+		},
+		"variables": {
+			"adls_base_path": {
+				"type": "String"
+			},
+			"sqldw_schema": {
+				"type": "String"
+			},
+			"reporter_output_allowed": {
+				"type": "Array",
+				"defaultValue": [
+					"adls"
+				]
+			},
+			"storage_url": {
+				"type": "String"
+			},
+			"container": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "lnd/crw/adls_reporter"
+		},
+		"annotations": [
+			"tool",
+			"adls_reporter",
+			"acl"
+		]
+	}
+}

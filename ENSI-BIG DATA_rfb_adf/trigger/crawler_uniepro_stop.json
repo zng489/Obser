@@ -1,0 +1,44 @@
+{
+	"name": "crawler_uniepro_stop",
+	"properties": {
+		"annotations": [],
+		"runtimeState": "Started",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "crawler_stop",
+					"type": "PipelineReference"
+				},
+				"parameters": {
+					"env": {
+						"env": "dev"
+					}
+				}
+			}
+		],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Week",
+				"interval": 1,
+				"startTime": "2021-02-10T18:38:00Z",
+				"timeZone": "UTC",
+				"schedule": {
+					"minutes": [
+						0
+					],
+					"hours": [
+						22
+					],
+					"weekDays": [
+						"Monday",
+						"Tuesday",
+						"Wednesday",
+						"Thursday",
+						"Friday"
+					]
+				}
+			}
+		}
+	}
+}

@@ -1,0 +1,167 @@
+{
+	"name": "import_crw__1__check_files_copy1",
+	"properties": {
+		"activities": [
+			{
+				"name": "check_new_files",
+				"type": "WebActivity",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.00:01:30",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"url": "https://cnibigdataproxy.azurewebsites.net/api/RawControl?code=b7kdtZPobYMxmVkqD7J5RweFbbbnCKrQISKjz00oP8o/eVU1YvrenQ==",
+					"method": "POST",
+					"body": {
+						"value": "@json(concat('{', '\"method\":\"GET\"', ',', '\"adl_path\"', ':', \n'\"', pipeline().parameters.dls.folders.landing, '/crw/', pipeline().parameters.tables.schema, '__', pipeline().parameters.tables.table, '\"', '}'))",
+						"type": "Expression"
+					},
+					"linkedServices": [
+						{
+							"referenceName": "cnibigdataproxy",
+							"type": "LinkedServiceReference"
+						}
+					]
+				}
+			},
+			{
+				"name": "has_new_files",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "check_new_files",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@equals(activity('check_new_files').output.status_code, 200)",
+						"type": "Expression"
+					},
+					"ifTrueActivities": [
+						{
+							"name": "import_crw__2__load_raw",
+							"type": "ExecutePipeline",
+							"dependsOn": [
+								{
+									"activity": "new_files_found",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "import_crw__2__load_raw",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"tables": {
+										"value": "@pipeline().parameters.tables",
+										"type": "Expression"
+									},
+									"dls": {
+										"value": "@pipeline().parameters.dls",
+										"type": "Expression"
+									},
+									"databricks": {
+										"value": "@pipeline().parameters.databricks",
+										"type": "Expression"
+									},
+									"adf": {
+										"value": "@pipeline().parameters.adf",
+										"type": "Expression"
+									},
+									"ach_tables": {
+										"value": "@pipeline().parameters.ach_tables",
+										"type": "Expression"
+									}
+								}
+							}
+						},
+						{
+							"name": "new_files_found",
+							"description": "Simple implementation of a flux fork.",
+							"type": "Wait",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"waitTimeInSeconds": 1
+							}
+						},
+						{
+							"name": "send_email_to_notify_new_files",
+							"description": "Will notify users for group ANALISTA_UNIEPRO about this execution presensting the message that the crawler collected new files and they are available at raw level.",
+							"type": "ExecutePipeline",
+							"dependsOn": [
+								{
+									"activity": "new_files_found",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "send_email",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"status": "succeeded",
+									"adf": {
+										"value": "@pipeline().parameters.adf",
+										"type": "Expression"
+									},
+									"env": {
+										"value": "@pipeline().parameters.env",
+										"type": "Expression"
+									},
+									"message": {
+										"value": "Há novos arquivos disponíveis para @{pipeline().parameters.adf.adf_pipeline_name}",
+										"type": "Expression"
+									}
+								}
+							}
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"tables": {
+				"type": "object"
+			},
+			"dls": {
+				"type": "object"
+			},
+			"databricks": {
+				"type": "object"
+			},
+			"adf": {
+				"type": "object"
+			},
+			"ach_tables": {
+				"type": "array"
+			},
+			"env": {
+				"type": "object"
+			}
+		},
+		"folder": {
+			"name": "dev/templates"
+		},
+		"annotations": []
+	}
+}

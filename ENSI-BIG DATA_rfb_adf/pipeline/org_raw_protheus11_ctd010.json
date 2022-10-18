@@ -1,0 +1,55 @@
+{
+	"name": "org_raw_protheus11_ctd010",
+	"properties": {
+		"description": "Will always be loaded as full.\n\n- For full load with partitioning use:\nParameter tables =[\"{'schema': 'PROTHEUS11', 'table':'CTD010','load_type':'full','partition_column':'R_E_C_N_O_','partitions':5, 'columns': 'CTD_FILIAL,CTD_ITEM,CTD_CLASSE,CTD_NORMAL,CTD_DESC01,CTD_DESC02,CTD_DESC03,CTD_DESC04,CTD_DESC05,CTD_BLOQ,CTD_DTBLIN,CTD_DTBLFI,CTD_DTEXIS,CTD_DTEXSF,CTD_ITLP,CTD_ITPON,CTD_BOOK,CTD_ITSUP,CTD_RES,CTD_CRGNV1,CTD_CRGNV2,CTD_RGNV3,CTD_CLOBRG,CTD_ACCLVL,CTD_ITVM,CTD_ITRED,CTD_ACATIV,CTD_ATOBRG,CTD_ACAT01,CTD_AT01OB,CTD_ACAT02,CTD_AT02OB,CTD_ACAT03,CTD_AT03OB,CTD_ACAT04,CTD_AT04OB,CTD_TPO01,CTD_TPO04,CTD_TPO02,CTD_TPO03,CTD_XITCON,CTD_XIDESB,CTD_XCRDN,CTD_XFUNPR,CTD_XUSO,CTD_XFP,D_E_L_E_T_,R_E_C_N_O_,R_E_C_D_E_L_,CTD_XFUNP2,CTD_XUSO2,CTD_XFP2,CTD_NOVOCR,CTD_XCLVL'}\"]\nExecute pipeline = template_import_table_full",
+		"activities": [
+			{
+				"name": "raw_load_bdo_unified__0__switch_env",
+				"description": "Run template pipeline to import tables",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "raw_load_dbo_unified__0__switch_env",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"tables": {
+							"value": "@pipeline().parameters.tables",
+							"type": "Expression"
+						},
+						"adf": {
+							"value": "{'adf_factory_name': '@{pipeline().DataFactory}', 'adf_pipeline_name': '@{pipeline().Pipeline}', 'adf_pipeline_run_id': '@{pipeline().RunId}',  'adf_trigger_id': '@{pipeline().TriggerId}', 'adf_trigger_name': '@{pipeline().TriggerName}', 'adf_trigger_time': '@{pipeline().TriggerTime}',  'adf_trigger_type': '@{pipeline().TriggerType}'}",
+							"type": "Expression"
+						},
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"parameters": {
+			"tables": {
+				"type": "array",
+				"defaultValue": [
+					"{'schema': 'PROTHEUS11', 'table':'CTD010','load_type':'full','partition_column':'R_E_C_N_O_','partitions':5, 'columns': 'CTD_FILIAL,CTD_ITEM,CTD_CLASSE,CTD_NORMAL,CTD_DESC01,CTD_DESC02,CTD_DESC03,CTD_DESC04,CTD_DESC05,CTD_BLOQ,CTD_DTBLIN,CTD_DTBLFI,CTD_DTEXIS,CTD_DTEXSF,CTD_ITLP,CTD_ITPON,CTD_BOOK,CTD_ITSUP,CTD_RES,CTD_CRGNV1,CTD_CRGNV2,CTD_RGNV3,CTD_CLOBRG,CTD_ACCLVL,CTD_ITVM,CTD_ITRED,CTD_ACATIV,CTD_ATOBRG,CTD_ACAT01,CTD_AT01OB,CTD_ACAT02,CTD_AT02OB,CTD_ACAT03,CTD_AT03OB,CTD_ACAT04,CTD_AT04OB,CTD_TPO01,CTD_TPO04,CTD_TPO02,CTD_TPO03,CTD_XITCON,CTD_XIDESB,CTD_XCRDN,CTD_XFUNPR,CTD_XUSO,CTD_XFP,D_E_L_E_T_,R_E_C_N_O_,R_E_C_D_E_L_,CTD_XFUNP2,CTD_XUSO2,CTD_XFP2,CTD_NOVOCR,CTD_XCLVL'}"
+				]
+			},
+			"env": {
+				"type": "object",
+				"defaultValue": {
+					"env": "dev"
+				}
+			}
+		},
+		"folder": {
+			"name": "raw/bdo/protheus11"
+		},
+		"annotations": []
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

@@ -1,0 +1,256 @@
+{
+	"name": "mssqlserver_import_incremental_with_join__0__evaluator",
+	"properties": {
+		"description": "Well, this one uses a Filter condition for making things work for incremental loads.\n\nWARNING: This load type works just for column_type_2_db = datetime!\n\nWARNING: \"tables\" object must be type ARRAY.\nAll objects in this array must be, in reality STRING type, enclosed by \".\nInside this objects, you should enclose everything in SINGLE QUOTES.\nOtherwise, things are not going to work. I warned you!\n\nHere's an example:\n[\"{'schema': 'INDDESEMPENHO', 'table':'ESTABELECIMENTO','load_type':'incremental','partition_column':'DATAATUALIZACAO','partitions':5,'control_column':'DATAATUALIZACAO','control_column_type_2_db':'datetime', 'control_column_default_value': '19000101',\n'control_column_mask_value': 'DD/MM/YYYY HH24:MI:SS'}\"]\n\n",
+		"activities": [
+			{
+				"name": "get_max_control_column_in_mssqlserver",
+				"description": "In source db, executes a query for retrieving the maximum available value in the parameterized \"control_column\".\n\nWARNING 1: The Max value of the control columns MUST BE AN INTEGER because it will be used later for partitioning. Data Factory only accepts integer as partition lowerbound and upperbound.\nThe parameter \"control_column_default_value\" also must be a integer in format YYYYMMDDHH24MISS for the same reason.\n\nWARNING 2: The control column must be chosen in a way that we won't have any RETROACTIVE RECORDS, because we will save in watermark table the current day and it will be the lowerbound for the next load.\n\nWe had so many trouble with some string columns, so we decided to use REGEX and TRIM to ensure the we trim all the characters that aren't STRICTLY NUMBERS or elements of datetime such as \":\", \"/\", \"-\" and whitespace.\n\nOriginal implementation:",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 2,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": "SELECT CAST(FORMAT(SYSDATETIME(), 'yyyyMMddhhmmss') AS BIGINT) AS UPPERBOUND",
+						"queryTimeout": "02:00:00",
+						"isolationLevel": "ReadCommitted",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "sqlserver_parametrized",
+						"type": "DatasetReference"
+					}
+				}
+			},
+			{
+				"name": "create_watermark_row_for_table_if_not_exists",
+				"description": "Calls the procedure that creates a new entry in the watermark control table in SQLDW case the table is not already created in it. \nDon't worry, there's a clause in the procedure that guarantees that only non-existing tables will be created. There's no possibility of overwrite. So keep this component as it is. It looks strange but works!\n\nThe first value of the control column in the watermark table is set in the properties of each table by the variable 'control_column_default_value'",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 2,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": {
+						"value": "@pipeline().parameters.watermark.procedures.insert_first_watermark",
+						"type": "Expression"
+					},
+					"storedProcedureParameters": {
+						"ControlColumn": {
+							"value": {
+								"value": "@toLower(json(pipeline().parameters.tables[0]).control_column)",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"ControlColumnType2Db": {
+							"value": {
+								"value": "@toLower(json(pipeline().parameters.tables[0]).control_column_type_2_db)",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"ControlColumnValue": {
+							"value": {
+								"value": "@toLower(json(pipeline().parameters.tables[0]).control_column_default_value)",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"TableDatabaseVendor": {
+							"value": {
+								"value": "@toLower(pipeline().parameters.db.vendor)",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"TableName": {
+							"value": {
+								"value": "dbo.@{toLower(json(pipeline().parameters.tables[0]).schema)}.@{toLower(json(pipeline().parameters.tables[0]).table)}",
+								"type": "Expression"
+							},
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "cnibigdatasqldw",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "get_watermark_row_for_table",
+				"description": "This lookup goes in the watermark table and fetches the entire row. \nWith this activity, we're setting the lower bound for the incremental load process. Now we need to check for datetime typed columns, so we'll be able to avoid values for a non-existing future.\n\nAfter fetching this row, we'll check for it's consistency and values. ",
+				"type": "Lookup",
+				"dependsOn": [
+					{
+						"activity": "create_watermark_row_for_table_if_not_exists",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 2,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": {
+							"value": "SELECT  * FROM @{toLower(pipeline().parameters.watermark.table)} WHERE @{toLower(pipeline().parameters.watermark.columns.table_name)}  = '@{toLower(concat(pipeline().globalParameters.watermark_prefix_dbo, '.', json(pipeline().parameters.tables[0]).schema, '.', json(pipeline().parameters.tables[0]).table))}'",
+							"type": "Expression"
+						},
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "sqldw_parameterized_watermark_table",
+						"type": "DatasetReference"
+					}
+				}
+			},
+			{
+				"name": "if_control_column_range_is valid",
+				"description": "If boundaries for control_column are not the same, then we can proceed with loading the table. Otherwise, it is just waste of time and Databricks CPU.\n\nThis condition evaluates the inequality of both boundaries.",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "get_max_control_column_in_mssqlserver",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "get_watermark_row_for_table",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@not(equals(int(activity('get_max_control_column_in_mssqlserver').output.firstRow.UPPERBOUND), int(activity('get_watermark_row_for_table').output.firstRow.control_column_value)))",
+						"type": "Expression"
+					},
+					"ifFalseActivities": [
+						{
+							"name": "column_control_get_no_new_data",
+							"description": "As both values for column_control boundaries are the same, there's no new data available, no need to proceed. Loading can stop here. ",
+							"type": "Wait",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"waitTimeInSeconds": 1
+							}
+						}
+					],
+					"ifTrueActivities": [
+						{
+							"name": "mssqlserver_import_incremental_with_join__1__loader",
+							"description": "Calls the next step, which implements incremental load from Oracle DBs over valid control_column range",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "mssqlserver_import_incremental_with_join__1__loader",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"db": {
+										"value": "@pipeline().parameters.db",
+										"type": "Expression"
+									},
+									"tables": {
+										"value": "@pipeline().parameters.tables",
+										"type": "Expression"
+									},
+									"dls": {
+										"value": "@pipeline().parameters.dls",
+										"type": "Expression"
+									},
+									"watermark": {
+										"value": "@pipeline().parameters.watermark",
+										"type": "Expression"
+									},
+									"databricks": {
+										"value": "@pipeline().parameters.databricks",
+										"type": "Expression"
+									},
+									"adf": {
+										"value": "@pipeline().parameters.adf",
+										"type": "Expression"
+									},
+									"increment": {
+										"value": "@json(concat('{\"control_column\": {\"lowerbound\":' , string(activity('get_watermark_row_for_table').output.firstRow.control_column_value),\n', \"upperbound\":',  string(activity('get_max_control_column_in_mssqlserver').output.firstRow.UPPERBOUND), '}}'))",
+										"type": "Expression"
+									},
+									"container": {
+										"value": "@pipeline().parameters.container",
+										"type": "Expression"
+									},
+									"url": {
+										"value": "@pipeline().parameters.url",
+										"type": "Expression"
+									}
+								}
+							}
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"db": {
+				"type": "object"
+			},
+			"tables": {
+				"type": "array"
+			},
+			"dls": {
+				"type": "object"
+			},
+			"watermark": {
+				"type": "object"
+			},
+			"databricks": {
+				"type": "object"
+			},
+			"adf": {
+				"type": "object"
+			},
+			"container": {
+				"type": "string"
+			},
+			"url": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "templates/raw/bdo/mssqlserver"
+		},
+		"annotations": [
+			"template"
+		]
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

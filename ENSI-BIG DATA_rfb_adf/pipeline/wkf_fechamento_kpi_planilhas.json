@@ -1,0 +1,463 @@
+{
+	"name": "wkf_fechamento_kpi_planilhas",
+	"properties": {
+		"description": "Loads a group of tables for this business area.\n\nExpected Behavior is to fail this whole step if any of these tables fail to load.",
+		"activities": [
+			{
+				"name": "get_current_date",
+				"description": "Get the current date",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "current_date",
+					"value": {
+						"value": "@utcNow()",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "get_amount_month",
+				"description": "Get the number of months between the first month of the loop and the current month",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "get_first_month",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "amount_month",
+					"value": {
+						"value": "@string(add(mul(sub(int(substring(variables('current_date'), 0, 4)), int(substring(variables('first_month'), 0, 4))), 12), int(substring(variables('current_date'), 5, 2))))",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "set_range_month",
+				"description": "Create an iteration list corresponding to the number of months that the closing should be processed",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "get_amount_month",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "range_month",
+					"value": {
+						"value": "@range(0, int(variables('amount_month')))",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "for_each_month",
+				"description": "It makes the interaction of the months that must be processed.",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "set_range_month",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@variables('range_month')",
+						"type": "Expression"
+					},
+					"isSequential": true,
+					"activities": [
+						{
+							"name": "raw_biz_fta_kpi_escola_sesi_nivel_avancado",
+							"description": "Execute raw_biz_fta_kpi_escola_sesi_nivel_avancado pipeline",
+							"type": "ExecutePipeline",
+							"dependsOn": [
+								{
+									"activity": "append_closing_parameters",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "raw_biz_fta_kpi_escola_sesi_nivel_avancado",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"user_parameters": {
+										"value": "@json(variables('closing_parameters')[int(item())])",
+										"type": "Expression"
+									},
+									"env": {
+										"value": "@pipeline().parameters.env",
+										"type": "Expression"
+									}
+								}
+							}
+						},
+						{
+							"name": "raw_biz_fta_kpi_geral_calculado_kpi_pivot",
+							"description": "Execute raw_biz_fta_kpi_geral_calculado_kpi_pivot pipeline",
+							"type": "ExecutePipeline",
+							"dependsOn": [
+								{
+									"activity": "append_closing_parameters",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "raw_biz_fta_kpi_geral_calculado_kpi_pivot",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"user_parameters": {
+										"value": "@json(variables('closing_parameters')[int(item())])",
+										"type": "Expression"
+									},
+									"env": {
+										"value": "@pipeline().parameters.env",
+										"type": "Expression"
+									}
+								}
+							}
+						},
+						{
+							"name": "raw_biz_fta_kpi_meta_kpi_pivot",
+							"description": "Execute raw_biz_fta_kpi_meta_kpi_pivot pipeline",
+							"type": "ExecutePipeline",
+							"dependsOn": [
+								{
+									"activity": "append_closing_parameters",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "raw_biz_fta_kpi_meta_kpi_pivot",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"user_parameters": {
+										"value": "@json(variables('closing_parameters')[int(item())])",
+										"type": "Expression"
+									},
+									"env": {
+										"value": "@pipeline().parameters.env",
+										"type": "Expression"
+									}
+								}
+							}
+						},
+						{
+							"name": "biz_fta_kpi_geral_calc___failed",
+							"description": "Appends \"fta_kpi_geral_calculado_kpi_pivot\" to variable \"execution_errors\"",
+							"type": "AppendVariable",
+							"dependsOn": [
+								{
+									"activity": "raw_biz_fta_kpi_geral_calculado_kpi_pivot",
+									"dependencyConditions": [
+										"Failed"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "execution_errors",
+								"value": "'fta_kpi_geral_calculado_kpi_pivot'"
+							}
+						},
+						{
+							"name": "has_error_in_completed_conditions",
+							"description": "For all the activities in which we evaluate the \"completed\" condition, things can fail, but still continue, as everything was fine and without problems. To have real control over this, the variables \"running_errors\" are necessary and now we have to check that there are no real errors.\n\nIf any iteration fails, the goal is to exit the loop.\n",
+							"type": "IfCondition",
+							"dependsOn": [
+								{
+									"activity": "raw_biz_fta_kpi_escola_sesi_nivel_avancado",
+									"dependencyConditions": [
+										"Completed"
+									]
+								},
+								{
+									"activity": "raw_biz_fta_kpi_geral_calculado_kpi_pivot",
+									"dependencyConditions": [
+										"Completed"
+									]
+								},
+								{
+									"activity": "raw_biz_fta_kpi_meta_kpi_pivot",
+									"dependencyConditions": [
+										"Completed"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"expression": {
+									"value": "@greater(length(variables('execution_errors')), 0)",
+									"type": "Expression"
+								},
+								"ifFalseActivities": [
+									{
+										"name": "workflow_success",
+										"description": "No errors in \"completed\" conditions found. ",
+										"type": "Wait",
+										"dependsOn": [],
+										"userProperties": [],
+										"typeProperties": {
+											"waitTimeInSeconds": 1
+										}
+									}
+								],
+								"ifTrueActivities": [
+									{
+										"name": "set_request_to_break_iteration_if_failed",
+										"description": "Assemble the request to cancel the pipeline and interrupt the loop\n",
+										"type": "SetVariable",
+										"dependsOn": [],
+										"userProperties": [],
+										"typeProperties": {
+											"variableName": "breaking_iteration",
+											"value": {
+												"value": "@concat('https://management.azure.com/subscriptions/3e3a21e3-9551-4945-8c46-c02f558392ce/resourceGroups/bigdata/providers/Microsoft.DataFactory/factories/', pipeline().DataFactory,'/pipelineruns/', pipeline().RunId, '/cancel?isRecursive=True&api-version=2018-06-01')",
+												"type": "Expression"
+											}
+										}
+									},
+									{
+										"name": "workflow_failed__breaking_iteration",
+										"description": "Send the request to cancel the pipeline and exit the loop if the current iteration fails\n",
+										"type": "WebActivity",
+										"dependsOn": [
+											{
+												"activity": "set_request_to_break_iteration_if_failed",
+												"dependencyConditions": [
+													"Succeeded"
+												]
+											}
+										],
+										"policy": {
+											"timeout": "00:10:00",
+											"retry": 0,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"url": {
+												"value": "@variables('breaking_iteration')",
+												"type": "Expression"
+											},
+											"method": "POST",
+											"body": {
+												"message": "Cancelling the pipeline"
+											},
+											"authentication": {
+												"type": "MSI",
+												"resource": "https://management.azure.com"
+											}
+										}
+									}
+								]
+							}
+						},
+						{
+							"name": "biz_fta_kpi_meta___failed",
+							"description": "Appends \"fta_kpi_meta_kpi_pivot\" to variable \"execution_errors\"",
+							"type": "AppendVariable",
+							"dependsOn": [
+								{
+									"activity": "raw_biz_fta_kpi_meta_kpi_pivot",
+									"dependencyConditions": [
+										"Failed"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "execution_errors",
+								"value": "'fta_kpi_meta_kpi_pivot'"
+							}
+						},
+						{
+							"name": "biz_fta_kpi_escola_sesi_nivel_avanc___failed",
+							"description": "Appends \"fta_kpi_escola_sesi_nivel_avancado\" to variable \"execution_errors\"",
+							"type": "AppendVariable",
+							"dependsOn": [
+								{
+									"activity": "raw_biz_fta_kpi_escola_sesi_nivel_avancado",
+									"dependencyConditions": [
+										"Failed"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "execution_errors",
+								"value": "'fta_kpi_escola_sesi_nivel_avancado'"
+							}
+						},
+						{
+							"name": "append_closing_parameters",
+							"description": "Defines the closing parameters for that iteration, based on the iteration item\n",
+							"type": "AppendVariable",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "closing_parameters",
+								"value": {
+									"value": "@concat(\n'{\"closing\": {\"year\":',\nsubstring(addToTime(variables('first_month'), int(item()), 'Month'), 0, 4),\n', \"month\":',\nstring(int(substring(addToTime(variables('first_month'), int(item()), 'Month'), 5, 2))),\n', \"dt_closing\": \"',\njson(variables('user_parameters')).closing.dt_closing,\n'\"}}'\n)\n",
+									"type": "Expression"
+								}
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "if_user_parameters_is_null",
+				"description": "Check if \"user_parameters\" is {\"null\":\"null\"}",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "get_current_date",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@equals(string(pipeline().parameters.user_parameters), '{\"null\":\"null\"}')",
+						"type": "Expression"
+					},
+					"ifFalseActivities": [
+						{
+							"name": "set_user_parameters_if_is_not_null",
+							"description": "If user_parameters is not {\"null\":\"null\"}, maintains the closing parameters set by the user",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "user_parameters",
+								"value": {
+									"value": "@string(pipeline().parameters.user_parameters)",
+									"type": "Expression"
+								}
+							}
+						}
+					],
+					"ifTrueActivities": [
+						{
+							"name": "set_user_parameters_if_is_null",
+							"description": "If user_parameters is{\"null\":\"null\"}, creates the closing parameters based on the current date\n",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "user_parameters",
+								"value": {
+									"value": "@concat(\n'{\"closing\": {\"year\":',\nsubstring(utcNow(), 0, 4),\n', \"month\":',\nstring(int(substring(utcNow(), 5, 2))),\n', \"dt_closing\": \"',\nsubstring(utcNow(), 0, 10),\n'\"}}'\n)",
+									"type": "Expression"
+								}
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "get_first_month",
+				"description": "Get the first month that will be run in the closing loop. This will be the first month of the year prior to the year selected in the \"year\" parameter",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "if_user_parameters_is_null",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "first_month",
+					"value": {
+						"value": "@formatDateTime(concat(string(sub(json(variables('user_parameters')).closing.year, 1)), '-01-01'))\n\n",
+						"type": "Expression"
+					}
+				}
+			}
+		],
+		"concurrency": 1,
+		"parameters": {
+			"env": {
+				"type": "object",
+				"defaultValue": {
+					"env": "dev"
+				}
+			},
+			"user_parameters": {
+				"type": "object",
+				"defaultValue": {
+					"null": "null"
+				}
+			}
+		},
+		"variables": {
+			"execution_errors": {
+				"type": "Array"
+			},
+			"first_month": {
+				"type": "String"
+			},
+			"current_date": {
+				"type": "String"
+			},
+			"closing_parameters": {
+				"type": "Array"
+			},
+			"amount_month": {
+				"type": "String"
+			},
+			"range_month": {
+				"type": "Array"
+			},
+			"breaking_iteration": {
+				"type": "String"
+			},
+			"user_parameters": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "workflow/fechamentos/kpi_planilhas"
+		},
+		"annotations": [
+			"workflow"
+		]
+	}
+}

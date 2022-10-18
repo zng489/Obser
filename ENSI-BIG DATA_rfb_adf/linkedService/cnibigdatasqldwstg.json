@@ -1,0 +1,11 @@
+{
+	"name": "cnibigdatasqldwstg",
+	"properties": {
+		"description": "Storage account for STAGING sqldw Polybase transfer. This is needed by polybase when using wildcard for files and also has to be Gen2. Can be a container and include a folder within. We recommend using this way.",
+		"annotations": [],
+		"type": "AzureBlobStorage",
+		"typeProperties": {
+			"serviceEndpoint": "https://cnibigdatasqldwstg.blob.core.windows.net"
+		}
+	}
+}

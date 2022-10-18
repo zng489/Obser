@@ -1,0 +1,11 @@
+{
+	"name": "cnibigdatadlsgen2stg",
+	"properties": {
+		"annotations": [],
+		"type": "AzureBlobStorage",
+		"typeProperties": {
+			"serviceEndpoint": "https://cnibigdatadlsgen2.blob.core.windows.net",
+			"accountKind": "StorageV2"
+		}
+	}
+}

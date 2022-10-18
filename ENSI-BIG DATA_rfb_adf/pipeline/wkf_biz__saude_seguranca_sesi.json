@@ -1,0 +1,63 @@
+{
+	"name": "wkf_biz__saude_seguranca_sesi",
+	"properties": {
+		"description": "Workflow for truted tables of domain \"saude_seguranca\"",
+		"activities": [
+			{
+				"name": "end",
+				"type": "Wait",
+				"dependsOn": [
+					{
+						"activity": "trs_biz_fta_producao_saude_seguranca_trabalhador",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"waitTimeInSeconds": 1
+				}
+			},
+			{
+				"name": "trs_biz_fta_producao_saude_seguranca_trabalhador",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "trs_biz_fta_producao_saude_seguranca_industria",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"user_parameters": {
+							"value": "@json('{\"null\":\"null\"}')",
+							"type": "Expression"
+						},
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"concurrency": 1,
+		"parameters": {
+			"env": {
+				"type": "object",
+				"defaultValue": {
+					"env": "dev"
+				}
+			}
+		},
+		"folder": {
+			"name": "workflow/saude_seguranca_sesi/biz"
+		},
+		"annotations": [
+			"workflow",
+			"business"
+		]
+	}
+}

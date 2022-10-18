@@ -1,0 +1,55 @@
+{
+	"name": "org_hst_integradorweb_tb_congelado_sti",
+	"properties": {
+		"description": "We will always run as incremental. In the first run, it will load the whole table and write the last record loaded in watermark table. The next time you load will be really incremental.\n\nNote: In case of history load, we need to replace the path from raw to hst. Parameter var_table must contain key \"is_history\" that should be set to 'True' or 'true'. If it's not history, the parameter isn't needed.\n\n- For incremental load use:\nParameter tables =\n[\"{'schema': 'INTEGRADORWEB', 'table':'TB_CONGELADO_STI', 'is_history':'True','load_type':'incremental','partition_column':'DS_ANO_MES', 'partitions':12,'control_column':'DS_ANO_MES','control_column_type_2_db':'datetime', 'control_column_default_value': '20160101000000','control_column_mask_value': 'MMYYYY', 'columns': 'CD_PRODUTO_SERVICO,DS_PRODUTO,CD_CATEGORIA,DS_CATEGORIA,CD_LINHA,DS_LINHA,DT_INICIO,DT_TERMINO_PREVISTO,DT_TERMINO,FL_ORIGEM_RECURSO_MERCADO,FL_ORIGEM_RECURSO_FOMENTO,FL_ORIGEM_RECURSO_SENAI,FL_ORIGEM_RECURSO_OUTRASENT,FL_ATENDIMENTO_REDE,ORIGEM_RECURSO,ATENDIMENTO_EM_REDE,DRS_ATENDIMENTO_REDE,MUNICIPIO_ATENDIMENTO,VL_FINANCEIRO,VL_ECONOMICO,VL_PRODUCAO,QT_HORAS_PREVISTAS,QT_ENSAIOS_PREVISTOS,QT_CALIBRACOES_PREVISTAS,QT_MAT_REF_PREVISTOS,QT_RELATORIOS_PREVISTOS,QT_HORAS_REALIZADAS,QT_ENSAIOS_REALIZADOS,QT_CALIBRACOES_REALIZADAS,QT_MAT_REF_REALIZADOS,QT_RELATORIOS_REALIZADOS,TIPO_PESSOA_FISICA,CPF,PASSAPORTE,NOME,TIPO_PESSOA_JURIDICA,CNPJ,NR_DOCUMENTO_ESTRANGEIRO,RAZAO_SOCIAL,NM_MAE,DT_NASCIMENTO,TELEFONE_DDI,TELEFONE_DDD,TELEFONE_NUMERO,CELULAR_DDI,CELULAR_DDD,CELULAR_NUMERO,EMAIL,ENDERECO,ENDERECO_NUMERO,ENDERECO_COMPLEMENTO,ENDERECO_BAIRRO,ENDERECO_CEP,ENDERECO_MUNICIPIO,ENDERECO_UF,ENDERECO_PAIS,DT_ATUALIZACAO,DS_ANO_MES,SG_ENTIDADE_REGIONAL,CD_ENTIDADE_REGIONAL,CD_ATENDIMENTO,CD_ATENDIMENTO_DR,CD_PESSOA,DS_ATENDIMENTO,CD_TIPO_ATENDIMENTO,CD_TIPO_SITUACAO_ATENDIMENTO,DS_TIPO_SITUACAO_ATENDIMENTO',\n'raw': {'partition_by': [{'col_name': 'YEAR', 'implementation': 'df.withColumn(\\\\'YEAR\\\\', functions.substring(functions.col(\\\\'DS_ANO_MES\\\\'), 3, 6)).withColumn(\\\\'YEAR\\\\', functions.col(\\\\'YEAR\\\\').cast(\\\\'int\\\\'))'},{'col_name': 'MONTH', 'implementation': 'df.withColumn(\\\\'MONTH\\\\', functions.substring(functions.col(\\\\'DS_ANO_MES\\\\'), 1, 2)).withColumn(\\\\'MONTH\\\\', functions.col(\\\\'MONTH\\\\').cast(\\\\'int\\\\'))'}]}}\"]",
+		"activities": [
+			{
+				"name": "raw_load_bdo_unified__0__switch_env",
+				"description": "Run template pipeline to import tables",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "raw_load_dbo_unified__0__switch_env",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						},
+						"tables": {
+							"value": "@pipeline().parameters.tables",
+							"type": "Expression"
+						},
+						"adf": {
+							"value": "{'adf_factory_name': '@{pipeline().DataFactory}', 'adf_pipeline_name': '@{pipeline().Pipeline}', 'adf_pipeline_run_id': '@{pipeline().RunId}',  'adf_trigger_id': '@{pipeline().TriggerId}', 'adf_trigger_name': '@{pipeline().TriggerName}', 'adf_trigger_time': '@{pipeline().TriggerTime}',  'adf_trigger_type': '@{pipeline().TriggerType}'}",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"parameters": {
+			"tables": {
+				"type": "array",
+				"defaultValue": [
+					"{'schema': 'INTEGRADORWEB', 'table':'TB_CONGELADO_STI', 'is_history':'True','load_type':'incremental','partition_column':'DS_ANO_MES', 'partitions':12,'control_column':'DS_ANO_MES','control_column_type_2_db':'datetime', 'control_column_default_value': '20160101000000','control_column_mask_value': 'MMYYYY', 'columns': 'CD_PRODUTO_SERVICO,DS_PRODUTO,CD_CATEGORIA,DS_CATEGORIA,CD_LINHA,DS_LINHA,DT_INICIO,DT_TERMINO_PREVISTO,DT_TERMINO,FL_ORIGEM_RECURSO_MERCADO,FL_ORIGEM_RECURSO_FOMENTO,FL_ORIGEM_RECURSO_SENAI,FL_ORIGEM_RECURSO_OUTRASENT,FL_ATENDIMENTO_REDE,ORIGEM_RECURSO,ATENDIMENTO_EM_REDE,DRS_ATENDIMENTO_REDE,MUNICIPIO_ATENDIMENTO,VL_FINANCEIRO,VL_ECONOMICO,VL_PRODUCAO,QT_HORAS_PREVISTAS,QT_ENSAIOS_PREVISTOS,QT_CALIBRACOES_PREVISTAS,QT_MAT_REF_PREVISTOS,QT_RELATORIOS_PREVISTOS,QT_HORAS_REALIZADAS,QT_ENSAIOS_REALIZADOS,QT_CALIBRACOES_REALIZADAS,QT_MAT_REF_REALIZADOS,QT_RELATORIOS_REALIZADOS,TIPO_PESSOA_FISICA,CPF,PASSAPORTE,NOME,TIPO_PESSOA_JURIDICA,CNPJ,NR_DOCUMENTO_ESTRANGEIRO,RAZAO_SOCIAL,NM_MAE,DT_NASCIMENTO,TELEFONE_DDI,TELEFONE_DDD,TELEFONE_NUMERO,CELULAR_DDI,CELULAR_DDD,CELULAR_NUMERO,EMAIL,ENDERECO,ENDERECO_NUMERO,ENDERECO_COMPLEMENTO,ENDERECO_BAIRRO,ENDERECO_CEP,ENDERECO_MUNICIPIO,ENDERECO_UF,ENDERECO_PAIS,DT_ATUALIZACAO,DS_ANO_MES,SG_ENTIDADE_REGIONAL,CD_ENTIDADE_REGIONAL,CD_ATENDIMENTO,CD_ATENDIMENTO_DR,CD_PESSOA,DS_ATENDIMENTO,CD_TIPO_ATENDIMENTO,CD_TIPO_SITUACAO_ATENDIMENTO,DS_TIPO_SITUACAO_ATENDIMENTO', 'raw': {'partition_by': [{'col_name': 'YEAR', 'implementation': 'df.withColumn(\\'YEAR\\', functions.substring(functions.col(\\'DS_ANO_MES\\'), 3, 6)).withColumn(\\'YEAR\\', functions.col(\\'YEAR\\').cast(\\'int\\'))'},{'col_name': 'MONTH', 'implementation': 'df.withColumn(\\'MONTH\\', functions.substring(functions.col(\\'DS_ANO_MES\\'), 1, 2)).withColumn(\\'MONTH\\', functions.col(\\'MONTH\\').cast(\\'int\\'))'}]}}"
+				]
+			},
+			"env": {
+				"type": "object",
+				"defaultValue": {
+					"env": "dev"
+				}
+			}
+		},
+		"folder": {
+			"name": "hst/integradorweb"
+		},
+		"annotations": []
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

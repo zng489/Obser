@@ -1,0 +1,36 @@
+{
+	"name": "wkf_gov_infer",
+	"properties": {
+		"activities": [
+			{
+				"name": "generate_all_infer",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "generate_all_infer",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"parameters": {
+			"env": {
+				"type": "string",
+				"defaultValue": "dev"
+			}
+		},
+		"folder": {
+			"name": "workflow/gov"
+		},
+		"annotations": []
+	}
+}

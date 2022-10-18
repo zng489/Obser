@@ -1,0 +1,133 @@
+{
+	"name": "merge_bigdata",
+	"properties": {
+		"activities": [
+			{
+				"name": "merge_desc_source",
+				"type": "DatabricksNotebook",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"notebookPath": {
+						"value": "/KEYRUS/@{pipeline().parameters.env}/gov/catalog/bigdata/merge_bigdata_source",
+						"type": "Expression"
+					},
+					"baseParameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "cnigovdatabricks",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "merge_desc_schema",
+				"type": "DatabricksNotebook",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"notebookPath": {
+						"value": "/KEYRUS/@{pipeline().parameters.env}/gov/catalog/bigdata/merge_bigdata_schema",
+						"type": "Expression"
+					},
+					"baseParameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "cnigovdatabricks",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "merge_desc_table",
+				"type": "DatabricksNotebook",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"notebookPath": {
+						"value": "/KEYRUS/@{pipeline().parameters.env}/gov/catalog/bigdata/merge_bigdata_table",
+						"type": "Expression"
+					},
+					"baseParameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "cnigovdatabricks",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "merge_desc_field",
+				"type": "DatabricksNotebook",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"notebookPath": {
+						"value": "/KEYRUS/@{pipeline().parameters.env}/gov/catalog/bigdata/merge_bigdata_field",
+						"type": "Expression"
+					},
+					"baseParameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "cnigovdatabricks",
+					"type": "LinkedServiceReference"
+				}
+			}
+		],
+		"parameters": {
+			"env": {
+				"type": "string",
+				"defaultValue": "dev"
+			}
+		},
+		"folder": {
+			"name": "gov/merge_desc"
+		},
+		"annotations": []
+	}
+}

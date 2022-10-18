@@ -1,0 +1,58 @@
+{
+	"name": "org_raw_inddesempenho_filtrolancamento",
+	"properties": {
+		"description": "Will always be loaded as full.\n\n- For full load partitioning use:\nParameter tables = [\"{'schema': 'INDDESEMPENHO', 'table':'FILTROLANCAMENTO','load_type':'full','partition_column':'ID','partitions':5, 'columns': 'ID,CARGAHORARIA_ID,CLIENTELA_ID,ESTABELECIMENTO_ID,FINANCIAMENTO_ID,MODALIDADE_ID,PROJETO_ID,SERIE_ID'}\"]\n\nExecute pipeline = template_import_table_full\n\nThis objetc is ~2GB in size. You can user coalesce(16) for partitions to be about 128MB in size.",
+		"activities": [
+			{
+				"name": "raw_load_bdo_unified__0__switch_env",
+				"description": "Invokes the \"raw_load_bdo_unified\" implementation.",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "raw_load_dbo_unified__0__switch_env",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						},
+						"tables": {
+							"value": "@pipeline().parameters.tables",
+							"type": "Expression"
+						},
+						"adf": {
+							"value": "{'adf_factory_name': '@{pipeline().DataFactory}', 'adf_pipeline_name': '@{pipeline().Pipeline}', 'adf_pipeline_run_id': '@{pipeline().RunId}',  'adf_trigger_id': '@{pipeline().TriggerId}', 'adf_trigger_name': '@{pipeline().TriggerName}', 'adf_trigger_time': '@{pipeline().TriggerTime}',  'adf_trigger_type': '@{pipeline().TriggerType}'}",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"concurrency": 1,
+		"parameters": {
+			"tables": {
+				"type": "array",
+				"defaultValue": [
+					"{'schema': 'INDDESEMPENHO', 'table':'FILTROLANCAMENTO','load_type':'full','partition_column':'ID','partitions':5, 'columns': 'ID,CARGAHORARIA_ID,CLIENTELA_ID,ESTABELECIMENTO_ID,FINANCIAMENTO_ID,MODALIDADE_ID,PROJETO_ID,SERIE_ID', 'raw':{'coalesce': 16}}"
+				]
+			},
+			"env": {
+				"type": "object",
+				"defaultValue": {
+					"env": "dev"
+				}
+			}
+		},
+		"folder": {
+			"name": "raw/bdo/inddesempenho"
+		},
+		"annotations": [
+			"raw"
+		]
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

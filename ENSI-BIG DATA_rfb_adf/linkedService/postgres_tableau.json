@@ -1,0 +1,26 @@
+{
+	"name": "postgres_tableau",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"description": "Postgres connection for ensi-aztableau",
+		"annotations": [
+			"postgres"
+		],
+		"type": "PostgreSql",
+		"typeProperties": {
+			"connectionString": "Host=ensi-aztableau;Port=8060;Database=workgroup;UID=readonly;EncryptionMethod=0",
+			"password": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "cnibigdatakeyvault",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "postgrestableaupass"
+			}
+		},
+		"connectVia": {
+			"referenceName": "cnibigdatafactoryshir",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

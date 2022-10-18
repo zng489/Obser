@@ -1,0 +1,179 @@
+{
+	"name": "merge_catalog",
+	"properties": {
+		"activities": [
+			{
+				"name": "merge_metadata_source",
+				"description": "Invokes the common template that calls Databricks' pipelines. This template is used in all layers.",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "databricks_run_notebook",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"databricks_notebook_path": {
+							"value": "/KEYRUS/@{pipeline().parameters.env}/gov/catalog/@{pipeline().parameters.vendor}/merge_metadata_source",
+							"type": "Expression"
+						},
+						"adf": {
+							"value": "@json(string(pipeline().parameters.adf))",
+							"type": "Expression"
+						},
+						"user_parameters": "",
+						"vendor": {
+							"value": "@pipeline().parameters.vendor",
+							"type": "Expression"
+						},
+						"dir": {
+							"value": "@pipeline().parameters.dir",
+							"type": "Expression"
+						},
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "merge_metadata_schema",
+				"description": "Invokes the common template that calls Databricks' pipelines. This template is used in all layers.",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "databricks_run_notebook",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"databricks_notebook_path": {
+							"value": "/KEYRUS/@{pipeline().parameters.env}/gov/catalog/@{pipeline().parameters.vendor}/merge_metadata_schema",
+							"type": "Expression"
+						},
+						"adf": {
+							"value": "@json(string(pipeline().parameters.adf))",
+							"type": "Expression"
+						},
+						"user_parameters": "",
+						"vendor": {
+							"value": "@pipeline().parameters.vendor",
+							"type": "Expression"
+						},
+						"dir": {
+							"value": "@pipeline().parameters.dir",
+							"type": "Expression"
+						},
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "merge_metadata_table",
+				"description": "Invokes the common template that calls Databricks' pipelines. This template is used in all layers.",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "databricks_run_notebook",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"databricks_notebook_path": {
+							"value": "/KEYRUS/@{pipeline().parameters.env}/gov/catalog/@{pipeline().parameters.vendor}/merge_metadata_table",
+							"type": "Expression"
+						},
+						"adf": {
+							"value": "@json(string(pipeline().parameters.adf))",
+							"type": "Expression"
+						},
+						"user_parameters": "",
+						"vendor": {
+							"value": "@pipeline().parameters.vendor",
+							"type": "Expression"
+						},
+						"dir": {
+							"value": "@pipeline().parameters.dir",
+							"type": "Expression"
+						},
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "merge_metadata_field",
+				"description": "Invokes the common template that calls Databricks' pipelines. This template is used in all layers.",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "databricks_run_notebook",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"databricks_notebook_path": {
+							"value": "/KEYRUS/@{pipeline().parameters.env}/gov/catalog/@{pipeline().parameters.vendor}/merge_metadata_field",
+							"type": "Expression"
+						},
+						"adf": {
+							"value": "@json(string(pipeline().parameters.adf))",
+							"type": "Expression"
+						},
+						"user_parameters": "",
+						"vendor": {
+							"value": "@pipeline().parameters.vendor",
+							"type": "Expression"
+						},
+						"dir": {
+							"value": "@pipeline().parameters.dir",
+							"type": "Expression"
+						},
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"parameters": {
+			"vendor": {
+				"type": "string",
+				"defaultValue": "oracle"
+			},
+			"dir": {
+				"type": "string",
+				"defaultValue": "20201213"
+			},
+			"env": {
+				"type": "string",
+				"defaultValue": "dev"
+			},
+			"adf": {
+				"type": "object",
+				"defaultValue": {
+					"default": "is_useless"
+				}
+			}
+		},
+		"folder": {
+			"name": "gov/metadata/oracle"
+		},
+		"annotations": []
+	}
+}

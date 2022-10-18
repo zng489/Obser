@@ -1,0 +1,130 @@
+{
+	"name": "delete_landing_data",
+	"properties": {
+		"description": "Well, seems like this tool's got some serious limitations when you reach the limit of 40 activities per pipeline or when you have cases where SUCCESS or FAIL lead to the same activity later. Our pipelines were failing in all events, even having this implemented in the end of every possible activity.\n\nBut the thing is: when it comes to raw loading, no matter what the result is, landing data is removed anyway. so, maybe we can keep it as an side pipeline. This is for trying this choice. \n\nTakes the original pipeline parameters. May be appended and 2 case scenarios in the end of the load pipeline. Yes, better to have it as a fork. ",
+		"activities": [
+			{
+				"name": "for_each_table_delete_lnd_folder",
+				"description": "Just for controlling the flow as \"tables\" object is an array an need to be iterated.",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "set_container",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "set_storage_url",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@pipeline().parameters.tables",
+						"type": "Expression"
+					},
+					"batchCount": 3,
+					"activities": [
+						{
+							"name": "delete_lnd_folder_in_adls",
+							"description": "Deletes the whole directory in ADLS. With this, we clean all things up in landing zone for receiving new data. \n\nDirectories are specified via parameters.",
+							"type": "Delete",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 1,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"dataset": {
+									"referenceName": "adls_parameterized_partitioned_source",
+									"type": "DatasetReference",
+									"parameters": {
+										"container": {
+											"value": "@variables('container')",
+											"type": "Expression"
+										},
+										"url": {
+											"value": "@variables('storage_url')",
+											"type": "Expression"
+										}
+									}
+								},
+								"enableLogging": false,
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"maxConcurrentConnections": 24,
+									"recursive": true
+								}
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "set_storage_url",
+				"description": "Sets storage url",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "storage_url",
+					"value": {
+						"value": "@pipeline().globalParameters.datalake_storage_url",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "set_container",
+				"description": "Sets storage container",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "container",
+					"value": {
+						"value": "@pipeline().globalParameters.datalake_container",
+						"type": "Expression"
+					}
+				}
+			}
+		],
+		"parameters": {
+			"db": {
+				"type": "object"
+			},
+			"tables": {
+				"type": "array"
+			},
+			"dls": {
+				"type": "object"
+			},
+			"watermark": {
+				"type": "object"
+			},
+			"databricks": {
+				"type": "string"
+			}
+		},
+		"variables": {
+			"storage_url": {
+				"type": "String"
+			},
+			"container": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "templates/common"
+		},
+		"annotations": []
+	}
+}

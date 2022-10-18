@@ -1,0 +1,59 @@
+{
+	"name": "org_raw_protheus_akd010",
+	"properties": {
+		"description": "In first time we will load as full. For other runs, it will load with year overwrite.\n\n- For year overwrite load use:\nParameter tables = [\"{'schema': 'PROTHEUS', 'table':'AKD010','load_type':'year_overwrite','control_column_filter_type':'current','partition_column':'AKD_DATA', 'partitions':12, 'control_column':'AKD_DATA', 'control_column_mask_value': 'YYYYMMDD', 'columns': 'AKD_FILIAL,AKD_STATUS,AKD_LOTE,AKD_ID,AKD_DATA,AKD_CO,AKD_CLASSE,AKD_OPER,AKD_TPSALD,AKD_TIPO,AKD_HIST,AKD_IDREF,AKD_PROCES,AKD_CHAVE,AKD_ITEM,AKD_SEQ,AKD_USER,AKD_COSUP,AKD_VALOR1,AKD_VALOR2,AKD_VALOR3,AKD_VALOR4,AKD_VALOR5,AKD_CODPLA,AKD_VERSAO,AKD_CC,AKD_ITCTB,AKD_CLVLR,AKD_LCTBLQ,AKD_FILORI,AKD_UNIORC,AKD_ENT05,AKD_MSBLQL,AKD_ENT06,AKD_ENT07,AKD_ENT08,AKD_ENT09,AKD_XFILE,AKD_XDTIMP,AKD_XUSER,D_E_L_E_T_,R_E_C_N_O_,R_E_C_D_E_L_','raw': {'partition_by': [{'col_name': 'YEAR', 'implementation': 'df.withColumn(\\\\'YEAR\\\\', functions.year(functions.from_unixtime(functions.unix_timestamp(functions.col(\\\\'AKD_DATA\\\\'), \\\\'yyyyMMdd\\\\'))))'}, {'col_name': 'MONTH', 'implementation': 'df.withColumn(\\\\'MONTH\\\\', functions.month(functions.from_unixtime(functions.unix_timestamp(functions.col(\\\\'AKD_DATA\\\\'), \\\\'yyyyMMdd\\\\'))))'}]}}\"]\n\nExecute pipeline = template_import_table_year_overwrite\nWARNING: Be very careful to chose the partition column, R_E_C_N_O_ cannot be used as a partition column because it does not necessarily correspond to AKD_DATA sequentially.\n\n\n- For year overwrite (parameter year) load use:\nParameter tables = [ \"{'schema': 'PROTHEUS', 'table':'AKD010','load_type':'year_overwrite','control_column_filter_type':'parameter','year_to_load':2020,'partition_column':'AKD_DATA', 'partitions':12, 'control_column':'AKD_DATA', 'control_column_mask_value': 'YYYYMMDD', 'columns': 'AKD_FILIAL,AKD_STATUS,AKD_LOTE,AKD_ID,AKD_DATA,AKD_CO,AKD_CLASSE,AKD_OPER,AKD_TPSALD,AKD_TIPO,AKD_HIST,AKD_IDREF,AKD_PROCES,AKD_CHAVE,AKD_ITEM,AKD_SEQ,AKD_USER,AKD_COSUP,AKD_VALOR1,AKD_VALOR2,AKD_VALOR3,AKD_VALOR4,AKD_VALOR5,AKD_CODPLA,AKD_VERSAO,AKD_CC,AKD_ITCTB,AKD_CLVLR,AKD_LCTBLQ,AKD_FILORI,AKD_UNIORC,AKD_ENT05,AKD_MSBLQL,AKD_ENT06,AKD_ENT07,AKD_ENT08,AKD_ENT09,AKD_XFILE,AKD_XDTIMP,AKD_XUSER,D_E_L_E_T_,R_E_C_N_O_,R_E_C_D_E_L_','raw': {'partition_by': [{'col_name': 'YEAR', 'implementation': 'df.withColumn(\\\\'YEAR\\\\', functions.year(functions.from_unixtime(functions.unix_timestamp(functions.col(\\\\'AKD_DATA\\\\'), \\\\'yyyyMMdd\\\\'))))'}, {'col_name': 'MONTH', 'implementation': 'df.withColumn(\\\\'MONTH\\\\', functions.month(functions.from_unixtime(functions.unix_timestamp(functions.col(\\\\'AKD_DATA\\\\'), \\\\'yyyyMMdd\\\\'))))'}]}}\" ]\n\n\n- For full load with partitioning use:\nParameter tables =  [\"{'schema': 'PROTHEUS', 'table':'AKD010','load_type':'full','partition_column':'AKD_DATA', 'partitions':12, 'columns':'AKD_FILIAL,AKD_STATUS,AKD_LOTE,AKD_ID,AKD_DATA,AKD_CO,AKD_CLASSE,AKD_OPER,AKD_TPSALD,AKD_TIPO,AKD_HIST,AKD_IDREF,AKD_PROCES,AKD_CHAVE,AKD_ITEM,AKD_SEQ,AKD_USER,AKD_COSUP,AKD_VALOR1,AKD_VALOR2,AKD_VALOR3,AKD_VALOR4,AKD_VALOR5,AKD_CODPLA,AKD_VERSAO,AKD_CC,AKD_ITCTB,AKD_CLVLR,AKD_LCTBLQ,AKD_FILORI,AKD_UNIORC,AKD_ENT05,AKD_MSBLQL,AKD_ENT06,AKD_ENT07,AKD_ENT08,AKD_ENT09,AKD_XFILE,AKD_XDTIMP,AKD_XUSER,D_E_L_E_T_,R_E_C_N_O_,R_E_C_D_E_L_','raw': {'partition_by': [{'col_name': 'YEAR', 'implementation': 'df.withColumn(\\\\'YEAR\\\\', functions.year(functions.from_unixtime(functions.unix_timestamp(functions.col(\\\\'AKD_DATA\\\\'), \\\\'yyyyMMdd\\\\'))))'}, {'col_name': 'MONTH', 'implementation': 'df.withColumn(\\\\'MONTH\\\\', functions.month(functions.from_unixtime(functions.unix_timestamp(functions.col(\\\\'AKD_DATA\\\\'), \\\\'yyyyMMdd\\\\'))))'}]}}\"]\n\nExecute pipeline = template_import_table_full",
+		"activities": [
+			{
+				"name": "raw_load_bdo_unified__0__switch_env",
+				"description": "Run template pipeline to import tables",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "raw_load_dbo_unified__0__switch_env",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						},
+						"tables": {
+							"value": "@pipeline().parameters.tables",
+							"type": "Expression"
+						},
+						"adf": {
+							"value": "{'adf_factory_name': '@{pipeline().DataFactory}', 'adf_pipeline_name': '@{pipeline().Pipeline}', 'adf_pipeline_run_id': '@{pipeline().RunId}',  'adf_trigger_id': '@{pipeline().TriggerId}', 'adf_trigger_name': '@{pipeline().TriggerName}', 'adf_trigger_time': '@{pipeline().TriggerTime}',  'adf_trigger_type': '@{pipeline().TriggerType}'}",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"concurrency": 1,
+		"parameters": {
+			"tables": {
+				"type": "array",
+				"defaultValue": [
+					"{'schema': 'PROTHEUS', 'table':'AKD010','load_type':'year_overwrite','control_column_filter_type':'current','partition_column':'AKD_DATA', 'partitions':12, 'control_column':'AKD_DATA', 'control_column_mask_value': 'YYYYMMDD', 'columns': 'AKD_FILIAL,AKD_STATUS,AKD_LOTE,AKD_ID,AKD_DATA,AKD_CO,AKD_CLASSE,AKD_OPER,AKD_TPSALD,AKD_TIPO,AKD_HIST,AKD_IDREF,AKD_PROCES,AKD_CHAVE,AKD_ITEM,AKD_SEQ,AKD_USER,AKD_COSUP,AKD_VALOR1,AKD_VALOR2,AKD_VALOR3,AKD_VALOR4,AKD_VALOR5,AKD_CODPLA,AKD_VERSAO,AKD_CC,AKD_ITCTB,AKD_CLVLR,AKD_LCTBLQ,AKD_FILORI,AKD_UNIORC,AKD_ENT05,AKD_MSBLQL,AKD_ENT06,AKD_ENT07,AKD_ENT08,AKD_ENT09,AKD_XFILE,AKD_XDTIMP,AKD_XUSER,D_E_L_E_T_,R_E_C_N_O_,R_E_C_D_E_L_','raw': {'partition_by': [{'col_name': 'YEAR', 'implementation': 'df.withColumn(\\'YEAR\\', functions.year(functions.from_unixtime(functions.unix_timestamp(functions.col(\\'AKD_DATA\\'), \\'yyyyMMdd\\'))))'}, {'col_name': 'MONTH', 'implementation': 'df.withColumn(\\'MONTH\\', functions.month(functions.from_unixtime(functions.unix_timestamp(functions.col(\\'AKD_DATA\\'), \\'yyyyMMdd\\'))))'}]}}"
+				]
+			},
+			"env": {
+				"type": "object",
+				"defaultValue": {
+					"env": "dev"
+				}
+			}
+		},
+		"folder": {
+			"name": "raw/bdo/protheus"
+		},
+		"annotations": [
+			"raw",
+			"protheus"
+		]
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

@@ -1,0 +1,411 @@
+{
+	"name": "wkf_gov_metadata",
+	"properties": {
+		"activities": [
+			{
+				"name": "rac11g_metadata",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "delete_photo",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "delete_photo_sqlserver",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "rac11g_metadata",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "oracle_merge_catalog",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "rac11g_metadata",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "merge_catalog",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"vendor": "oracle",
+						"dir": {
+							"value": "@variables('dir')",
+							"type": "Expression"
+						},
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						},
+						"adf": {
+							"value": "{'adf_factory_name': '@{pipeline().DataFactory}', 'adf_pipeline_name': '@{pipeline().Pipeline}', 'adf_pipeline_run_id': '@{pipeline().RunId}',  'adf_trigger_id': '@{pipeline().TriggerId}', 'adf_trigger_name': '@{pipeline().TriggerName}', 'adf_trigger_time': '@{pipeline().TriggerTime}',  'adf_trigger_type': '@{pipeline().TriggerType}'}",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "delete_photo",
+				"type": "Delete",
+				"dependsOn": [
+					{
+						"activity": "set_variables_done",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "adls2_delete_photo",
+						"type": "DatasetReference",
+						"parameters": {
+							"vendor": "oracle",
+							"dir": {
+								"value": "@variables('dir')",
+								"type": "Expression"
+							},
+							"default_dir": {
+								"value": "@variables('default_dir')",
+								"type": "Expression"
+							},
+							"container": {
+								"value": "@variables('container')",
+								"type": "Expression"
+							},
+							"url": {
+								"value": "@variables('storage_url')",
+								"type": "Expression"
+							}
+						}
+					},
+					"enableLogging": false,
+					"storeSettings": {
+						"type": "AzureBlobFSReadSettings",
+						"recursive": true,
+						"enablePartitionDiscovery": false
+					}
+				}
+			},
+			{
+				"name": "set_dir_var",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "dir",
+					"value": {
+						"value": "@{formatDateTime(addhours(utcnow(),-3), 'yyyyMMdd')}",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "set default_dir",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "default_dir",
+					"value": {
+						"value": "@if(equals(pipeline().parameters.env, 'dev'), '/tmp/dev/raw/gov', '')",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "sqlserver_merge_catalog",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "ENSI-DATA012_metadata",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "merge_catalog",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"vendor": "sqlserver",
+						"dir": {
+							"value": "@variables('dir')",
+							"type": "Expression"
+						},
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						},
+						"adf": {
+							"value": "{'adf_factory_name': '@{pipeline().DataFactory}', 'adf_pipeline_name': '@{pipeline().Pipeline}', 'adf_pipeline_run_id': '@{pipeline().RunId}',  'adf_trigger_id': '@{pipeline().TriggerId}', 'adf_trigger_name': '@{pipeline().TriggerName}', 'adf_trigger_time': '@{pipeline().TriggerTime}',  'adf_trigger_type': '@{pipeline().TriggerType}'}",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "ENSI-DATA012_metadata",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "oracle_merge_catalog",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "ENSI-DATA012_metadata",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "delete_photo_sqlserver",
+				"type": "Delete",
+				"dependsOn": [
+					{
+						"activity": "set_variables_done",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "adls2_delete_photo",
+						"type": "DatasetReference",
+						"parameters": {
+							"vendor": "sqlserver",
+							"dir": {
+								"value": "@variables('dir')",
+								"type": "Expression"
+							},
+							"default_dir": {
+								"value": "@variables('default_dir')",
+								"type": "Expression"
+							},
+							"container": {
+								"value": "@variables('container')",
+								"type": "Expression"
+							},
+							"url": {
+								"value": "@variables('storage_url')",
+								"type": "Expression"
+							}
+						}
+					},
+					"enableLogging": false,
+					"storeSettings": {
+						"type": "AzureBlobFSReadSettings",
+						"recursive": true,
+						"enablePartitionDiscovery": false
+					}
+				}
+			},
+			{
+				"name": "ensi_rac_metadata",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "sqlserver_merge_catalog",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "ensi_rac_metadata",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "merge_catalog",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "ensi_rac_metadata",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "merge_catalog",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"vendor": "oracle",
+						"dir": {
+							"value": "@variables('dir')",
+							"type": "Expression"
+						},
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						},
+						"adf": {
+							"value": "{'adf_factory_name': '@{pipeline().DataFactory}', 'adf_pipeline_name': '@{pipeline().Pipeline}', 'adf_pipeline_run_id': '@{pipeline().RunId}',  'adf_trigger_id': '@{pipeline().TriggerId}', 'adf_trigger_name': '@{pipeline().TriggerName}', 'adf_trigger_time': '@{pipeline().TriggerTime}',  'adf_trigger_type': '@{pipeline().TriggerType}'}",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "set_variables_done",
+				"description": "Done setting variables",
+				"type": "Wait",
+				"dependsOn": [
+					{
+						"activity": "set_dir_var",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "set default_dir",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "set_container",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "set_storage_url",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"waitTimeInSeconds": 1
+				}
+			},
+			{
+				"name": "set_container",
+				"description": "Set storage container",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "container",
+					"value": {
+						"value": "@pipeline().globalParameters.datalake_container",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "set_storage_url",
+				"description": "Sets storage url",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "storage_url",
+					"value": {
+						"value": "@pipeline().globalParameters.datalake_storage_url",
+						"type": "Expression"
+					}
+				}
+			}
+		],
+		"parameters": {
+			"env": {
+				"type": "string",
+				"defaultValue": "dev"
+			}
+		},
+		"variables": {
+			"dir": {
+				"type": "String"
+			},
+			"default_dir": {
+				"type": "String"
+			},
+			"storage_url": {
+				"type": "String"
+			},
+			"container": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "workflow/gov"
+		},
+		"annotations": []
+	}
+}

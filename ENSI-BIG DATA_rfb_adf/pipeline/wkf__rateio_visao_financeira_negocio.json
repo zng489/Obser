@@ -1,0 +1,59 @@
+{
+	"name": "wkf__rateio_visao_financeira_negocio",
+	"properties": {
+		"description": "Workflow for all 3 layers of assuntos_legislativos.\n\nThis is the point where we decide for dev or prod env (or any other).",
+		"activities": [
+			{
+				"name": "Wait1",
+				"type": "Wait",
+				"dependsOn": [
+					{
+						"activity": "wkf_biz__rateio_visao_financeira_negocio",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"waitTimeInSeconds": 1
+				}
+			},
+			{
+				"name": "wkf_biz__rateio_visao_financeira_negocio",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "wkf_biz__rateio_visao_financeira_negocio",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"concurrency": 1,
+		"parameters": {
+			"env": {
+				"type": "object",
+				"defaultValue": {
+					"env": "dev"
+				}
+			}
+		},
+		"folder": {
+			"name": "workflow/rateio_visao_financeira_negocio"
+		},
+		"annotations": [
+			"workflow",
+			"assuntos_legislativos"
+		]
+	}
+}
