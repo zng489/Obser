@@ -1,0 +1,22 @@
+# This pipeline runs on all items over ADF's pipeline folder, always
+trigger:
+- main
+- dev
+
+pool:
+  vmImage: ubuntu-latest
+
+jobs:
+- job: AnalyzePythonCrawlers
+  strategy:
+    matrix:
+      Python38:
+        PYTHON_VERSION: '3.8'
+  steps:
+  - task: PythonScript@0
+    inputs:
+      scriptSource: filePath
+      scriptPath: crawler_impl_analyzer.py
+      arguments: --dir $(Build.Repository.LocalPath)
+      #failOnStderr: true
+
