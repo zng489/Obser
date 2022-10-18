@@ -1,0 +1,14 @@
+venv/
+__pycache__/
+.idea/
+*.rdb
+build/
+debug.env
+azure_cni_env
+.vscode/launch.json
+.vscode/
+app.py
+Dockerfile
+create_resource.sh
+azure-pipelines.yml
+azure-pipelines-dev.yml
