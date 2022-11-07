@@ -1,0 +1,289 @@
+{
+	"name": "wkf_lnd__uniepro_more_4_hours",
+	"properties": {
+		"activities": [
+			{
+				"name": "lnd_org_raw_microdados_pnad",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "IBGE",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "lnd_org_raw_microdados_pnad",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "IBGE",
+				"type": "Wait",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"waitTimeInSeconds": 1
+				}
+			},
+			{
+				"name": "completed",
+				"type": "Wait",
+				"dependsOn": [
+					{
+						"activity": "lnd_org_raw_censo_escolar",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "lnd_org_raw_microdados_pnad",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "lnd_org_raw_enem_escola",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "lnd_org_raw_microdados_enem",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "lnd_org_raw_microdados_novo_caged",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "lnd_org_raw_mec_pnp_ept",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "lnd_org_raw_ibge_pop_projetada",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"waitTimeInSeconds": 1
+				}
+			},
+			{
+				"name": "lnd_org_raw_censo_escolar",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "INEP",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "lnd_org_raw_censo_escolar",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "lnd_org_raw_enem_escola",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "INEP",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "lnd_org_raw_enem_escola",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "lnd_org_raw_microdados_enem",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "INEP",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "lnd_org_raw_microdados_enem",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "INEP",
+				"type": "Wait",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"waitTimeInSeconds": 1
+				}
+			},
+			{
+				"name": "lnd_org_raw_microdados_novo_caged",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "CAGED",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "lnd_org_raw_microdados_novo_caged",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "lnd_org_raw_mec_pnp_ept",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "MEC",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "lnd_org_raw_mec_pnp_ept",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "MEC",
+				"type": "Wait",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"waitTimeInSeconds": 1
+				}
+			},
+			{
+				"name": "CAGED",
+				"type": "Wait",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"waitTimeInSeconds": 1
+				}
+			},
+			{
+				"name": "lnd_org_raw_ibge_pop_projetada",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "IBGE",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "lnd_org_raw_ibge_pop_projetada",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"parameters": {
+			"env": {
+				"type": "object",
+				"defaultValue": {
+					"env": "dev"
+				}
+			}
+		},
+		"folder": {
+			"name": "workflow/uniepro/lnd"
+		},
+		"annotations": []
+	}
+}

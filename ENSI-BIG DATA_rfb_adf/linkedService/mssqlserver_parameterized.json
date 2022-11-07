@@ -1,0 +1,41 @@
+{
+	"name": "mssqlserver_parameterized",
+	"properties": {
+		"description": "This is the parameterized version for connecting to the on-premises SQL Server DBS. All dbs must have the same password for connection, and it must be stored on the keystore. All other parameters are dynamic, and must be specified on the pipeline scope. ",
+		"parameters": {
+			"DBHost": {
+				"type": "string"
+			},
+			"DBName": {
+				"type": "string"
+			},
+			"DBUser": {
+				"type": "string"
+			},
+			"DBPasswordSecret": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "SqlServer",
+		"typeProperties": {
+			"connectionString": "Integrated Security=False;Data Source=@{linkedService().DBHost};Initial Catalog=@{linkedService().DBName};User ID=@{linkedService().DBUser}",
+			"password": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "cnibigdatakeyvault",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": {
+					"value": "@linkedService().DBPasswordSecret",
+					"type": "Expression"
+				}
+			}
+		},
+		"connectVia": {
+			"referenceName": "cnibigdatafactoryshir",
+			"type": "IntegrationRuntimeReference"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/linkedservices"
+}

@@ -1,0 +1,119 @@
+{
+	"name": "postgres_import_full__2__loader_ensi-tableau",
+	"properties": {
+		"description": "This loader gets the query and the table definition and creates an array to iterate through, as the dataset used in a parameterized way needs an item() object",
+		"activities": [
+			{
+				"name": "for_each_table",
+				"description": "This iterator is just needed cause the parameterized dataset expects an item() iterator.\n\n",
+				"type": "ForEach",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@pipeline().parameters.table",
+						"type": "Expression"
+					},
+					"batchCount": 3,
+					"activities": [
+						{
+							"name": "ensi-aztableau__load_full_table",
+							"description": "Loads data from ensi-aztableau schema in Postgres.",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 2,
+								"retryIntervalInSeconds": 60,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "PostgreSqlSource",
+									"query": {
+										"value": "SELECT @{json(item()).columns} FROM @{pipeline().parameters.schema_name}.@{json(item()).table}",
+										"type": "Expression"
+									}
+								},
+								"sink": {
+									"type": "ParquetSink",
+									"storeSettings": {
+										"type": "AzureBlobFSWriteSettings"
+									},
+									"formatSettings": {
+										"type": "ParquetWriteSettings"
+									}
+								},
+								"enableStaging": false,
+								"parallelCopies": 4,
+								"enableSkipIncompatibleRow": true,
+								"redirectIncompatibleRowSettings": {
+									"linkedServiceName": {
+										"referenceName": "cnibigdatadlsgen2stg",
+										"type": "LinkedServiceReference"
+									},
+									"path": {
+										"value": "@{pipeline().parameters.container}/@{pipeline().parameters.dls.folders.error}/dbo/@{json(item()).schema}/@{json(item()).table}",
+										"type": "Expression"
+									}
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "postgres_tableau",
+									"type": "DatasetReference"
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "adls_parameterized_partitioned_source",
+									"type": "DatasetReference",
+									"parameters": {
+										"container": {
+											"value": "@pipeline().parameters.container",
+											"type": "Expression"
+										},
+										"url": {
+											"value": "@pipeline().parameters.url",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"db": {
+				"type": "object"
+			},
+			"table": {
+				"type": "array"
+			},
+			"dls": {
+				"type": "object"
+			},
+			"container": {
+				"type": "string"
+			},
+			"schema_name": {
+				"type": "string"
+			},
+			"url": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "templates/raw/bdo/postgres/import_full/db_ensi-aztableau"
+		},
+		"annotations": [
+			"raw",
+			"postgres",
+			"template"
+		]
+	}
+}

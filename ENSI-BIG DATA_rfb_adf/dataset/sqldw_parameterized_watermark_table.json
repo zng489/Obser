@@ -1,0 +1,21 @@
+{
+	"name": "sqldw_parameterized_watermark_table",
+	"properties": {
+		"description": "Parameterized connection for SQL DW. Please  keep it generic. If any table is to be accessed, declare it as a parameter in your pipeline.",
+		"linkedServiceName": {
+			"referenceName": "cnibigdatasqldw",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "parametrized"
+		},
+		"annotations": [],
+		"type": "AzureSqlDWTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "data_factory_watermark"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

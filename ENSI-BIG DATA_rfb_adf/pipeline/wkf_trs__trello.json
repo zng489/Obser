@@ -1,0 +1,138 @@
+{
+	"name": "wkf_trs__trello",
+	"properties": {
+		"description": "Raw tables from trello. All of them are small objects from Trello API. High parallelism is encouraged.",
+		"activities": [
+			{
+				"name": "wkf_raw__trello__end",
+				"type": "Wait",
+				"dependsOn": [
+					{
+						"activity": "trs_trello_flat_customfields_gemas",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"waitTimeInSeconds": 1
+				}
+			},
+			{
+				"name": "trs_trello_flat",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "trs_trello_flat",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "trello_flat_customfields_uniepro",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "trs_trello_flat",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "trs_trello_flat_customfields_uniepro",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "trs_trello_flat_customfields_sti",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "trello_flat_customfields_uniepro",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "trs_trello_flat_customfields_sti",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "trs_trello_flat_customfields_gemas",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "trs_trello_flat_customfields_sti",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "trs_trello_flat_customfields_gemas",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"concurrency": 1,
+		"parameters": {
+			"env": {
+				"type": "object",
+				"defaultValue": {
+					"env": "prod"
+				}
+			}
+		},
+		"folder": {
+			"name": "workflow/trello/trs"
+		},
+		"annotations": [
+			"workflow",
+			"raw",
+			"robolegisdata"
+		]
+	}
+}

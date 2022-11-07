@@ -1,0 +1,45 @@
+{
+	"name": "metadata_tabela_atributo__0__wrapper",
+	"properties": {
+		"description": "Wrapper for governance metadata for populating:\ninfo_tabela\ninfo_atributo",
+		"activities": [
+			{
+				"name": "metadata_tabela_atributo__1__invoke",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "metadata_tabela_atributo__1__invoke",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"body": {
+							"value": "{'adf': {'adf_factory_name': '@{pipeline().DataFactory}', 'adf_pipeline_name': '@{pipeline().Pipeline}', 'adf_pipeline_run_id': '@{pipeline().RunId}',  'adf_trigger_id': '@{pipeline().TriggerId}', 'adf_trigger_name': '@{pipeline().TriggerName}', 'adf_trigger_time': '@{pipeline().TriggerTime}',  'adf_trigger_type': '@{pipeline().TriggerType}'}, 'adl': '@{pipeline().parameters.adl}','env': '@{pipeline().parameters.env}'}",
+							"type": "Expression"
+						},
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"parameters": {
+			"adl": {
+				"type": "string",
+				"defaultValue": "/tmp/gov/metadata"
+			},
+			"env": {
+				"type": "string",
+				"defaultValue": "dev"
+			}
+		},
+		"folder": {
+			"name": "metadata/tabela_atributo"
+		},
+		"annotations": []
+	}
+}

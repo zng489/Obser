@@ -1,0 +1,37 @@
+{
+	"name": "azuresql_parameterized",
+	"properties": {
+		"description": "Parameterized connection to Azure SQL Database",
+		"linkedServiceName": {
+			"referenceName": "azuresql_parameterized",
+			"type": "LinkedServiceReference",
+			"parameters": {
+				"DBHost": {
+					"value": "@pipeline().parameters.db.host",
+					"type": "Expression"
+				},
+				"DBName": {
+					"value": "@pipeline().parameters.db.db_name",
+					"type": "Expression"
+				},
+				"DBUser": {
+					"value": "@pipeline().parameters.db.username",
+					"type": "Expression"
+				},
+				"DBPasswordSecret": {
+					"value": "@pipeline().parameters.db.secret",
+					"type": "Expression"
+				}
+			}
+		},
+		"folder": {
+			"name": "parametrized"
+		},
+		"annotations": [
+			"dataset",
+			"sqlserver"
+		],
+		"type": "AzureSqlTable",
+		"schema": []
+	}
+}

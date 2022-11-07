@@ -1,0 +1,27 @@
+{
+	"name": "conexao_oracle",
+	"properties": {
+		"description": "use for testing",
+		"linkedServiceName": {
+			"referenceName": "oracle_parameterized",
+			"type": "LinkedServiceReference",
+			"parameters": {
+				"DBHost": "ensi-data07-vip",
+				"DBPort": "1521",
+				"DBServiceName": "ensi_rac.sistemacni.org.br",
+				"DBUserName": "usr_bigdata"
+			}
+		},
+		"folder": {
+			"name": "test"
+		},
+		"annotations": [],
+		"type": "OracleTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": "INDDESEMPENHO",
+			"table": "ESTABELECIMENTO"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

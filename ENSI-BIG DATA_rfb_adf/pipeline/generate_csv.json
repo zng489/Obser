@@ -1,0 +1,339 @@
+{
+	"name": "generate_csv",
+	"properties": {
+		"activities": [
+			{
+				"name": "send_csv_email_source",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "generate_csv_source",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "send_csv_email",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"catalog_table": "source",
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						},
+						"path": "0"
+					}
+				}
+			},
+			{
+				"name": "send_csv_email_schema",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "generate_csv_schema",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "send_csv_email",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"catalog_table": "schema",
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						},
+						"path": "0"
+					}
+				}
+			},
+			{
+				"name": "send_csv_email_table",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "generate_csv_table",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "send_csv_email",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"catalog_table": "table",
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						},
+						"path": "0"
+					}
+				}
+			},
+			{
+				"name": "send_csv_email_field",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "generate_csv_field",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "send_csv_email",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"catalog_table": "field",
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						},
+						"path": "0"
+					}
+				}
+			},
+			{
+				"name": "send_csv_email_data_steward",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "generate_csv_data_steward",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "send_csv_email",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"catalog_table": "data_steward",
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						},
+						"path": "0"
+					}
+				}
+			},
+			{
+				"name": "generate_csv_source",
+				"description": "Invokes the common template that calls Databricks' pipelines. This template is used in all layers.",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "databricks_run_notebook",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"databricks_notebook_path": {
+							"value": "/KEYRUS/@{pipeline().parameters.env}/gov/catalog/generate_desc_csv",
+							"type": "Expression"
+						},
+						"adf": {
+							"value": "@json(string(pipeline().parameters.adf))",
+							"type": "Expression"
+						},
+						"user_parameters": "",
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						},
+						"gov_table": "source"
+					}
+				}
+			},
+			{
+				"name": "generate_csv_schema",
+				"description": "Invokes the common template that calls Databricks' pipelines. This template is used in all layers.",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "databricks_run_notebook",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"databricks_notebook_path": {
+							"value": "/KEYRUS/@{pipeline().parameters.env}/gov/catalog/generate_desc_csv",
+							"type": "Expression"
+						},
+						"adf": {
+							"value": "@json(string(pipeline().parameters.adf))",
+							"type": "Expression"
+						},
+						"user_parameters": "",
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						},
+						"gov_table": "schema"
+					}
+				}
+			},
+			{
+				"name": "generate_csv_table",
+				"description": "Invokes the common template that calls Databricks' pipelines. This template is used in all layers.",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "databricks_run_notebook",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"databricks_notebook_path": {
+							"value": "/KEYRUS/@{pipeline().parameters.env}/gov/catalog/generate_desc_csv",
+							"type": "Expression"
+						},
+						"adf": {
+							"value": "@json(string(pipeline().parameters.adf))",
+							"type": "Expression"
+						},
+						"user_parameters": "",
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						},
+						"gov_table": "table"
+					}
+				}
+			},
+			{
+				"name": "generate_csv_field",
+				"description": "Invokes the common template that calls Databricks' pipelines. This template is used in all layers.",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "databricks_run_notebook",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"databricks_notebook_path": {
+							"value": "/KEYRUS/@{pipeline().parameters.env}/gov/catalog/generate_desc_csv",
+							"type": "Expression"
+						},
+						"adf": {
+							"value": "@json(string(pipeline().parameters.adf))",
+							"type": "Expression"
+						},
+						"user_parameters": "",
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						},
+						"gov_table": "field"
+					}
+				}
+			},
+			{
+				"name": "generate_csv_data_steward",
+				"description": "Invokes the common template that calls Databricks' pipelines. This template is used in all layers.",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "databricks_run_notebook",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"databricks_notebook_path": {
+							"value": "/KEYRUS/@{pipeline().parameters.env}/gov/catalog/generate_desc_csv",
+							"type": "Expression"
+						},
+						"adf": {
+							"value": "@json(string(pipeline().parameters.adf))",
+							"type": "Expression"
+						},
+						"user_parameters": "",
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						},
+						"gov_table": "data_steward"
+					}
+				}
+			},
+			{
+				"name": "csv_por_curador_table",
+				"description": "Invokes the common template that calls Databricks' pipelines. This template is used in all layers.",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "databricks_run_notebook",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"databricks_notebook_path": {
+							"value": "/KEYRUS/@{pipeline().parameters.env}/gov/catalog/gestao-processos/generate_desc_csv - para todos curadores",
+							"type": "Expression"
+						},
+						"adf": {
+							"value": "@json(string(pipeline().parameters.adf))",
+							"type": "Expression"
+						},
+						"user_parameters": "",
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						},
+						"gov_table": "table"
+					}
+				}
+			}
+		],
+		"parameters": {
+			"env": {
+				"type": "string"
+			},
+			"adf": {
+				"type": "object"
+			}
+		},
+		"folder": {
+			"name": "gov/csv_template"
+		},
+		"annotations": []
+	}
+}

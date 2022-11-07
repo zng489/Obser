@@ -1,0 +1,7 @@
+{
+	"name": "cnibigdatafactoryshir",
+	"properties": {
+		"type": "SelfHosted",
+		"description": "Self hosted integration runtime for cnibigdatafactory. Enables getting data from on premises sources. "
+	}
+}

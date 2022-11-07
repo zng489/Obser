@@ -1,0 +1,64 @@
+{
+	"name": "org_raw_cadastro_cbo",
+	"properties": {
+		"description": "Paramas for system OBA, implemented via user updated files.",
+		"activities": [
+			{
+				"name": "import_uld_files__0__wrapper",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "import_uld_files__0__wrapper",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"files": {
+							"value": "@pipeline().parameters.files",
+							"type": "Expression"
+						},
+						"databricks": {
+							"value": "@pipeline().parameters.databricks",
+							"type": "Expression"
+						},
+						"adf": {
+							"value": "@json(concat('{\"adf_factory_name\": \"', pipeline().DataFactory, '\", \"adf_pipeline_name\": \"', pipeline().Pipeline, '\", \"adf_pipeline_run_id\": \"', pipeline().RunId, '\", \"adf_trigger_id\": \"', pipeline().TriggerId, '\", \"adf_trigger_name\": \"', pipeline().TriggerName, '\", \"adf_trigger_time\": \"', pipeline().TriggerTime, '\", \"adf_trigger_type\": \"', pipeline().TriggerType, '\"}'))",
+							"type": "Expression"
+						},
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"concurrency": 1,
+		"parameters": {
+			"databricks": {
+				"type": "object",
+				"defaultValue": {
+					"notebook": "me/org_raw_cadastro_cbo"
+				}
+			},
+			"files": {
+				"type": "array",
+				"defaultValue": [
+					"{'namespace':'me','file_folder':'cadastro_cbo','extension':'csv','column_delimiter':';','encoding':'UTF-8','null_value':''}"
+				]
+			},
+			"env": {
+				"type": "object",
+				"defaultValue": {
+					"env": "dev"
+				}
+			}
+		},
+		"folder": {
+			"name": "raw/usr/me"
+		},
+		"annotations": []
+	}
+}

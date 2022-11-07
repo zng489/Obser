@@ -1,0 +1,456 @@
+{
+	"name": "execute_profiling",
+	"properties": {
+		"activities": [
+			{
+				"name": "lookup__gov_tables_table",
+				"description": "This will lookup on the table /gov/tables/table on SQLDW. \n\nThis table will be stored in the following paths accordingly to the environments:\n- dev: [dev].[table]\n- prod: [gov].[table]\n\nKeep in mind that there's a limit to returned data of 5K records.\nhttps://docs.microsoft.com/en-us/azure/data-factory/control-flow-lookup-activity\n\nWe are returning the following columns cause they are going to be used in profiling:\nSOURCE_NAME,\nSCHEMA_NAME,\nTABLE_NAME,\nCHAVE,\nCOL_VERSION,\nTIPO_CARGA",
+				"type": "Lookup",
+				"dependsOn": [
+					{
+						"activity": "switch_env",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 2,
+					"retryIntervalInSeconds": 120,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": {
+							"value": "SELECT\nSOURCE_NAME,\nSCHEMA_NAME,\nTABLE_NAME,\nPATH,\nCHAVE,\nCOL_VERSION,\nTIPO_CARGA\nFROM \n[@{variables('sqldw_schema')}].[@{pipeline().parameters.table}]\nWHERE\nREPLICA = 1\nAND\nLOWER(TABLE_NAME) NOT LIKE ('%_bkp%');",
+							"type": "Expression"
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "sqldw_parameterized",
+						"type": "DatasetReference",
+						"parameters": {
+							"schema": {
+								"value": "@variables('sqldw_schema')",
+								"type": "Expression"
+							},
+							"table": "table"
+						}
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "switch_env",
+				"description": "Switches the env variable to set the correct paths for 'dls'.",
+				"type": "Switch",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"on": {
+						"value": "@pipeline().parameters.env.env",
+						"type": "Expression"
+					},
+					"cases": [
+						{
+							"value": "dev",
+							"activities": [
+								{
+									"name": "set_dls_to_dev",
+									"description": "Sets 'dls' to dev values",
+									"type": "SetVariable",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"variableName": "dls_to_use",
+										"value": {
+											"value": "@string(pipeline().globalParameters.dls_dev)",
+											"type": "Expression"
+										}
+									}
+								},
+								{
+									"name": "set_env_to_dev_done",
+									"type": "Wait",
+									"dependsOn": [
+										{
+											"activity": "set_dls_to_dev",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										},
+										{
+											"activity": "set_sqldw_schema_to_dev",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										},
+										{
+											"activity": "set_databricks_workspace__dev",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										},
+										{
+											"activity": "set_env_path_prefix_to_dev",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"userProperties": [],
+									"typeProperties": {
+										"waitTimeInSeconds": 1
+									}
+								},
+								{
+									"name": "set_sqldw_schema_to_dev",
+									"description": "Set sqldw_schema to dev.",
+									"type": "SetVariable",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"variableName": "sqldw_schema",
+										"value": {
+											"value": "@pipeline().globalParameters.sqldw_schemas.development",
+											"type": "Expression"
+										}
+									}
+								},
+								{
+									"name": "set_databricks_workspace__dev",
+									"description": "Points to Databricks workspace dev",
+									"type": "SetVariable",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"variableName": "databricks_workspace_prefix",
+										"value": {
+											"value": "@pipeline().globalParameters.databricks_notebook_base_dev",
+											"type": "Expression"
+										}
+									}
+								},
+								{
+									"name": "set_env_path_prefix_to_dev",
+									"description": "Sets env path prefix",
+									"type": "SetVariable",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"variableName": "env_prefix",
+										"value": "/tmp/dev"
+									}
+								}
+							]
+						},
+						{
+							"value": "prod",
+							"activities": [
+								{
+									"name": "set_dls_to_prod",
+									"description": "Sets 'dls' to prod values",
+									"type": "SetVariable",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"variableName": "dls_to_use",
+										"value": {
+											"value": "@string(pipeline().globalParameters.dls_prod)",
+											"type": "Expression"
+										}
+									}
+								},
+								{
+									"name": "set_env_to_prod__done",
+									"type": "Wait",
+									"dependsOn": [
+										{
+											"activity": "set_dls_to_prod",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										},
+										{
+											"activity": "set_sqldw_schema_to_prod",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										},
+										{
+											"activity": "set_databricks_workspace__prod",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"userProperties": [],
+									"typeProperties": {
+										"waitTimeInSeconds": 1
+									}
+								},
+								{
+									"name": "set_sqldw_schema_to_prod",
+									"description": "Set sqldw_schema to prod schema, in this case 'governance'.",
+									"type": "SetVariable",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"variableName": "sqldw_schema",
+										"value": {
+											"value": "@pipeline().globalParameters.sqldw_schemas.governance",
+											"type": "Expression"
+										}
+									}
+								},
+								{
+									"name": "set_databricks_workspace__prod",
+									"description": "Points to Databricks workspace prod",
+									"type": "SetVariable",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"variableName": "databricks_workspace_prefix",
+										"value": {
+											"value": "@pipeline().globalParameters.databricks_notebook_base_prod",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						}
+					],
+					"defaultActivities": [
+						{
+							"name": "environment_not_defined",
+							"description": "Undefined environment",
+							"type": "Fail",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"message": {
+									"value": "Environemtn '@{pipeline().parameters.env}' is not defined.",
+									"type": "Expression"
+								},
+								"errorCode": "500"
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "set_profiling_path",
+				"description": "Sets the profiling script path to use as input for Databricks. This way we can ",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "switch_env",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "path_profiling",
+					"value": {
+						"value": "@concat(variables('env_prefix'), pipeline().parameters.path_script_profiling)",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "iter_tables",
+				"description": "Iterate tables calling 'profiling' implementation on Databricks.",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "lookup__gov_tables_table",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "set_profiling_path",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "set_databricks_path_notebook",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "set_execute_date",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('lookup__gov_tables_table').output.value",
+						"type": "Expression"
+					},
+					"batchCount": 15,
+					"activities": [
+						{
+							"name": "run_profiling",
+							"description": "Runs Databricks profiling implementation.\n\nIn this implementation you must workaround null values returned from SQLDW. Databricks will not take them as input.",
+							"type": "DatabricksNotebook",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 120,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"notebookPath": {
+									"value": "@variables('databricks_path_notebook')",
+									"type": "Expression"
+								},
+								"baseParameters": {
+									"source": {
+										"value": "@coalesce(item().SOURCE_NAME, 'None')",
+										"type": "Expression"
+									},
+									"schema": {
+										"value": "@coalesce(item().SCHEMA_NAME, 'None')",
+										"type": "Expression"
+									},
+									"table": {
+										"value": "@coalesce(item().TABLE_NAME, 'None')",
+										"type": "Expression"
+									},
+									"chave": {
+										"value": "@coalesce(item().CHAVE, 'None')",
+										"type": "Expression"
+									},
+									"col_version": {
+										"value": "@coalesce(item().COL_VERSION, 'None')",
+										"type": "Expression"
+									},
+									"tipo_carga": {
+										"value": "@coalesce(item().TIPO_CARGA, 'None')",
+										"type": "Expression"
+									},
+									"path_profiling": {
+										"value": "@variables('path_profiling')",
+										"type": "Expression"
+									},
+									"path_table": {
+										"value": "@if(equals(pipeline().parameters.env.env, 'prod'), coalesce(item().PATH, 'None'), concat(pipeline().globalParameters.adls_path_prefix_dev, coalesce(item().PATH, 'None')))",
+										"type": "Expression"
+									},
+									"marca": {
+										"value": "@variables('execute_date')",
+										"type": "Expression"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "cnibigdatabricks_job_cluster",
+								"type": "LinkedServiceReference"
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "set_databricks_path_notebook",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "switch_env",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "databricks_path_notebook",
+					"value": {
+						"value": "@concat(variables('databricks_workspace_prefix'), '/gov/dq/execute_profiling_v2')",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "set_execute_date",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "switch_env",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "execute_date",
+					"value": {
+						"value": "@utcnow()",
+						"type": "Expression"
+					}
+				}
+			}
+		],
+		"parameters": {
+			"env": {
+				"type": "object",
+				"defaultValue": {
+					"env": "dev"
+				}
+			},
+			"table": {
+				"type": "string",
+				"defaultValue": "table"
+			},
+			"path_script_profiling": {
+				"type": "string",
+				"defaultValue": "/gov/tables/profiling"
+			}
+		},
+		"variables": {
+			"sqldw_schema": {
+				"type": "String"
+			},
+			"dls_to_use": {
+				"type": "String"
+			},
+			"env_prefix": {
+				"type": "String"
+			},
+			"path_profiling": {
+				"type": "String"
+			},
+			"databricks_workspace_prefix": {
+				"type": "String"
+			},
+			"databricks_path_notebook": {
+				"type": "String"
+			},
+			"execute_date": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "gov/dq"
+		},
+		"annotations": []
+	}
+}

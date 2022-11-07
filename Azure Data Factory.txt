@@ -1,0 +1,37 @@
+- Ingest data from API
+-> https://dummy.restapiexample.com/api/v1/employees
+
+
+1. Cria linked services e configurar ele.
+*Um arquivo que provém [linked services].
+
+
+2. Agora criar o dataset relacionado o tipo de serviço do linked criado, vamos supor que o 'linked services' criado seja do tipo 'REST API', logo o 'dataset' criado será do tipo 'REST API' também.
+*um arquivo de dataset [source] e um arquivo que provém de [sink]
+
+3. Após criar, terá que configurar o 'sink' do pipeline com relação ao tipo de datalake, path, e o blob storage.
+
+datalake     /uds/uniepro/adf_ingest/   rest_api.json
+
+
+
+
+
+
+
+
+
+
+
+
+*Observação:
+-> First: o linked services (rest api) >>> que irá conectar-se com o dataset (type of dataset + rest api
+
+
+
+- Pipelines são orquestrações
+- Data flow são transformações 
+
+
+
+http://200.152.38.155/CNO/cno.zip'

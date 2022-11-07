@@ -1,0 +1,58 @@
+{
+	"name": "org_raw_robo_legisdata_proposicao_legislativa",
+	"properties": {
+		"description": "Will always be loaded as full.\n\n- For full load use:\nParameter tables = [\"{'schema': 'BD_BASI', 'table':'ECT_PAIS','load_type':'full','partition_column':'null', 'columns': 'PAI_SG, PAI_SG_ALTERNATIVA, PAI_NO_PORTUGUES, PAI_NO_INGLES, PAI_NO_FRANCES, PAI_ABREVIATURA'}\"]\nExecute pipeline = template_import_table_full\n",
+		"activities": [
+			{
+				"name": "raw_load_bdo_unified__0__switch_env",
+				"description": "Run template pipeline to import tables",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "raw_load_dbo_unified__0__switch_env",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						},
+						"tables": {
+							"value": "@pipeline().parameters.tables",
+							"type": "Expression"
+						},
+						"adf": {
+							"value": "{'adf_factory_name': '@{pipeline().DataFactory}', 'adf_pipeline_name': '@{pipeline().Pipeline}', 'adf_pipeline_run_id': '@{pipeline().RunId}',  'adf_trigger_id': '@{pipeline().TriggerId}', 'adf_trigger_name': '@{pipeline().TriggerName}', 'adf_trigger_time': '@{pipeline().TriggerTime}',  'adf_trigger_type': '@{pipeline().TriggerType}'}",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"concurrency": 1,
+		"parameters": {
+			"tables": {
+				"type": "array",
+				"defaultValue": [
+					"{'schema': 'ROBO_LEGISDATA', 'table':'PROPOSICAO_LEGISLATIVA', 'load_type':'incremental', 'control_column':'DAT_ULTIMA_ATUALIZACAO', 'control_column_type_2_db':'datetime', 'control_column_default_value': '19000101000000', 'control_column_mask_value': 'DD/MM/YYHH24:MI:SSFF', 'partition_column':'null', 'columns': 'COD_PROPOSICAO,TIP_CASA_ORIGEM,COD_PL_CONGRESSO,NUM_PROPOSICAO,ANO_PROPOSICAO,DAT_APRESENTACAO,TXT_APRECIACAO,TXT_REGIME_TRAMITACAO,NUM_PROPOSICAO_ORIGINAL,SIT_CONGRESSO,SIT_ACOMPANHAMENTO,TXT_EMENTA_BACKUP,TXT_INDEXACAO,TIP_ALIMENTACAO,TXT_OUTROS_NUMEROS,TXT_DESPACHO_INICIAL_VARCHAR,TXT_PRAZOS,DAT_ULTIMA_ATUALIZACAO,TXT_ORIGEM_PROPOSICAO_ORIGINAL,COD_PL_CONGRESSO_APENSANTE,COD_AUTOR,COD_APENSANTE,TXT_QUE_E,DES_FOCO_PROJETO,NUM_TOTAL_PRIORIDADE,IND_INCLUIDO_MANUALMENTE,COD_PL_CONGRESSO_ACESSORIA,COD_ACESSORIA,TIP,TXT_PODER,IND_ENCERRADA,IND_LEGISDATA_ANTIGO,TXT_INFO_ACOMPANHAMENTO,COD_PROP_VINCULADA_SF,COD_PROP_VINCULADA_CD,COD_PROP_VINCULADA_CN_SF,COD_PROP_VINCULADA_CN_CD,COD_PROP_VINCULADA_MSG,CHECKPODER,IND_VINCULADA,TXT_LIVRE_AGENDA,IND_CASA_ORIGEM,IND_TRAMITACAO_MAIOR_BANCO,TXT_DESPACHO_INICIAL,IND_ACOMPANHADA,DAT_INCLUSAO,COD_AUTOR_ORIGINAL,DES_OBSERVACAO,COD_SINTESE,TXT_REGIME_ORIGINAL,DAT_ALTERACAO_REGIME,COD_PARLAMENTAR,IND_EMENDA_SUBSTITUTIVO,TXT_EMENTA' }"
+				]
+			},
+			"env": {
+				"type": "object",
+				"defaultValue": {
+					"env": "dev"
+				}
+			}
+		},
+		"folder": {
+			"name": "raw/bdo/robo_legisdata"
+		},
+		"annotations": [
+			"raw"
+		]
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

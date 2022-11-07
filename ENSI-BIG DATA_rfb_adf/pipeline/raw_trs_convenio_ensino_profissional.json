@@ -1,0 +1,79 @@
+{
+	"name": "raw_trs_convenio_ensino_profissional",
+	"properties": {
+		"description": "Run trusted for \"Educação SENAI\" from raw tables of db_basi\n\nNo parameters is required. This table does not implement version control, only updates the records with the most recent value. \n\nPaths are:tables =  {\"path_origin_1\": \"/raw/bdo/bd_basi/tb_atendimento\", \n           \"path_origin_2\": \"/raw/bdo/bd_basi/tb_produto_servico_centro_resp\",\n          \"path_destination\": \"/trs/evt/convenio_ensino_profissional\"\n          }",
+		"activities": [
+			{
+				"name": "trusted__0__switch_env",
+				"description": "Calls trusted template that switches env.",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "trusted__0__switch_env",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						},
+						"tables": {
+							"value": "@pipeline().parameters.tables",
+							"type": "Expression"
+						},
+						"databricks": {
+							"value": "@pipeline().parameters.databricks",
+							"type": "Expression"
+						},
+						"adf": {
+							"value": "{'adf_factory_name': '@{pipeline().DataFactory}', 'adf_pipeline_name': '@{pipeline().Pipeline}', 'adf_pipeline_run_id': '@{pipeline().RunId}',  'adf_trigger_id': '@{pipeline().TriggerId}', 'adf_trigger_name': '@{pipeline().TriggerName}', 'adf_trigger_time': '@{pipeline().TriggerTime}',  'adf_trigger_type': '@{pipeline().TriggerType}'}",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"concurrency": 1,
+		"parameters": {
+			"tables": {
+				"type": "object",
+				"defaultValue": {
+					"origins": [
+						"/bdo/bd_basi/tb_atendimento",
+						"/bdo/bd_basi/tb_produto_servico_centro_resp"
+					],
+					"destination": "/evt/convenio_ensino_profissional"
+				}
+			},
+			"databricks": {
+				"type": "object",
+				"defaultValue": {
+					"trs": {
+						"notebook": "/trs/educacao_senai/raw_trs_convenio_ensino_profissional"
+					}
+				}
+			},
+			"user_parameters": {
+				"type": "object",
+				"defaultValue": {
+					"null": "null"
+				}
+			},
+			"env": {
+				"type": "object",
+				"defaultValue": {
+					"env": "dev"
+				}
+			}
+		},
+		"folder": {
+			"name": "trs/educacao_senai"
+		},
+		"annotations": [
+			"trusted"
+		]
+	}
+}

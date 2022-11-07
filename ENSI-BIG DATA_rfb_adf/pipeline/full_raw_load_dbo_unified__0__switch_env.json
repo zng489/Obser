@@ -1,0 +1,148 @@
+{
+	"name": "full_raw_load_dbo_unified__0__switch_env",
+	"properties": {
+		"description": "Checks the parameter in \"env\" variable to decide which parameters and connections to use. This will avoid having to declare a full set of parameters like db, watermark and dls. \n\nNeeded parameters:\n- db: dict type;  not the complete definition\n- tables: array type; complete definition added with partitioning definition\n- env: dict type; simple key value definition\n- adf: dict type; complete definition taking the parameters the parent pipeline (the one that entitles the process)\n\n\"adf\" parameter may be passed as string all the way down, cause it will only be evaluated in Databricks, só don't need to worry  about it now. \n\n\"dls\" parameter may be string as well.\n\nThese NEEDED PARAMS will come from the most exposed (the outer layer) of the pipeline, the one that takes the process' name. \n\nIMPORTANT: if there's no partition, you SHALL NOT declare the key  -- \"raw\": {\"partition_by\"}-- in \"tables\" array, cause in Databricks the existence of this key will be tested and if it exists, it MUST contain a VALID implementation (test it before in a notebook).\n\n\n- dbs: (add other hosts when needed)\n{\"bd_basi\":{\"host\":\"scan-rac11g\",\"port\":\"1521\",\"service_name\":\"RAC11G.SISTEMA-CNI.ORG.BR\",\"username\":\"usr_bigdata\",\"vendor\":\"Oracle\"}, \"inddesempenho\":{\"host\":\"ensi-data07-vip.sistema-cni.org.br\",\"port\":\"1521\",\"service_name\":\"ensi_rac.sistemacni.org.br\",\"username\":\"usr_bigdata\",\"vendor\":\"Oracle\"}}\n\nFor env == 'dev':\n - dls = {\"folders\":{ \"landing\":\"/tmp/dev/lnd\", \"error\":\"/tmp/dev/err\", \"staging\":\"/tmp/dev/stg\", \"log\":\"/tmp/dev/log\", \"raw\":\"/tmp/dev/raw\"}}\n\n- watermark = {\"table\":\"dev.data_factory_watermark\",\"columns\":{\"table_name\":\"table_name\",\"control_column\":\"control_column\",\"control_column_value\":\"control_column_value\",\"control_column_type_2_db\":\"control_column_type_2_db\"},\"procedures\":{\"insert_first_watermark\":\"[dev].[insert_first_watermark]\",\"update_watermark\":\"[dev].[usp_write_watermark]\"}}",
+		"activities": [
+			{
+				"name": "switch_env_parameters",
+				"description": "Checks the parameter in \"env\" variable to decide which parameters and connections to use. This will avoid having to declare these parameters, cause they are going to be set based on this switch:\n    dbs, watermark and dls. \n\nDatabase connection definitions will be set based on 'env' definition. This will allow future implementation of 'dev', 'prod' and other environments to point to distinct databases.",
+				"type": "Switch",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"on": {
+						"value": "@toLower(pipeline().parameters.env.env)",
+						"type": "Expression"
+					},
+					"cases": [
+						{
+							"value": "dev",
+							"activities": [
+								{
+									"name": "raw_load_dbo_unified__1__set_params__dev",
+									"description": "Executes the 'raw_load_dbo_unified__1__set_params' pipeline, passing 'dls' and 'watermark' parameters for 'dev'\n\nParam 'tables' will be downstreamed. \nParam 'databricks' will be deprecated by the unified implementation. ",
+									"type": "ExecutePipeline",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "raw_load_dbo_unified__1__set_params",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": true,
+										"parameters": {
+											"env": {
+												"value": "@pipeline().parameters.env",
+												"type": "Expression"
+											},
+											"tables": {
+												"value": "@pipeline().parameters.tables",
+												"type": "Expression"
+											},
+											"dls": {
+												"value": "@json('{\"folders\":{ \"landing\":\"/tmp/full/lnd\", \"error\":\"/tmp/full/err\", \"staging\":\"/tmp/full/stg\", \"log\":\"/tmp/full/log\", \"raw\":\"/tmp/full/raw\"}}')",
+												"type": "Expression"
+											},
+											"watermark": {
+												"value": "@json('{\"table\":\"dev.data_factory_watermark\",\"columns\":{\"table_name\":\"table_name\",\"control_column\":\"control_column\",\"control_column_value\":\"control_column_value\",\"control_column_type_2_db\":\"control_column_type_2_db\"},\"procedures\":{\"insert_first_watermark\":\"[dev].[insert_first_watermark]\",\"update_watermark\":\"[dev].[usp_write_watermark]\",\"dq_check_control_column\":\"[dev].[dq_log_table_with_inconsistent_control_column]\",\"dq_log_partition_data_loss\":\"[dev].[dq_log_table_record_loss_when_partitioning]\",\"control_column_insert\":\"[dev].[adf_insert_load_raw_max_control_column]\",\"control_column_delete\":\"[dev].[adf_delete_load_raw_max_control_column]\", \"control_column_select\": \"[dev].[adf_select_load_raw_max_control_column]\"}}')",
+												"type": "Expression"
+											},
+											"dbs": {
+												"value": "@json('{\"bd_basi\":{\"host\":\"scan-rac11g\",\"port\":\"1521\",\"service_name\":\"RAC11G.SISTEMA-CNI.ORG.BR\",\"username\":\"usr_bigdata\",\"vendor\":\"Oracle\"}, \"integradorweb\": {\"host\":\"scan-rac11g\",\"port\":\"1521\",\"service_name\":\"RAC11G.SISTEMA-CNI.ORG.BR\",\"username\":\"usr_bigdata\",\"vendor\":\"Oracle\"},\"inddesempenho\":{\"host\":\"ensi-data07-vip.sistema-cni.org.br\",\"port\":\"1521\",\"service_name\":\"ensi_rac.sistemacni.org.br\",\"username\":\"usr_bigdata\",\"vendor\":\"Oracle\"},\"corporativo\":{\"host\":\"ensi-data07-vip.sistema-cni.org.br\",\"port\":\"1521\",\"service_name\":\"ensi_rac.sistemacni.org.br\",\"username\":\"usr_bigdata\",\"vendor\":\"Oracle\"},\"oba\":{\"host\":\"ensi-data09-vip.sistema-cni.org.br\",\"port\":\"1521\",\"service_name\":\"ensi_rac.sistemacni.org.br\",\"username\":\"usr_bigdata\",\"vendor\":\"Oracle\"},\"protheus11\":{\"host\":\"ensi-datavrt01\",\"port\":\"1521\",\"service_name\":\"odbprd\",\"username\":\"usr_bigdata\",\"vendor\":\"Oracle\"},\"scae\":{\"host\":\"ensi-data07-vip.sistema-cni.org.br\",\"port\":\"1521\",\"service_name\":\"ensi_rac.sistemacni.org.br\",\"username\":\"usr_bigdata\",\"vendor\":\"Oracle\"},\"sors\":{\"host\":\"ENSI-AZDATA010\",\"db_name\":\"dbCDISOrcamento\",\"username\":\"usr_bigdata\",\"vendor\":\"SQLServer\"}}')",
+												"type": "Expression"
+											},
+											"adf": {
+												"value": "@json(string(pipeline().parameters.adf))",
+												"type": "Expression"
+											}
+										}
+									}
+								}
+							]
+						},
+						{
+							"value": "prod",
+							"activities": [
+								{
+									"name": "raw_load_dbo_unified__1__set_params__prod",
+									"description": "Executes 'raw_load_dbo_unified__1__set_params' applying 'prod' params.\n\n",
+									"type": "ExecutePipeline",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "raw_load_dbo_unified__1__set_params",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": true,
+										"parameters": {
+											"env": {
+												"value": "@pipeline().parameters.env",
+												"type": "Expression"
+											},
+											"tables": {
+												"value": "@pipeline().parameters.tables",
+												"type": "Expression"
+											},
+											"dls": {
+												"value": "@json('{\"folders\":{ \"landing\":\"/lnd\", \"error\":\"/err\", \"staging\":\"/stg\", \"log\":\"/log\", \"raw\":\"/raw\"}}')",
+												"type": "Expression"
+											},
+											"watermark": {
+												"value": "@json('{\"table\":\"dbo.data_factory_watermark\",\"columns\":{\"table_name\":\"table_name\",\"control_column\":\"control_column\",\"control_column_value\":\"control_column_value\",\"control_column_type_2_db\":\"control_column_type_2_db\"},\"procedures\":{\"insert_first_watermark\":\"[dbo].[insert_first_watermark]\",\"update_watermark\":\"[dbo].[usp_write_watermark]\",\"dq_check_control_column\":\"[dbo].[dq_log_table_with_inconsistent_control_column]\",\"dq_log_partition_data_loss\":\"[dbo].[dq_log_table_record_loss_when_partitioning]\",\"control_column_insert\":\"[dbo].[adf_insert_load_raw_max_control_column]\",\"control_column_delete\":\"[dbo].[adf_delete_load_raw_max_control_column]\", \"control_column_select\": \"[dbo].[adf_select_load_raw_max_control_column]\"}}')",
+												"type": "Expression"
+											},
+											"dbs": {
+												"value": "@json('{\"bd_basi\":{\"host\":\"scan-rac11g\",\"port\":\"1521\",\"service_name\":\"RAC11G.SISTEMA-CNI.ORG.BR\",\"username\":\"usr_bigdata\",\"vendor\":\"Oracle\"}, \"integradorweb\": {\"host\":\"scan-rac11g\",\"port\":\"1521\",\"service_name\":\"RAC11G.SISTEMA-CNI.ORG.BR\",\"username\":\"usr_bigdata\",\"vendor\":\"Oracle\"},\"inddesempenho\":{\"host\":\"ensi-data07-vip.sistema-cni.org.br\",\"port\":\"1521\",\"service_name\":\"ensi_rac.sistemacni.org.br\",\"username\":\"usr_bigdata\",\"vendor\":\"Oracle\"},\"corporativo\":{\"host\":\"ensi-data07-vip.sistema-cni.org.br\",\"port\":\"1521\",\"service_name\":\"ensi_rac.sistemacni.org.br\",\"username\":\"usr_bigdata\",\"vendor\":\"Oracle\"},\"oba\":{\"host\":\"ensi-data09-vip.sistema-cni.org.br\",\"port\":\"1521\",\"service_name\":\"ensi_rac.sistemacni.org.br\",\"username\":\"usr_bigdata\",\"vendor\":\"Oracle\"},\"protheus11\":{\"host\":\"ensi-datavrt01\",\"port\":\"1521\",\"service_name\":\"odbprd\",\"username\":\"usr_bigdata\",\"vendor\":\"Oracle\"},\"scae\":{\"host\":\"ensi-data07-vip.sistema-cni.org.br\",\"port\":\"1521\",\"service_name\":\"ensi_rac.sistemacni.org.br\",\"username\":\"usr_bigdata\",\"vendor\":\"Oracle\"},\"sors\":{\"host\":\"ENSI-AZDATA010\",\"db_name\":\"dbCDISOrcamento\",\"username\":\"usr_bigdata\",\"vendor\":\"SQLServer\"}}')",
+												"type": "Expression"
+											},
+											"adf": {
+												"value": "@json(string(pipeline().parameters.adf))",
+												"type": "Expression"
+											}
+										}
+									}
+								}
+							]
+						}
+					],
+					"defaultActivities": [
+						{
+							"name": "env__declaration_unsupported",
+							"description": "The value for key \"env\" in \"env\" parameters is unsupported. Please review your implementation.",
+							"type": "WebHook",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"url": "https://thisisthewaytosimuateanerrormyfriend.com/api",
+								"method": "POST",
+								"headers": {
+									"Content-Type": "application/json"
+								},
+								"body": {
+									"error": true
+								},
+								"timeout": "00:10:00"
+							}
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"env": {
+				"type": "object"
+			},
+			"tables": {
+				"type": "array"
+			},
+			"adf": {
+				"type": "object"
+			}
+		},
+		"folder": {
+			"name": "dev/full"
+		},
+		"annotations": []
+	}
+}

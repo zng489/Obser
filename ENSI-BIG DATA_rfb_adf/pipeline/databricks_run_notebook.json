@@ -1,0 +1,308 @@
+{
+	"name": "databricks_run_notebook",
+	"properties": {
+		"description": "Runs the databricks notebook. Calling this as a unified piece will allow us to make things easier to mantain and also to modify the connection when needed.\n\n\nAbout parameters: please read it:\n- table: is used by RAW\n- tables: is used by TRS\n  When you've got one, you don't have the other.\n- file: used just by raw/usr pipelines. Keep it as {\"null\":\"null\"} if your process is not that type.\n- file_pars : used by raw/usr/unigest. Keep it as {\"null\":\"null\"} if your process is not that type.\n\n---\n",
+		"activities": [
+			{
+				"name": "if_debug_use_job_cluster",
+				"description": "If user is pressing the debug button, then a job cluster will be used. Else, the interactive production cluster. ",
+				"type": "IfCondition",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@and(equals(toLower(pipeline().parameters.adf.adf_trigger_name), 'sandbox'), equals(toLower(pipeline().parameters.adf.adf_trigger_type), 'manual'))",
+						"type": "Expression"
+					},
+					"ifFalseActivities": [
+						{
+							"name": "run_databricks_job_cluster",
+							"description": "Instantiates a job cluster to. Libraries are configured here.\n\nFor 'dls', ve verify if it's the case of uld files, where the dictionary in 'file' has a 'file' key. In the case false, it's a traditional load. \nWhen we've got valid keys in 'file_parse', then we've got uld_unigest, and we have to use the correspondent 'dls' definition for it. \n\n----",
+							"type": "DatabricksNotebook",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 2,
+								"retryIntervalInSeconds": 180,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"notebookPath": {
+									"value": "@pipeline().parameters.databricks_notebook_path",
+									"type": "Expression"
+								},
+								"baseParameters": {
+									"dls": {
+										"value": "@string(pipeline().parameters.dls)",
+										"type": "Expression"
+									},
+									"table": {
+										"value": "@string(pipeline().parameters.table)",
+										"type": "Expression"
+									},
+									"adf": {
+										"value": "@string(pipeline().parameters.adf)",
+										"type": "Expression"
+									},
+									"user_parameters": {
+										"value": "@string(pipeline().parameters.user_parameters)",
+										"type": "Expression"
+									},
+									"tables": {
+										"value": "@string(pipeline().parameters.tables)",
+										"type": "Expression"
+									},
+									"file": {
+										"value": "@string(pipeline().parameters.file)",
+										"type": "Expression"
+									},
+									"file_parse": {
+										"value": "@string(pipeline().parameters.file_parse)",
+										"type": "Expression"
+									},
+									"vendor": {
+										"value": "@pipeline().parameters.vendor",
+										"type": "Expression"
+									},
+									"dir": {
+										"value": "@pipeline().parameters.dir",
+										"type": "Expression"
+									},
+									"env": {
+										"value": "@pipeline().parameters.env",
+										"type": "Expression"
+									},
+									"source_name": {
+										"value": "@pipeline().parameters.source_name",
+										"type": "Expression"
+									},
+									"source_type": {
+										"value": "@pipeline().parameters.source_type",
+										"type": "Expression"
+									},
+									"gov_table": {
+										"value": "@pipeline().parameters.gov_table",
+										"type": "Expression"
+									}
+								},
+								"libraries": [
+									{
+										"pypi": {
+											"package": "azure-storage-file-datalake==12.1.2"
+										}
+									},
+									{
+										"pypi": {
+											"package": "xlrd==1.2.0"
+										}
+									},
+									{
+										"egg": "dbfs:/libs/impl/raw_loader.egg"
+									},
+									{
+										"egg": "dbfs:/libs/impl/trs_loader.egg"
+									},
+									{
+										"egg": "dbfs:/libs/impl/crawler_functions.egg"
+									},
+									{
+										"egg": "dbfs:/libs/impl/cni_connector.egg"
+									},
+									{
+										"jar": "dbfs:/libs/impl/ojdbc8.jar"
+									},
+									{
+										"egg": "dbfs:/libs/impl/dq.egg"
+									}
+								]
+							},
+							"linkedServiceName": {
+								"referenceName": "cnibigdatabricks_job_cluster_prod",
+								"type": "LinkedServiceReference"
+							}
+						}
+					],
+					"ifTrueActivities": [
+						{
+							"name": "run_databricks_job_cluster_debug",
+							"description": "Instantiates a job cluster to run the debug job. Libraries are configured here.\n\nFor 'dls', ve verify if it's the case of uld files, where the dictionary in 'file' has a 'file' key. In the case false, it's a traditional load. \nWhen we've got valid keys in 'file_parse', then we've got uld_unigest, and we have to use the correspondent 'dls' definition for it. \n\n----",
+							"type": "DatabricksNotebook",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 60,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"notebookPath": {
+									"value": "@pipeline().parameters.databricks_notebook_path",
+									"type": "Expression"
+								},
+								"baseParameters": {
+									"dls": {
+										"value": "@if(contains(pipeline().parameters.file_parse, 'file_path'), string(pipeline().globalParameters.dls_uld_unigest_dev),\nif(contains(pipeline().parameters.file, 'file_folder'), string(pipeline().globalParameters.dls_uld_dev), string(pipeline().globalParameters.dls_dev)))",
+										"type": "Expression"
+									},
+									"table": {
+										"value": "@string(pipeline().parameters.table)",
+										"type": "Expression"
+									},
+									"adf": {
+										"value": "@string(pipeline().parameters.adf)",
+										"type": "Expression"
+									},
+									"user_parameters": {
+										"value": "@string(pipeline().parameters.user_parameters)",
+										"type": "Expression"
+									},
+									"tables": {
+										"value": "@string(pipeline().parameters.tables)",
+										"type": "Expression"
+									},
+									"file": {
+										"value": "@string(pipeline().parameters.file)",
+										"type": "Expression"
+									},
+									"file_parse": {
+										"value": "@string(pipeline().parameters.file_parse)",
+										"type": "Expression"
+									},
+									"vendor": {
+										"value": "@pipeline().parameters.vendor",
+										"type": "Expression"
+									},
+									"dir": {
+										"value": "@pipeline().parameters.dir",
+										"type": "Expression"
+									},
+									"env": {
+										"value": "@pipeline().parameters.env",
+										"type": "Expression"
+									},
+									"source_name": {
+										"value": "@pipeline().parameters.source_name",
+										"type": "Expression"
+									},
+									"source_type": {
+										"value": "@pipeline().parameters.source_type",
+										"type": "Expression"
+									},
+									"gov_table": {
+										"value": "@pipeline().parameters.gov_table",
+										"type": "Expression"
+									}
+								},
+								"libraries": [
+									{
+										"pypi": {
+											"package": "azure-storage-file-datalake==12.1.2"
+										}
+									},
+									{
+										"pypi": {
+											"package": "xlrd==1.2.0"
+										}
+									},
+									{
+										"egg": "dbfs:/libs/impl/raw_loader.egg"
+									},
+									{
+										"egg": "dbfs:/libs/impl/trs_loader.egg"
+									},
+									{
+										"egg": "dbfs:/libs/impl/crawler_functions.egg"
+									},
+									{
+										"egg": "dbfs:/libs/impl/cni_connector.egg"
+									},
+									{
+										"egg": "dbfs:/libs/impl/dq.egg"
+									}
+								]
+							},
+							"linkedServiceName": {
+								"referenceName": "cnibigdatabricks_job_cluster",
+								"type": "LinkedServiceReference"
+							}
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"databricks_notebook_path": {
+				"type": "string"
+			},
+			"adf": {
+				"type": "object"
+			},
+			"dls": {
+				"type": "object"
+			},
+			"table": {
+				"type": "string",
+				"defaultValue": "'{\"null\":\"null\"}'"
+			},
+			"user_parameters": {
+				"type": "object",
+				"defaultValue": {
+					"null": "null"
+				}
+			},
+			"tables": {
+				"type": "object",
+				"defaultValue": {
+					"null": "null"
+				}
+			},
+			"file": {
+				"type": "object",
+				"defaultValue": {
+					"null": "null"
+				}
+			},
+			"file_parse": {
+				"type": "object",
+				"defaultValue": {
+					"null": "null"
+				}
+			},
+			"vendor": {
+				"type": "string",
+				"defaultValue": "variavel carga gov"
+			},
+			"dir": {
+				"type": "string",
+				"defaultValue": "variavel carga gov"
+			},
+			"env": {
+				"type": "string",
+				"defaultValue": "variavel carga gov"
+			},
+			"source_name": {
+				"type": "string",
+				"defaultValue": "variavel carga gov"
+			},
+			"source_type": {
+				"type": "string",
+				"defaultValue": "variavel carga gov"
+			},
+			"gov_table": {
+				"type": "string",
+				"defaultValue": "variavel carga gov"
+			}
+		},
+		"folder": {
+			"name": "templates/common"
+		},
+		"annotations": [
+			"template",
+			"common"
+		]
+	}
+}

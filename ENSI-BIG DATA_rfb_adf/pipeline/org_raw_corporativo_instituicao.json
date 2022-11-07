@@ -1,0 +1,55 @@
+{
+	"name": "org_raw_corporativo_instituicao",
+	"properties": {
+		"description": "Will always be loaded as full.\n\n- For full load without partitioning use:\nParameter tables = [\"{'schema': 'CORPORATIVO', 'table':'INSTITUICAO','load_type':'full','partition_column':'null', 'columns': 'COD_INSTITUICAO,NOM_INSTITUICAO,PRINCIPAL_CONTATO,DES_INSTITUICAO,TIPO_INSTITUICAO,SIG_INSTITUICAO,NOM_FANTASIA,NOM_HOME_PAGE,NUM_CNPJ_RADICAL,NUM_CNPJ_FILIAL,NUM_CNPJ_DV,COD_INSTITUICAO_PAI,NOM_CARGO_PRINCIPAL_CONTATO,DAT_COMEMORATIVA,NUM_INSCRICAO_ESTADUAL,COD_CLASSIFICACAO_CNAE,IMG_LOGOMARCA,NUM_EMPREGADO,FL_ATIVAINATIVA'}\"]\n\nExecute pipeline = template_import_table_full\n\nATTENTION: Although this is specified as an object from SCAE, schema is CORPORATIVO",
+		"activities": [
+			{
+				"name": "raw_load_bdo_unified__0__switch_env",
+				"description": "Run template pipeline to import tables",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "raw_load_dbo_unified__0__switch_env",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"tables": {
+							"value": "@pipeline().parameters.tables",
+							"type": "Expression"
+						},
+						"adf": {
+							"value": "{'adf_factory_name': '@{pipeline().DataFactory}', 'adf_pipeline_name': '@{pipeline().Pipeline}', 'adf_pipeline_run_id': '@{pipeline().RunId}',  'adf_trigger_id': '@{pipeline().TriggerId}', 'adf_trigger_name': '@{pipeline().TriggerName}', 'adf_trigger_time': '@{pipeline().TriggerTime}',  'adf_trigger_type': '@{pipeline().TriggerType}'}",
+							"type": "Expression"
+						},
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"parameters": {
+			"tables": {
+				"type": "array",
+				"defaultValue": [
+					"{'schema': 'CORPORATIVO', 'table':'INSTITUICAO','load_type':'full','partition_column':'null', 'columns': 'COD_INSTITUICAO,NOM_INSTITUICAO,PRINCIPAL_CONTATO,DES_INSTITUICAO,TIPO_INSTITUICAO,SIG_INSTITUICAO,NOM_FANTASIA,NOM_HOME_PAGE,NUM_CNPJ_RADICAL,NUM_CNPJ_FILIAL,NUM_CNPJ_DV,COD_INSTITUICAO_PAI,NOM_CARGO_PRINCIPAL_CONTATO,DAT_COMEMORATIVA,NUM_INSCRICAO_ESTADUAL,COD_CLASSIFICACAO_CNAE,IMG_LOGOMARCA,NUM_EMPREGADO,FL_ATIVAINATIVA'}"
+				]
+			},
+			"env": {
+				"type": "object",
+				"defaultValue": {
+					"env": "dev"
+				}
+			}
+		},
+		"folder": {
+			"name": "raw/bdo/corporativo"
+		},
+		"annotations": []
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

@@ -1,0 +1,87 @@
+{
+	"name": "raw_load_dbo_unified__5__update_watermark_in_db",
+	"properties": {
+		"description": "Updates the watermark value in watermark Databse.",
+		"activities": [
+			{
+				"name": "update_watermark_row_for_table",
+				"description": "Calls the storage procedure that updates the control_column_value in SQLDW to upperbound value from activity '1_get_max_control_column_in_source_db'.\nIt will ensure that the next incremental load will get only the records from this value.\n\n",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "sqldw_healthy_check",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 2,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": {
+						"value": "@pipeline().parameters.watermark.procedures.update_watermark",
+						"type": "Expression"
+					},
+					"storedProcedureParameters": {
+						"ControlColumnValue": {
+							"value": {
+								"value": "@string(pipeline().parameters.increment.control_column.upperbound)",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"TableName": {
+							"value": {
+								"value": "dbo.@{toLower(pipeline().parameters.table.schema)}.@{toLower(pipeline().parameters.table.table)}",
+								"type": "Expression"
+							},
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "cnibigdatasqldw",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "sqldw_healthy_check",
+				"description": "Check if SQLDW is up and healthy in order to be able to write in watermark table used later in the pipeline. It prevents us to save data without refreshing the watermark table.",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "sqldw_healthy_check",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			}
+		],
+		"parameters": {
+			"watermark": {
+				"type": "object"
+			},
+			"increment": {
+				"type": "object"
+			},
+			"table": {
+				"type": "object"
+			}
+		},
+		"folder": {
+			"name": "templates/raw/bdo/raw_load_bdo_unified"
+		},
+		"annotations": [
+			"raw",
+			"template"
+		]
+	}
+}

@@ -1,0 +1,73 @@
+{
+	"name": "trs_biz_fta_metas_enem",
+	"properties": {
+		"activities": [
+			{
+				"name": "business__0__switch_env",
+				"description": "Calls business template \"template_business\".",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "business__0__switch_env",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						},
+						"table": {
+							"value": "@pipeline().parameters.tables",
+							"type": "Expression"
+						},
+						"adf": {
+							"value": "{'adf_factory_name': '@{pipeline().DataFactory}', 'adf_pipeline_name': '@{pipeline().Pipeline}', 'adf_pipeline_run_id': '@{pipeline().RunId}',  'adf_trigger_id': '@{pipeline().TriggerId}', 'adf_trigger_name': '@{pipeline().TriggerName}', 'adf_trigger_time': '@{pipeline().TriggerTime}',  'adf_trigger_type': '@{pipeline().TriggerType}'}",
+							"type": "Expression"
+						},
+						"user_parameters": {
+							"value": "@pipeline().parameters.user_parameters",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"parameters": {
+			"tables": {
+				"type": "object",
+				"defaultValue": {
+					"year": 2017,
+					"path_origin": "inep_enem/microdados_enem",
+					"path_base_school": "mtd/corp/base_escolas",
+					"path_classes": "inep_enem/turmas",
+					"path_classes_max_scores": "inep_enem/nota_maxima_turma",
+					"path_ramp": "inep_enem/parametros_rampa_projecao",
+					"path_destination": "uniepro/fta_base_metas_enem",
+					"destination": "/uniepro/fta_base_metas_enem",
+					"databricks": {
+						"notebook": "/biz/inep_enem/trs_biz_fta_metas_enem"
+					}
+				}
+			},
+			"user_parameters": {
+				"type": "object",
+				"defaultValue": {
+					"null": "null"
+				}
+			},
+			"env": {
+				"type": "object",
+				"defaultValue": {
+					"env": "prod"
+				}
+			}
+		},
+		"folder": {
+			"name": "biz/inep_enem"
+		},
+		"annotations": []
+	}
+}

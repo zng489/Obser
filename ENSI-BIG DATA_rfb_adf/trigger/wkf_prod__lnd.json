@@ -1,0 +1,45 @@
+{
+	"name": "wkf_prod__lnd",
+	"properties": {
+		"description": "Crawler execution",
+		"annotations": [],
+		"runtimeState": "Started",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "workflow_prod__lnd",
+					"type": "PipelineReference"
+				},
+				"parameters": {
+					"env": {
+						"env": "prod"
+					}
+				}
+			}
+		],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Week",
+				"interval": 1,
+				"startTime": "2021-01-11T12:00:00",
+				"timeZone": "E. South America Standard Time",
+				"schedule": {
+					"minutes": [
+						0
+					],
+					"hours": [
+						12
+					],
+					"weekDays": [
+						"Monday",
+						"Tuesday",
+						"Wednesday",
+						"Thursday",
+						"Friday"
+					]
+				}
+			}
+		}
+	}
+}

@@ -1,0 +1,59 @@
+{
+	"name": "org_raw_oba_rl_cargo_escolarid_unid_oba",
+	"properties": {
+		"description": "This is a very special load. This type of load gets a control column from another table and use it to perform incremental loads.\n\nLIMITATIONS: we'll consider only 1 (and no more than one) join between tables, with only 1 column in common that will be the control column of the load.\n\nATTENTION: when specifying the columns in the parameters, state just the ones that are NOT the control column neither the join column. Those columns will be automatically added on the load by the template. If you choose some type of join different than \"INNER\", know what you're doing. As we use the control column to filter values, \n\nWe will always run as incremental. In the first run, it will load the whole table and write the last record loaded in watermark table. The next time you load will be really incremental.\n\n- For incremental load use:\nParameter tables =[\"{'schema': 'OBA', 'table':'RL_CARGO_ESCOLARID_UNID_OBA', 'control_table':'UNIDADE_OBA', 'join_type':'INNER', 'join_column':'COD_OBA','load_type':'incremental_with_join','partition_column':'null','control_column':'DT_ATUALIZACAO','control_column_type_2_db':'datetime', 'control_column_default_value': '20150520000000', 'control_column_mask_value': 'DD/MM/YYYYHH24:MI:SSFF', 'columns': 'ID_TIPO_CARGO_OBA,ID_TIPO_ESCOLARIDADE,QT_CARGO_ESCOLARIDADE,ID_AREA_ATUACAO_RH,ID_DETALHAMENTO_NEGOCIO,ID_CARGO_ESCOLARIDADE_UNID_OBA,IND_EXCLUSAO'}\"]\n\n- If you want to load full, use:\n[\"{'schema': 'OBA', 'table':'RL_CARGO_ESCOLARID_UNID_OBA','load_type':'full','partition_column':'null','columns': 'COD_OBA,ID_TIPO_CARGO_OBA,ID_TIPO_ESCOLARIDADE,QT_CARGO_ESCOLARIDADE,ID_AREA_ATUACAO_RH,ID_DETALHAMENTO_NEGOCIO,ID_CARGO_ESCOLARIDADE_UNID_OBA,IND_EXCLUSAO'}\"]\n\nAs this object is really small, you can add: 'raw':{'coalesce': 1}",
+		"activities": [
+			{
+				"name": "raw_load_bdo_unified__0__switch_env",
+				"description": "Invokes the \"raw_load_bdo_unified\" implementation.",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "raw_load_dbo_unified__0__switch_env",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						},
+						"tables": {
+							"value": "@pipeline().parameters.tables",
+							"type": "Expression"
+						},
+						"adf": {
+							"value": "{'adf_factory_name': '@{pipeline().DataFactory}', 'adf_pipeline_name': '@{pipeline().Pipeline}', 'adf_pipeline_run_id': '@{pipeline().RunId}',  'adf_trigger_id': '@{pipeline().TriggerId}', 'adf_trigger_name': '@{pipeline().TriggerName}', 'adf_trigger_time': '@{pipeline().TriggerTime}',  'adf_trigger_type': '@{pipeline().TriggerType}'}",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"concurrency": 1,
+		"parameters": {
+			"tables": {
+				"type": "array",
+				"defaultValue": [
+					"{'schema': 'OBA', 'table':'RL_CARGO_ESCOLARID_UNID_OBA', 'control_table':'UNIDADE_OBA', 'join_type':'INNER', 'join_column':'COD_OBA','load_type':'incremental_with_join','partition_column':'null','control_column':'DT_ATUALIZACAO','control_column_type_2_db':'datetime', 'control_column_default_value': '20150520000000', 'control_column_mask_value': 'DD/MM/YYYYHH24:MI:SSFF', 'columns': 'ID_TIPO_CARGO_OBA,ID_TIPO_ESCOLARIDADE,QT_CARGO_ESCOLARIDADE,ID_AREA_ATUACAO_RH,ID_DETALHAMENTO_NEGOCIO,ID_CARGO_ESCOLARIDADE_UNID_OBA,IND_EXCLUSAO', 'raw':{'coalesce': 1}}"
+				]
+			},
+			"env": {
+				"type": "object",
+				"defaultValue": {
+					"env": "dev"
+				}
+			}
+		},
+		"folder": {
+			"name": "raw/bdo/oba"
+		},
+		"annotations": [
+			"raw",
+			"oba"
+		]
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

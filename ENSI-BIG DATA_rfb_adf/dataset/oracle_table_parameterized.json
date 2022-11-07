@@ -1,0 +1,23 @@
+{
+	"name": "oracle_table_parameterized",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "oracle_parameterized",
+			"type": "LinkedServiceReference",
+			"parameters": {
+				"DBHost": "@pipeline().parameters.db.host",
+				"DBPort": "@pipeline().parameters.db.port",
+				"DBServiceName": "@pipeline().parameters.db.service_name",
+				"DBUserName": "@pipeline().parameters.db.username",
+				"DBPasswordSecret": "@pipeline().parameters.db.secret"
+			}
+		},
+		"folder": {
+			"name": "parametrized"
+		},
+		"annotations": [],
+		"type": "OracleTable",
+		"schema": []
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

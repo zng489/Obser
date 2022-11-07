@@ -1,0 +1,756 @@
+{
+	"name": "control_column_checker__3__check_control_column__db_oracle",
+	"properties": {
+		"description": "Implements a control over the retrieved max value for the control column when loading raw tables in which origin are Oracle Databases.\n\nAvailable max(<control_column>) may not be, never, above the current date. If That is the case, then:\n\n1 - we use the now() timestamp for the load itself\n2 - we get the available max date in the source, which points to this future\n\nWe also check if there's null values on control_column. In case we have it, then we must log it too.\n\nThis implementation is Database specific since SQL may vary across DB vendors.",
+		"activities": [
+			{
+				"name": "1_for_each_table_check_control_column",
+				"description": "Iter tables. Nothing new. ",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "filter_if_incremental",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('filter_if_incremental').output.value",
+						"type": "Expression"
+					},
+					"batchCount": 3,
+					"activities": [
+						{
+							"name": "1_get_control_column_statistics",
+							"description": "In source db, executes a query for retrieving the maximum available value and the null count for the parameterized \"control_column\".\n\nAs this pipeline is responsible for processing datetime type and integer type that behaves like a datetime column (indicated by the parameter 'control_column_type_2_db'), this query transforms the control column to DATETIME AS INTEGER IN FORMAT YYYYMMDDHH24MISS and retrieves only dates before or equal than the CURRENT timestamp.  It prevents us to get data from a strange year that haven't already happened.\n\nWARNING 1: The Max value of the control columns MUST BE AN INTEGER because it will be used later for partitioning. Data Factory only accepts integer as partition lowerbound and upperbound.\nThe parameter \"control_column_default_value\" also must be a integer in format YYYYMMDDHH24MISS for the same reason.\n\nWARNING 2: The control column must be chosen in a way that we won't have any RETROACTIVE RECORDS, because we will save in watermark table the current day and it will be the lowerbound for the next load.\n\nWe had so many trouble with some string columns, so we decided to use REGEX and TRIM to ensure the we trim all the characters that aren't STRICTLY NUMBERS or elements of datetime such as \":\", \"/\", \"-\" and whitespace.",
+							"type": "Lookup",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "OracleSource",
+									"oracleReaderQuery": {
+										"value": "SELECT\n*\nFROM\n(\nSELECT\n-- Gets the maximum valid value for the control column\n    'max_valid_ctl_col' AS key,\n    MAX(\n        CAST(\n            TO_CHAR(\n                TO_TIMESTAMP(\n                    TRIM(\n                        REGEXP_REPLACE(@{json(item()).control_column}, '[^0-9:\\/\\s-]', '' \n                            )\n                        ), \n                    '@{json(item()).control_column_mask_value}'), 'YYYYMMDDHH24MISS'\n                ) AS INT\n            )\n        ) \n    AS value\n    FROM @{json(item()).schema}.@{json(item()).table}\n    WHERE \n    TO_TIMESTAMP(\n        TRIM(\n            REGEXP_REPLACE(\n                @{json(item()).control_column}, '[^0-9:\\/\\s-]', '' )\n            ), '@{json(item()).control_column_mask_value}'\n        )\n    <= CURRENT_TIMESTAMP\nUNION\n-- Gets the maximum value for the control column, even though it may be unvalid\nSELECT\n    'max_available_ctl_col' AS key,\n    MAX(\n        CAST(\n            TO_CHAR(\n                TO_TIMESTAMP(\n                    TRIM(\n                        REGEXP_REPLACE(@{json(item()).control_column}, '[^0-9:\\/\\s-]', '' \n                            )\n                        ), \n                    '@{json(item()).control_column_mask_value}'), 'YYYYMMDDHH24MISS'\n                ) AS INT\n            )\n        ) \n    AS value\n    FROM @{json(item()).schema}.@{json(item()).table}\nUNION\n-- Gets the cout of null values in control column\nSELECT\n    'count_nulls_in_ctl_col' as key,\n    COUNT(*) AS value\n    FROM @{json(item()).schema}.@{json(item()).table}\n    WHERE @{json(item()).control_column} IS NULL\n) query\nPIVOT(\n    SUM(value)\n    FOR key IN (\n        -- This will avoid bad closing of quotes\n        'max_valid_ctl_col' AS max_valid_ctl_col, \n        'max_available_ctl_col' AS max_available_ctl_col, \n        'count_nulls_in_ctl_col' AS count_nulls_in_ctl_col\n        )\n)",
+										"type": "Expression"
+									},
+									"partitionOption": "None",
+									"queryTimeout": "02:00:00"
+								},
+								"dataset": {
+									"referenceName": "oracle_table_parameterized",
+									"type": "DatasetReference"
+								},
+								"firstRowOnly": true
+							}
+						},
+						{
+							"name": "1_is_control_column_inconsistent",
+							"description": "Checks for these conditions:\n\n-  null values in the control_column\nOR\n\n- max_available_ctl_col > max_valid_ctl_col\n\nIf any is satisfied, then the event will be logged.",
+							"type": "IfCondition",
+							"dependsOn": [
+								{
+									"activity": "1_get_control_column_statistics",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"expression": {
+									"value": "@or(greater(activity('1_get_control_column_statistics').output.firstRow.count_nulls_in_ctl_col, 0), greater(activity('1_get_control_column_statistics').output.firstRow.max_available_ctl_col, activity('1_get_control_column_statistics').output.firstRow.max_valid_ctl_col))",
+									"type": "Expression"
+								},
+								"ifFalseActivities": [
+									{
+										"name": "1_control_column_is_ok",
+										"description": "If you are seeing this, you've reached the \"False\" branch of the if section for the control_column check. No inconsistencies found. You are good to proceed. ",
+										"type": "Wait",
+										"dependsOn": [],
+										"userProperties": [],
+										"typeProperties": {
+											"waitTimeInSeconds": 1
+										}
+									}
+								],
+								"ifTrueActivities": [
+									{
+										"name": "1_log_event_in_trace_table",
+										"description": "Writes on <a control table> the ocurrence of this data in the future. \n\nTO DO:\n- Procedure reference must be downstreammed in \"watermark\" parameter. Our structure is ready for it. \n- Apply the same thing for \"adf\"",
+										"type": "SqlServerStoredProcedure",
+										"dependsOn": [
+											{
+												"activity": "1_control_column_is_inconsistent",
+												"dependencyConditions": [
+													"Succeeded"
+												]
+											}
+										],
+										"policy": {
+											"timeout": "7.00:00:00",
+											"retry": 0,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"storedProcedureName": {
+												"value": "@pipeline().parameters.watermark.procedures.dq_check_control_column",
+												"type": "Expression"
+											},
+											"storedProcedureParameters": {
+												"adf_factory_name": {
+													"value": {
+														"value": "@pipeline().parameters.adf.adf_factory_name",
+														"type": "Expression"
+													},
+													"type": "String"
+												},
+												"adf_pipeline_name": {
+													"value": {
+														"value": "@pipeline().parameters.adf.adf_pipeline_name",
+														"type": "Expression"
+													},
+													"type": "String"
+												},
+												"adf_pipeline_run_id": {
+													"value": {
+														"value": "@pipeline().parameters.adf.adf_pipeline_run_id",
+														"type": "Expression"
+													},
+													"type": "String"
+												},
+												"adf_trigger_id": {
+													"value": {
+														"value": "@pipeline().parameters.adf.adf_trigger_id",
+														"type": "Expression"
+													},
+													"type": "String"
+												},
+												"adf_trigger_name": {
+													"value": {
+														"value": "@pipeline().parameters.adf.adf_trigger_name",
+														"type": "Expression"
+													},
+													"type": "String"
+												},
+												"adf_trigger_time": {
+													"value": {
+														"value": "@pipeline().parameters.adf.adf_trigger_time",
+														"type": "Expression"
+													},
+													"type": "DateTime"
+												},
+												"adf_trigger_type": {
+													"value": {
+														"value": "@pipeline().parameters.adf.adf_trigger_type",
+														"type": "Expression"
+													},
+													"type": "String"
+												},
+												"control_column": {
+													"value": {
+														"value": "@json(item()).control_column",
+														"type": "Expression"
+													},
+													"type": "String"
+												},
+												"count_nulls_in_control_column": {
+													"value": {
+														"value": "@activity('1_get_control_column_statistics').output.firstRow.count_nulls_in_ctl_col",
+														"type": "Expression"
+													},
+													"type": "Int64"
+												},
+												"db_host": {
+													"value": {
+														"value": "@pipeline().parameters.db.host",
+														"type": "Expression"
+													},
+													"type": "String"
+												},
+												"db_port": {
+													"value": {
+														"value": "@int(pipeline().parameters.db.port)",
+														"type": "Expression"
+													},
+													"type": "Int32"
+												},
+												"db_schema": {
+													"value": {
+														"value": "@json(item()).schema",
+														"type": "Expression"
+													},
+													"type": "String"
+												},
+												"db_service_name": {
+													"value": {
+														"value": "@pipeline().parameters.db.service_name",
+														"type": "Expression"
+													},
+													"type": "String"
+												},
+												"db_table": {
+													"value": {
+														"value": "@json(item()).table",
+														"type": "Expression"
+													},
+													"type": "String"
+												},
+												"db_vendor": {
+													"value": {
+														"value": "@pipeline().parameters.db.vendor",
+														"type": "Expression"
+													},
+													"type": "String"
+												},
+												"load_type": {
+													"value": {
+														"value": "@json(item()).load_type",
+														"type": "Expression"
+													},
+													"type": "String"
+												},
+												"max_available_control_column": {
+													"value": {
+														"value": "@activity('1_get_control_column_statistics').output.firstRow.max_available_ctl_col",
+														"type": "Expression"
+													},
+													"type": "Int64"
+												},
+												"max_valid_control_column": {
+													"value": {
+														"value": "@activity('1_get_control_column_statistics').output.firstRow.max_valid_ctl_col",
+														"type": "Expression"
+													},
+													"type": "Int64"
+												},
+												"partition_column": {
+													"value": {
+														"value": "@json(item()).partition_column",
+														"type": "Expression"
+													},
+													"type": "String"
+												}
+											}
+										},
+										"linkedServiceName": {
+											"referenceName": "cnibigdatasqldw",
+											"type": "LinkedServiceReference"
+										}
+									},
+									{
+										"name": "1_control_column_is_inconsistent",
+										"description": "This alerts that control column is inconsistent",
+										"type": "Wait",
+										"dependsOn": [],
+										"userProperties": [],
+										"typeProperties": {
+											"waitTimeInSeconds": 1
+										}
+									}
+								]
+							}
+						},
+						{
+							"name": "1_adf_insert_load_raw_max_control_column_copy1",
+							"description": "Calls the procedure that stores \"max_valid_ctl_col\" along with \"adf_pipeline_run_id\" in an external storage temporarily. This way it is possible to access this value again in another pipeline execution. \nFor large tables this query is way too expensive. This implementation will avoid it.",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "1_is_control_column_inconsistent",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 2,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": {
+									"value": "@pipeline().parameters.watermark.procedures.control_column_insert",
+									"type": "Expression"
+								},
+								"storedProcedureParameters": {
+									"adf_pipeline_run_id": {
+										"value": {
+											"value": "@pipeline().parameters.adf.adf_pipeline_run_id",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"adf_trigger_time": {
+										"value": {
+											"value": "@pipeline().parameters.adf.adf_trigger_time",
+											"type": "Expression"
+										},
+										"type": "DateTime"
+									},
+									"db_schema": {
+										"value": {
+											"value": "@json(item()).schema",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"db_table": {
+										"value": {
+											"value": "@json(item()).table",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"db_vendor": {
+										"value": {
+											"value": "@pipeline().parameters.db.vendor",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"max_valid_control_column": {
+										"value": {
+											"value": "@activity('1_get_control_column_statistics').output.firstRow.max_valid_ctl_col",
+											"type": "Expression"
+										},
+										"type": "Int64"
+									},
+									"max_available_control_column": {
+										"value": {
+											"value": "@activity('1_get_control_column_statistics').output.firstRow.max_available_ctl_col",
+											"type": "Expression"
+										},
+										"type": "Int64"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "cnibigdatasqldw",
+								"type": "LinkedServiceReference"
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "filter_if_incremental",
+				"description": "Checks if the load_type parameter is incremental.",
+				"type": "Filter",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@pipeline().parameters.tables",
+						"type": "Expression"
+					},
+					"condition": {
+						"value": "@equals(toLower(json(item()).load_type), 'incremental')",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "filter_if_incremental_with_join",
+				"description": "Checks if the load_type parameter is incremental_with_join.",
+				"type": "Filter",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@pipeline().parameters.tables",
+						"type": "Expression"
+					},
+					"condition": {
+						"value": "@equals(toLower(json(item()).load_type), 'incremental_with_join')",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "2_for_each_table_check_control_column",
+				"description": "Iter tables. Nothing new. ",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "filter_if_incremental_with_join",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('filter_if_incremental_with_join').output.value",
+						"type": "Expression"
+					},
+					"batchCount": 3,
+					"activities": [
+						{
+							"name": "2_get_control_column_statistics",
+							"description": "In source db, executes a query for retrieving the maximum available value and the null count for the parameterized \"control_column\".\n\nAs this pipeline is responsible for processing datetime type and integer type that behaves like a datetime column (indicated by the parameter 'control_column_type_2_db'), this query transforms the control column to DATETIME AS INTEGER IN FORMAT YYYYMMDDHH24MISS and retrieves only dates before or equal than the CURRENT timestamp.  It prevents us to get data from a strange year that haven't already happened.\n\nWARNING 1: The Max value of the control columns MUST BE AN INTEGER because it will be used later for partitioning. Data Factory only accepts integer as partition lowerbound and upperbound.\nThe parameter \"control_column_default_value\" also must be a integer in format YYYYMMDDHH24MISS for the same reason.\n\nWARNING 2: The control column must be chosen in a way that we won't have any RETROACTIVE RECORDS, because we will save in watermark table the current day and it will be the lowerbound for the next load.\n\nWe had so many trouble with some string columns, so we decided to use REGEX and TRIM to ensure the we trim all the characters that aren't STRICTLY NUMBERS or elements of datetime such as \":\", \"/\", \"-\" and whitespace.",
+							"type": "Lookup",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "OracleSource",
+									"oracleReaderQuery": {
+										"value": "SELECT\n*\nFROM\n(\nSELECT\n-- Gets the maximum valid value for the control column\n    'max_valid_ctl_col' AS key,\n    MAX(\n        CAST(\n            TO_CHAR(\n                TO_TIMESTAMP(\n                    TRIM(\n                        REGEXP_REPLACE(@{json(item()).control_column}, '[^0-9:\\/\\s-]', '' \n                            )\n                        ), \n                    '@{json(item()).control_column_mask_value}'), 'YYYYMMDDHH24MISS'\n                ) AS INT\n            )\n        ) \n    AS value\n    FROM @{json(item()).schema}.@{json(item()).control_table}\n    WHERE \n    TO_TIMESTAMP(\n        TRIM(\n            REGEXP_REPLACE(\n                @{json(item()).control_column}, '[^0-9:\\/\\s-]', '' )\n            ), '@{json(item()).control_column_mask_value}'\n        )\n    <= CURRENT_TIMESTAMP\nUNION\n-- Gets the maximum value for the control column, even though it may be unvalid\nSELECT\n    'max_available_ctl_col' AS key,\n    MAX(\n        CAST(\n            TO_CHAR(\n                TO_TIMESTAMP(\n                    TRIM(\n                        REGEXP_REPLACE(@{json(item()).control_column}, '[^0-9:\\/\\s-]', '' \n                            )\n                        ), \n                    '@{json(item()).control_column_mask_value}'), 'YYYYMMDDHH24MISS'\n                ) AS INT\n            )\n        ) \n    AS value\n    FROM @{json(item()).schema}.@{json(item()).control_table}\nUNION\n-- Gets the cout of null values in control column\nSELECT\n    'count_nulls_in_ctl_col' as key,\n    COUNT(*) AS value\n    FROM @{json(item()).schema}.@{json(item()).control_table}\n    WHERE @{json(item()).control_column} IS NULL\n) query\nPIVOT(\n    SUM(value)\n    FOR key IN (\n        -- This will avoid bad closing of quotes\n        'max_valid_ctl_col' AS max_valid_ctl_col, \n        'max_available_ctl_col' AS max_available_ctl_col, \n        'count_nulls_in_ctl_col' AS count_nulls_in_ctl_col\n        )\n)",
+										"type": "Expression"
+									},
+									"partitionOption": "None",
+									"queryTimeout": "02:00:00"
+								},
+								"dataset": {
+									"referenceName": "oracle_table_parameterized",
+									"type": "DatasetReference"
+								},
+								"firstRowOnly": true
+							}
+						},
+						{
+							"name": "2_is_control_column_inconsistent",
+							"description": "Checks for these conditions:\n\n-  null values in the control_column\nOR\n\n- max_available_ctl_col > max_valid_ctl_col\n\nIf any is satisfied, then the event will be logged.",
+							"type": "IfCondition",
+							"dependsOn": [
+								{
+									"activity": "2_get_control_column_statistics",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"expression": {
+									"value": "@or(greater(activity('2_get_control_column_statistics').output.firstRow.count_nulls_in_ctl_col, 0), greater(activity('2_get_control_column_statistics').output.firstRow.max_available_ctl_col, activity('2_get_control_column_statistics').output.firstRow.max_valid_ctl_col))",
+									"type": "Expression"
+								},
+								"ifFalseActivities": [
+									{
+										"name": "2_control_column_is_ok",
+										"description": "If you are seeing this, you've reached the \"False\" branch of the if section for the control_column check. No inconsistencies found. You are good to proceed. ",
+										"type": "Wait",
+										"dependsOn": [],
+										"userProperties": [],
+										"typeProperties": {
+											"waitTimeInSeconds": 1
+										}
+									}
+								],
+								"ifTrueActivities": [
+									{
+										"name": "2_log_event_in_trace_table",
+										"description": "Writes on <a control table> the ocurrence of this data in the future. \n\nTO DO:\n- Procedure reference must be downstreammed in \"watermark\" parameter. Our structure is ready for it. \n- Apply the same thing for \"adf\"",
+										"type": "SqlServerStoredProcedure",
+										"dependsOn": [
+											{
+												"activity": "2_control_column_is_inconsistent",
+												"dependencyConditions": [
+													"Succeeded"
+												]
+											}
+										],
+										"policy": {
+											"timeout": "7.00:00:00",
+											"retry": 0,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"storedProcedureName": {
+												"value": "@pipeline().parameters.watermark.procedures.dq_check_control_column",
+												"type": "Expression"
+											},
+											"storedProcedureParameters": {
+												"adf_factory_name": {
+													"value": {
+														"value": "@pipeline().parameters.adf.adf_factory_name",
+														"type": "Expression"
+													},
+													"type": "String"
+												},
+												"adf_pipeline_name": {
+													"value": {
+														"value": "@pipeline().parameters.adf.adf_pipeline_name",
+														"type": "Expression"
+													},
+													"type": "String"
+												},
+												"adf_pipeline_run_id": {
+													"value": {
+														"value": "@pipeline().parameters.adf.adf_pipeline_run_id",
+														"type": "Expression"
+													},
+													"type": "String"
+												},
+												"adf_trigger_id": {
+													"value": {
+														"value": "@pipeline().parameters.adf.adf_trigger_id",
+														"type": "Expression"
+													},
+													"type": "String"
+												},
+												"adf_trigger_name": {
+													"value": {
+														"value": "@pipeline().parameters.adf.adf_trigger_name",
+														"type": "Expression"
+													},
+													"type": "String"
+												},
+												"adf_trigger_time": {
+													"value": {
+														"value": "@pipeline().parameters.adf.adf_trigger_time",
+														"type": "Expression"
+													},
+													"type": "DateTime"
+												},
+												"adf_trigger_type": {
+													"value": {
+														"value": "@pipeline().parameters.adf.adf_trigger_type",
+														"type": "Expression"
+													},
+													"type": "String"
+												},
+												"control_column": {
+													"value": {
+														"value": "@json(item()).control_column",
+														"type": "Expression"
+													},
+													"type": "String"
+												},
+												"count_nulls_in_control_column": {
+													"value": {
+														"value": "@activity('2_get_control_column_statistics').output.firstRow.count_nulls_in_ctl_col",
+														"type": "Expression"
+													},
+													"type": "Int64"
+												},
+												"db_host": {
+													"value": {
+														"value": "@pipeline().parameters.db.host",
+														"type": "Expression"
+													},
+													"type": "String"
+												},
+												"db_port": {
+													"value": {
+														"value": "@int(pipeline().parameters.db.port)",
+														"type": "Expression"
+													},
+													"type": "Int32"
+												},
+												"db_schema": {
+													"value": {
+														"value": "@json(item()).schema",
+														"type": "Expression"
+													},
+													"type": "String"
+												},
+												"db_service_name": {
+													"value": {
+														"value": "@pipeline().parameters.db.service_name",
+														"type": "Expression"
+													},
+													"type": "String"
+												},
+												"db_table": {
+													"value": {
+														"value": "@json(item()).table",
+														"type": "Expression"
+													},
+													"type": "String"
+												},
+												"db_vendor": {
+													"value": {
+														"value": "@pipeline().parameters.db.vendor",
+														"type": "Expression"
+													},
+													"type": "String"
+												},
+												"load_type": {
+													"value": {
+														"value": "@json(item()).load_type",
+														"type": "Expression"
+													},
+													"type": "String"
+												},
+												"max_available_control_column": {
+													"value": {
+														"value": "@activity('2_get_control_column_statistics').output.firstRow.max_available_ctl_col",
+														"type": "Expression"
+													},
+													"type": "Int64"
+												},
+												"max_valid_control_column": {
+													"value": {
+														"value": "@activity('2_get_control_column_statistics').output.firstRow.max_valid_ctl_col",
+														"type": "Expression"
+													},
+													"type": "Int64"
+												},
+												"partition_column": {
+													"value": {
+														"value": "@json(item()).partition_column",
+														"type": "Expression"
+													},
+													"type": "String"
+												}
+											}
+										},
+										"linkedServiceName": {
+											"referenceName": "cnibigdatasqldw",
+											"type": "LinkedServiceReference"
+										}
+									},
+									{
+										"name": "2_control_column_is_inconsistent",
+										"description": "This alerts that control column is inconsistent",
+										"type": "Wait",
+										"dependsOn": [],
+										"userProperties": [],
+										"typeProperties": {
+											"waitTimeInSeconds": 1
+										}
+									}
+								]
+							}
+						},
+						{
+							"name": "2_adf_insert_load_raw_max_control_column_copy1",
+							"description": "Calls the procedure that stores \"max_valid_ctl_col\" along with \"adf_pipeline_run_id\" in an external storage temporarily. This way it is possible to access this value again in another pipeline execution. \nFor large tables this query is way too expensive. This implementation will avoid it.",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "2_is_control_column_inconsistent",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 2,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": {
+									"value": "@pipeline().parameters.watermark.procedures.control_column_insert",
+									"type": "Expression"
+								},
+								"storedProcedureParameters": {
+									"adf_pipeline_run_id": {
+										"value": {
+											"value": "@pipeline().parameters.adf.adf_pipeline_run_id",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"adf_trigger_time": {
+										"value": {
+											"value": "@pipeline().parameters.adf.adf_trigger_time",
+											"type": "Expression"
+										},
+										"type": "DateTime"
+									},
+									"db_schema": {
+										"value": {
+											"value": "@json(item()).schema",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"db_table": {
+										"value": {
+											"value": "@json(item()).table",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"db_vendor": {
+										"value": {
+											"value": "@pipeline().parameters.db.vendor",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"max_valid_control_column": {
+										"value": {
+											"value": "@activity('2_get_control_column_statistics').output.firstRow.max_valid_ctl_col",
+											"type": "Expression"
+										},
+										"type": "Int64"
+									},
+									"max_available_control_column": {
+										"value": {
+											"value": "@activity('2_get_control_column_statistics').output.firstRow.max_available_ctl_col",
+											"type": "Expression"
+										},
+										"type": "Int64"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "cnibigdatasqldw",
+								"type": "LinkedServiceReference"
+							}
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"db": {
+				"type": "object"
+			},
+			"tables": {
+				"type": "array"
+			},
+			"dls": {
+				"type": "object"
+			},
+			"watermark": {
+				"type": "object"
+			},
+			"adf": {
+				"type": "object"
+			},
+			"container": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "templates/raw/bdo/tools/control_column_checker"
+		},
+		"annotations": []
+	}
+}

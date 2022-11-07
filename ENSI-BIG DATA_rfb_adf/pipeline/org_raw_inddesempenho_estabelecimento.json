@@ -1,0 +1,60 @@
+{
+	"name": "org_raw_inddesempenho_estabelecimento",
+	"properties": {
+		"description": "The first incremental load it will actually be a full load of the table. This is controlled by the first watermark added in the Data Factory pipeline. Since there will be no records in raw, all records will be appended so far.\n\n- For incremental load with partitioning use:\nParameter tables = [\"{'schema': 'INDDESEMPENHO', 'table':'ESTABELECIMENTO','load_type':'incremental','partition_column':'DATAATUALIZACAO','partitions':5,'control_column':'DATAATUALIZACAO','control_column_type_2_db':'datetime', 'control_column_default_value': '19000101000000', 'control_column_mask_value': 'DD/MM/YYYY HH24:MI:SS', 'columns': 'ID,BAIRRO,CEI,CEP,CNPJ,CODCNAE,DDD,DESCRICAOCNAE,DESCRICAOPORTEEMPRESA,EMAIL,FAX,INDICAINDUSTRIACNAE,INDICAINDUSTRIAFPAS,INDICAOPTANTESIMPLES,INDICAORIGEM,LOGRADOURO,PORTEEMPRESA,QUANTIDADEEMPREGADOS,RAMAL,RAZAOSOCIAL,TELEFONE,UF,DATAATUALIZACAO'}\"]\n\nExecute pipeline = template_import_table_incremental\nYou can use \"DATAATUALIZACAO\" as a control column as well as a partition column because it has data in a daily basis.\n",
+		"activities": [
+			{
+				"name": "raw_load_bdo_unified__0__switch_env",
+				"description": "Invokes the \"raw_load_bdo_unified\" implementation.",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "raw_load_dbo_unified__0__switch_env",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						},
+						"tables": {
+							"value": "@pipeline().parameters.tables",
+							"type": "Expression"
+						},
+						"adf": {
+							"value": "{'adf_factory_name': '@{pipeline().DataFactory}', 'adf_pipeline_name': '@{pipeline().Pipeline}', 'adf_pipeline_run_id': '@{pipeline().RunId}',  'adf_trigger_id': '@{pipeline().TriggerId}', 'adf_trigger_name': '@{pipeline().TriggerName}', 'adf_trigger_time': '@{pipeline().TriggerTime}',  'adf_trigger_type': '@{pipeline().TriggerType}'}",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"concurrency": 1,
+		"parameters": {
+			"tables": {
+				"type": "array",
+				"defaultValue": [
+					"{'schema': 'INDDESEMPENHO', 'table':'ESTABELECIMENTO','load_type':'incremental','partition_column':'DATAATUALIZACAO','partitions':5,'control_column':'DATAATUALIZACAO','control_column_type_2_db':'datetime', 'control_column_default_value': '19000101000000', 'control_column_mask_value': 'DD/MM/YYYY HH24:MI:SS', 'columns': 'ID,BAIRRO,CEI,CEP,CNPJ,CODCNAE,DDD,DESCRICAOCNAE,DESCRICAOPORTEEMPRESA,EMAIL,FAX,INDICAINDUSTRIACNAE,INDICAINDUSTRIAFPAS,INDICAOPTANTESIMPLES,INDICAORIGEM,LOGRADOURO,PORTEEMPRESA,QUANTIDADEEMPREGADOS,RAMAL,RAZAOSOCIAL,TELEFONE,UF,DATAATUALIZACAO'}"
+				]
+			},
+			"env": {
+				"type": "object",
+				"defaultValue": {
+					"env": "dev"
+				}
+			}
+		},
+		"folder": {
+			"name": "raw/bdo/inddesempenho"
+		},
+		"annotations": [
+			"raw",
+			"inddesempenho",
+			"saude_seguranca"
+		]
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

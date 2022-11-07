@@ -1,0 +1,27 @@
+{
+	"name": "sqldw_static_for_queries_and_procedures",
+	"properties": {
+		"description": "Static connection for SQL DW. This uses the default query:\nselect uid from [dbo].[sysusers] where name = 'cnibigdatafactory'\nUse it when you have to use queries or procedures in SQLDW and don't need to mess the parameterized connection.",
+		"linkedServiceName": {
+			"referenceName": "cnibigdatasqldw",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "static"
+		},
+		"annotations": [],
+		"type": "AzureSqlDWTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": {
+				"value": "[dbo]",
+				"type": "Expression"
+			},
+			"table": {
+				"value": "[sysusers]",
+				"type": "Expression"
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

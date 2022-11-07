@@ -1,0 +1,58 @@
+{
+	"name": "shin__sqlserver_query",
+	"properties": {
+		"description": "uise this to query SQLServer DB to debug things related to partitons, rownums etc. \n\n",
+		"activities": [
+			{
+				"name": "lookup_query_db",
+				"description": "performs the query you define on settings",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "OracleSource",
+						"oracleReaderQuery": "select count(*) from inddesempenho.VW_LANC_EVENTO_VL_R_SSI",
+						"partitionOption": "None",
+						"queryTimeout": "02:00:00"
+					},
+					"dataset": {
+						"referenceName": "test_protheus11",
+						"type": "DatasetReference"
+					},
+					"firstRowOnly": true
+				}
+			}
+		],
+		"parameters": {
+			"db": {
+				"type": "object",
+				"defaultValue": {
+					"host": "ensi-data07-vip.sistema-cni.org.br",
+					"port": "1521",
+					"service_name": "ensi_rac.sistemacni.org.br",
+					"username": "usr_bigdata",
+					"vendor": "Oracle"
+				}
+			},
+			"table": {
+				"type": "object",
+				"defaultValue": {
+					"schema": "inddesempenho",
+					"table": "vw_lanc_evento_vl_r_ssi"
+				}
+			}
+		},
+		"folder": {
+			"name": "dev"
+		},
+		"annotations": []
+	}
+}

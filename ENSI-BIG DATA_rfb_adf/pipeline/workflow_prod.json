@@ -1,0 +1,775 @@
+{
+	"name": "workflow_prod",
+	"properties": {
+		"description": "Production workflow.\nAll raw dependencies must be executed according to the necessity of synchrony. That's why structure has layer declaration and waits in between.",
+		"activities": [
+			{
+				"name": "wkf_raw__educacao_senai",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_raw__master_data",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "wkf_raw__educacao_senai",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "wkf_trs__educacao_senai",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_raw__educacao_senai",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "wkf_raw__master_data",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "wkf_trs__educacao_senai",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "wkf_biz__educacao_senai",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_trs__educacao_senai",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "wkf_biz__educacao_senai",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "wkf_raw__master_data",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_raw__only_raw",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "wkf_raw__master_data",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "wkf_trs__master_data",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_raw__master_data",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "wkf_trs__master_data",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "wkf_biz__master_data",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_trs__master_data",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "wkf_biz__master_data",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "wkf_trs__sti_senai",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_raw__sti_senai",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "wkf_raw__master_data",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "wkf_trs__sti_senai",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "wkf_biz__sti_senai",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_trs__sti_senai",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "wkf_biz__sti_senai",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "wkf_raw__sti_senai",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_trs__educacao_senai",
+						"dependencyConditions": [
+							"Completed",
+							"Skipped"
+						]
+					},
+					{
+						"activity": "wkf_raw__master_data",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "wkf_raw__educacao_senai",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "wkf_raw__sti_senai",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "wkf__visao_financeira_sesi_senai",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_raw__only_raw",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "wkf__visao_financeira_sesi_senai",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "wkf__visao_finaceira_sesi_senai__failed",
+				"type": "AppendVariable",
+				"dependsOn": [
+					{
+						"activity": "wkf__visao_financeira_sesi_senai",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "execution_errors",
+					"value": "'wkf__visao_financeira_sesi_senai'"
+				}
+			},
+			{
+				"name": "wkf_trs__master_data__failed",
+				"type": "AppendVariable",
+				"dependsOn": [
+					{
+						"activity": "wkf_trs__master_data",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "execution_errors",
+					"value": "'wkf_trs__master_data'"
+				}
+			},
+			{
+				"name": "wkf_trs__educacao_senai__failed",
+				"type": "AppendVariable",
+				"dependsOn": [
+					{
+						"activity": "wkf_trs__educacao_senai",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "execution_errors",
+					"value": "'wkf_trs__educacao_senai'"
+				}
+			},
+			{
+				"name": "has_error_in_completed_conditions",
+				"description": "For all activities in which we evaluate \"completed\" condition, things can fail but still go on as everything was nice and smooth. To have real control over this, the vairable \"execution_errors\" is needed and now we have to check there are no real errors. \n\nIf any of the parents fail, this workflow will already fail, cause the logic clause is AND. Think about it. ",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "wkf_biz__sti_senai",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "wkf_biz__educacao_senai",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "wkf_biz__master_data",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "wkf_biz__saude_seguranca_sesi",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "wkf_biz__educacao_sesi",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "wkf__visao_financeira_sesi_senai",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@greater(length(variables('execution_errors')), 0)",
+						"type": "Expression"
+					},
+					"ifFalseActivities": [
+						{
+							"name": "workflow_success",
+							"description": "No errors in \"completed\" conditions found. ",
+							"type": "Wait",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"waitTimeInSeconds": 1
+							}
+						}
+					],
+					"ifTrueActivities": [
+						{
+							"name": "workflow_failed",
+							"description": "Using a webhook with a bad HTTP request, we can introduce errors in out pipelines when we need.\n\nYou've got errors in some \"completed\" condition.",
+							"type": "WebHook",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"url": "https://thisisthewaytosimuateanerrormyfriend.com/api",
+								"method": "POST",
+								"headers": {
+									"Content-Type": "application/json"
+								},
+								"body": {
+									"error": true
+								},
+								"timeout": "00:10:00"
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "wkf_trs__sti_senai__failed",
+				"type": "AppendVariable",
+				"dependsOn": [
+					{
+						"activity": "wkf_trs__sti_senai",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "execution_errors",
+					"value": "'wkf_trs__sti_senai'"
+				}
+			},
+			{
+				"name": "wkf_raw__saude_seguranca_sesi",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_raw__only_raw",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "wkf_raw__saude_seguranca_sesi",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "wkf_trs__saude_seguranca_sesi",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_raw__saude_seguranca_sesi",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "wkf_trs__saude_seguranca_sesi",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "wkf_biz__saude_seguranca_sesi",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_trs__saude_seguranca_sesi",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "wkf_biz__saude_seguranca_sesi",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "wkf_raw__educacao_sesi",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_raw__master_data",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "wkf_raw__educacao_sesi",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "wkf_trs__educacao_sesi",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_raw__educacao_sesi",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "wkf_trs__master_data",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "wkf_trs__educacao_sesi",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "wkf_biz__educacao_sesi",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_trs__educacao_sesi",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "wkf_biz__educacao_sesi",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "wkf_trs__saude_seguranca_sesi__failed",
+				"type": "AppendVariable",
+				"dependsOn": [
+					{
+						"activity": "wkf_trs__saude_seguranca_sesi",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "execution_errors",
+					"value": "'wkf_trs__saude_seguranca_sesi'"
+				}
+			},
+			{
+				"name": "wkf_raw__only_raw",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "wkf_raw__only_raw",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "wkf_trs__educacao_sesi__failed",
+				"type": "AppendVariable",
+				"dependsOn": [
+					{
+						"activity": "wkf_trs__educacao_sesi",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "execution_errors",
+					"value": "'wkf_trs__educacao_sesi'"
+				}
+			},
+			{
+				"name": "wkf_raw__master_data__failed",
+				"type": "AppendVariable",
+				"dependsOn": [
+					{
+						"activity": "wkf_raw__master_data",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "execution_errors",
+					"value": "'wkf_raw__master_data'"
+				}
+			},
+			{
+				"name": "wkf_raw__educacao_senai__failed",
+				"type": "AppendVariable",
+				"dependsOn": [
+					{
+						"activity": "wkf_raw__educacao_senai",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "execution_errors",
+					"value": "'wkf_raw__educacao_senai'"
+				}
+			},
+			{
+				"name": "wkf_raw__sti_senai__failed",
+				"type": "AppendVariable",
+				"dependsOn": [
+					{
+						"activity": "wkf_raw__sti_senai",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "execution_errors",
+					"value": "'wkf_raw__sti_senai'"
+				}
+			},
+			{
+				"name": "wkf_raw__saude_seguranca_sesi__failed",
+				"type": "AppendVariable",
+				"dependsOn": [
+					{
+						"activity": "wkf_raw__saude_seguranca_sesi",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "execution_errors",
+					"value": "'wkf_raw__saude_seguranca_sesi'"
+				}
+			},
+			{
+				"name": "wkf_raw__educacao_sesi__failed",
+				"type": "AppendVariable",
+				"dependsOn": [
+					{
+						"activity": "wkf_raw__educacao_sesi",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "execution_errors",
+					"value": "'wkf_raw__educacao_sesi'"
+				}
+			},
+			{
+				"name": "wkf_raw__only_raw_failed",
+				"type": "AppendVariable",
+				"dependsOn": [
+					{
+						"activity": "wkf_raw__only_raw",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "execution_errors",
+					"value": "'wkf_raw__only_raw'"
+				}
+			}
+		],
+		"concurrency": 1,
+		"parameters": {
+			"env": {
+				"type": "object",
+				"defaultValue": {
+					"env": "prod"
+				}
+			}
+		},
+		"variables": {
+			"execution_errors": {
+				"type": "Array",
+				"defaultValue": []
+			}
+		},
+		"folder": {
+			"name": "workflow"
+		},
+		"annotations": [
+			"workflow"
+		]
+	}
+}

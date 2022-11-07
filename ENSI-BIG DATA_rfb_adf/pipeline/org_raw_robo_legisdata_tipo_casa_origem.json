@@ -1,0 +1,58 @@
+{
+	"name": "org_raw_robo_legisdata_tipo_casa_origem",
+	"properties": {
+		"description": "Will always be loaded as full.\n\n- For full load use:\nParameter tables = [\"{'schema': 'BD_BASI', 'table':'ECT_PAIS','load_type':'full','partition_column':'null', 'columns': 'PAI_SG, PAI_SG_ALTERNATIVA, PAI_NO_PORTUGUES, PAI_NO_INGLES, PAI_NO_FRANCES, PAI_ABREVIATURA'}\"]\nExecute pipeline = template_import_table_full\n",
+		"activities": [
+			{
+				"name": "raw_load_bdo_unified__0__switch_env",
+				"description": "Run template pipeline to import tables",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "raw_load_dbo_unified__0__switch_env",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						},
+						"tables": {
+							"value": "@pipeline().parameters.tables",
+							"type": "Expression"
+						},
+						"adf": {
+							"value": "{'adf_factory_name': '@{pipeline().DataFactory}', 'adf_pipeline_name': '@{pipeline().Pipeline}', 'adf_pipeline_run_id': '@{pipeline().RunId}',  'adf_trigger_id': '@{pipeline().TriggerId}', 'adf_trigger_name': '@{pipeline().TriggerName}', 'adf_trigger_time': '@{pipeline().TriggerTime}',  'adf_trigger_type': '@{pipeline().TriggerType}'}",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"concurrency": 1,
+		"parameters": {
+			"tables": {
+				"type": "array",
+				"defaultValue": [
+					"{'schema':'ROBO_LEGISDATA','table':'TIPO_CASA_ORIGEM','load_type':'full', 'partition_column':'null', 'columns':'COD_TIPO_CASA_ORIGEM,NOM_CASA_ORIGEM,SIG_CASA_ORIGEM,DES_CASA_ORIGEM,OBS_CASA_ORIGEM,NUM_ORDEM,IND_EXIBICAO,IND_FILTRO1,IND_FILTRO2,IND_FILTRO3,IND_AGENDA_SEMANAL,NUM_ORDEM_AGENDA_SEMANAL,NOM_METODO_ATUALIZACAO,NOM_METODO_VERIFICAR,DAT_INICIO_ATUALIZACAO,DAT_FIM_ATUALIZACAO,NOM_METODO_NOVAS,IND_PAUTA_AUTOMATICA,IND_CODIGO_EXTERNO,IND_EXTERNO_OBRIGATORIO,IND_DINAMICO,SIG_UF,LOC_NU,IND_ESFERA,COD_ROTULO,NOM_METODO_TIPO_COMISSAO,NOM_METODO_COMISSAO,NUM_EXECUCOES,NUM_TEMPO_MEDIO,NUM_TOLERANCIA,NOM_METODO_TIPO_PROPOSICAO,IND_PODER'}"
+				]
+			},
+			"env": {
+				"type": "object",
+				"defaultValue": {
+					"env": "dev"
+				}
+			}
+		},
+		"folder": {
+			"name": "raw/bdo/robo_legisdata"
+		},
+		"annotations": [
+			"raw"
+		]
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

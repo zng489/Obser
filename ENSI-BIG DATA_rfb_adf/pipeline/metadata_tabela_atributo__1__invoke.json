@@ -1,0 +1,96 @@
+{
+	"name": "metadata_tabela_atributo__1__invoke",
+	"properties": {
+		"description": "Invoking Azure functionapp fot the implementation that loads info_tabela and info_atributo. ",
+		"activities": [
+			{
+				"name": "AppMetadata",
+				"description": "Invokes AppMetadata, for integration with Databricks and provides useful governance information. ",
+				"type": "AzureFunctionActivity",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"functionName": "AppMetadata",
+					"method": "POST",
+					"body": {
+						"value": "@json(pipeline().parameters.body)",
+						"type": "Expression"
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "cnibigdatafunctionappmtd",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "wait_15_minutes",
+				"description": "ADF has timeout of 230 seconds, no matter what you configure. With this, you wait 15 minutes, no matter why. Ou implementation for Function App is stable.",
+				"type": "Wait",
+				"dependsOn": [
+					{
+						"activity": "AppMetadata",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"waitTimeInSeconds": 1
+				}
+			},
+			{
+				"name": "AppDataQualityLabel",
+				"description": "AppDataQuality stores the SQL queries that calculates and stores labels for data quality of all objects in our data catalog.",
+				"type": "AzureFunctionActivity",
+				"dependsOn": [
+					{
+						"activity": "wait_15_minutes",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.00:06:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"functionName": "AppDataQualityLabel",
+					"method": "POST",
+					"body": {
+						"value": "@json(concat('{\"env\": \"', string(pipeline().parameters.env), '\"}'))",
+						"type": "Expression"
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "cnibigdatafunctionappmtd",
+					"type": "LinkedServiceReference"
+				}
+			}
+		],
+		"parameters": {
+			"body": {
+				"type": "string"
+			},
+			"env": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "metadata/tabela_atributo"
+		},
+		"annotations": []
+	}
+}

@@ -1,0 +1,78 @@
+{
+	"name": "trs_biz_fta_orcamento",
+	"properties": {
+		"description": "Run business for \"Orçamento SESI e SENAI\" from trusteds \"orcamento_nacional_realizado\" and \"entidade_regional\".\n\nTables:{\"fta_gestao_financeira\":{\"origins\":[\"/mtd/corp/entidade_regional\",\"/evt/orcamento_nacional_realizado\"],\"destination\":\"/orcamento/fta_orcamento\",\"databricks\":{\"notebook\":\"/biz/visao_financeira_sesi_senai/trs_biz_fta_orcamento\"}}}\n\nTakes user_params as closing date:\n{\"closing\":{\"year\":2020,\"month\":4,\"dt_closing\":\"2020-05-26\"}}",
+		"activities": [
+			{
+				"name": "fta_orcamento_business__0__switch_env",
+				"description": "Calls business template \"template_business\".",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "business__0__switch_env",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						},
+						"table": {
+							"value": "@pipeline().parameters.tables.fta_orcamento",
+							"type": "Expression"
+						},
+						"adf": {
+							"value": "{'adf_factory_name': '@{pipeline().DataFactory}', 'adf_pipeline_name': '@{pipeline().Pipeline}', 'adf_pipeline_run_id': '@{pipeline().RunId}',  'adf_trigger_id': '@{pipeline().TriggerId}', 'adf_trigger_name': '@{pipeline().TriggerName}', 'adf_trigger_time': '@{pipeline().TriggerTime}',  'adf_trigger_type': '@{pipeline().TriggerType}'}",
+							"type": "Expression"
+						},
+						"user_parameters": {
+							"value": "@pipeline().parameters.user_parameters",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"concurrency": 1,
+		"parameters": {
+			"tables": {
+				"type": "object",
+				"defaultValue": {
+					"fta_orcamento": {
+						"origins": [
+							"/mtd/corp/entidade_regional",
+							"/evt/orcamento_nacional_realizado"
+						],
+						"destination": "/orcamento/fta_orcamento",
+						"databricks": {
+							"notebook": "/biz/visao_financeira_sesi_senai/trs_biz_fta_orcamento"
+						}
+					}
+				}
+			},
+			"user_parameters": {
+				"type": "object",
+				"defaultValue": {
+					"null": "null"
+				}
+			},
+			"env": {
+				"type": "object",
+				"defaultValue": {
+					"env": "dev"
+				}
+			}
+		},
+		"folder": {
+			"name": "biz/visao_financeira_sesi_senai"
+		},
+		"annotations": [
+			"business",
+			"parameterized",
+			"closing date"
+		]
+	}
+}

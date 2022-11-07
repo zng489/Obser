@@ -1,0 +1,35 @@
+{
+	"name": "sqldw_parameterized",
+	"properties": {
+		"description": "Parameterized connection for SQL DW. Please  keep it generic. If any table is to be accessed, declare it as a parameter in your pipeline.\nDefined table is here just for testing. Later I'll make something more classy.",
+		"linkedServiceName": {
+			"referenceName": "cnibigdatasqldw",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"schema": {
+				"type": "string"
+			},
+			"table": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "parametrized"
+		},
+		"annotations": [],
+		"type": "AzureSqlDWTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": {
+				"value": "@dataset().schema",
+				"type": "Expression"
+			},
+			"table": {
+				"value": "@dataset().table",
+				"type": "Expression"
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

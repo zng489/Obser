@@ -1,0 +1,81 @@
+
+table = {
+  'schema': 'rfb_cno',
+  'table': 'cadastro_nacional_de_obras',
+  'PATHS':['cno/CNO.parquet','cno_areas/CNO_AREAS.parquet','cno_cnaes/CNO_CNAES.parquet','cno_totais/CNO_TOTAIS.parquet','cno_vinculos/CNO_VINCULOS.parquet'],
+  'prm_path': '/tmp/dev/prm/usr/rfb_cno/ONI2022_Painel_CNO_mapeamento_uni_raw.xlsx'
+}
+
+
+adf = {
+  "adf_factory_name": "cnibigdatafactory",
+  "adf_pipeline_name": "org_raw_rfb_cno",
+  "adf_pipeline_run_id": "60ee3485-4a56-4ad1-99ae-666666666",
+  "adf_trigger_id": "62bee9e9-acbb-49cc-80f2-666666666",
+  "adf_trigger_name": "62bee9e9-acbb-49cc-80f2-66666666",
+  "adf_trigger_time": datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
+  "adf_trigger_type": "PipelineActivity"
+}
+
+
+dls = {"folders":{"landing":"/tmp/dev/lnd", "error":"/tmp/dev/err/", "staging":"/tmp/dev/stg/", "log":"/tmp/dev/log/", "raw":"/tmp/dev/raw"}}
+
+
+
+
+
+
+
+
+table = {
+  'schema': 'rfb_cno',
+  'table': 'cadastro_nacional_de_obras',
+  #'table': 'cno',
+  #'partition_column_raw': 'NU_ANO_CENSO',
+  'prm_path': '/tmp/dev/prm/usr/rfb_cno/ONI2022_Painel_CNO_mapeamento_uni_trs.xlsx'
+}
+
+
+
+adf = {
+  "adf_factory_name": "cnibigdatafactory",
+  "adf_pipeline_name": "org_raw_rfb_cno",
+  "adf_pipeline_run_id": "60ee3485-4a56-4ad1-99ae-666666666",
+  "adf_trigger_id": "62bee9e9-acbb-49cc-80f2-666666666",
+  "adf_trigger_name": "62bee9e9-acbb-49cc-80f2-66666666",
+  "adf_trigger_time": datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
+  "adf_trigger_type": "PipelineActivity"
+}
+
+dls = {"folders":{"landing":"/tmp/dev/lnd", "error":"/tmp/dev/err/", "staging":"/tmp/dev/stg/", "log":"/tmp/dev/log/", "raw":"/tmp/dev/raw", "trusted":"/tmp/dev/trs" , "business":"/tmp/dev/biz", "prm_path":'/tmp/dev/prm/usr/rfb_cno/ONI2022_Painel_CNO_mapeamento_uni_trs.xlsx'}}
+
+
+
+
+
+
+
+
+
+
+
+
+tables = {"path_origin":"rfb_cno_cadastro_nacional_de_obras/","path_destination":"fta_rfb_cno_cadastro_nacional_de_obras","destination":"/rfb_cno_cadastro_nacional_de_obras","databricks":{"notebook":"/biz/rfb_cno_cadastro_nacional_de_obras/biz_biz_rfb_cno"}}
+
+
+
+adf = {
+  "adf_factory_name": "cnibigdatafactory",
+  "adf_pipeline_name": "org_raw_rfb_cno",
+  "adf_pipeline_run_id": "60ee3485-4a56-4ad1-99ae-666666666",
+  "adf_trigger_id": "62bee9e9-acbb-49cc-80f2-666666666",
+  "adf_trigger_name": "62bee9e9-acbb-49cc-80f2-66666666",
+  "adf_trigger_time": datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
+  "adf_trigger_type": "PipelineActivity"
+}
+
+
+
+
+
+dls = {"folders":{"landing":"/tmp/dev/lnd", "error":"/tmp/dev/err/", "staging":"/tmp/dev/stg/", "log":"/tmp/dev/log/", "raw":"/tmp/dev/raw", "trusted":"/tmp/dev/trs" , "business":"/tmp/dev/biz"}}

@@ -1,0 +1,57 @@
+{
+	"name": "send_csv_email",
+	"properties": {
+		"activities": [
+			{
+				"name": "If Condition1",
+				"type": "IfCondition",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@equals(pipeline().parameters.path,0)",
+						"type": "Expression"
+					},
+					"ifFalseActivities": [
+						{
+							"name": "call_logic_app",
+							"type": "WebActivity",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"url": "https://prod-10.eastus2.logic.azure.com:443/workflows/7943e0efb37b4a7aaf302dbcec0bc183/triggers/manual/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=Z4Glg_90dKj1mcqn3T-7VrLzesKM2_MOpwdp4B0udwU",
+								"method": "POST",
+								"body": {
+									"value": "{\n\t\"catalog_table\": \"@{pipeline().parameters.catalog_table}\",\n\t\"env\": \"@{pipeline().parameters.env}\",\n\t\"path\": \"@{pipeline().parameters.path}\"\n}",
+									"type": "Expression"
+								}
+							}
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"catalog_table": {
+				"type": "string"
+			},
+			"env": {
+				"type": "string"
+			},
+			"path": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "gov/csv_template"
+		},
+		"annotations": []
+	}
+}

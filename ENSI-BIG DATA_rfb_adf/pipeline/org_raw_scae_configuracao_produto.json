@@ -1,0 +1,58 @@
+{
+	"name": "org_raw_scae_configuracao_produto",
+	"properties": {
+		"description": "Will always be loaded as full.\n\n- For full load without partitioning use:\nParameter tables = [\"{'schema': 'SCAE', 'table':'CONFIGURACAO_PRODUTO','load_type':'full','partition_column':'null', 'columns': 'COD_CONFIG_PRODUTO,COD_PESSOA,IND_CPF,IND_EMAIL,IND_NIT,IND_EBEP,IND_VIRAVIDA,IND_TEMPO_INTEGRAL,IND_NIVEL_ESCOLARIDADE,NUM_FAIXA_ETARIA_INICIO,NUM_FAIXA_ETARIA_FIM,NUM_IDADE_MINIMA,IND_FOMENTO,COD_SERIE,IND_PARTICIPANTE,COD_PRODUTO_SERVICO,IND_CARGA_HORARIA,COD_PRODUTO_MODALIDADE,IND_CONVENIO,IND_ENDERECO,IND_FLEX_FAIXA_ETARIA,IND_TIPO_ACAO_EDUCATIVA,IND_CAPTURA_PESSOA_FISICA,IND_ACAO_EDUCATIVA,IND_CELULAR,IND_HORAS_RECON_SABERES,IND_HORAS_DESTINADAS'}\"]\nExecute pipeline = template_import_table_full\n\nAs this object is really small, you can add: 'raw':{'coalesce': 1}",
+		"activities": [
+			{
+				"name": "raw_load_bdo_unified__0__switch_env",
+				"description": "Run template pipeline to import tables",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "raw_load_dbo_unified__0__switch_env",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"tables": {
+							"value": "@pipeline().parameters.tables",
+							"type": "Expression"
+						},
+						"adf": {
+							"value": "{'adf_factory_name': '@{pipeline().DataFactory}', 'adf_pipeline_name': '@{pipeline().Pipeline}', 'adf_pipeline_run_id': '@{pipeline().RunId}',  'adf_trigger_id': '@{pipeline().TriggerId}', 'adf_trigger_name': '@{pipeline().TriggerName}', 'adf_trigger_time': '@{pipeline().TriggerTime}',  'adf_trigger_type': '@{pipeline().TriggerType}'}",
+							"type": "Expression"
+						},
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"concurrency": 1,
+		"parameters": {
+			"tables": {
+				"type": "array",
+				"defaultValue": [
+					"{'schema': 'SCAE', 'table':'CONFIGURACAO_PRODUTO','load_type':'full','partition_column':'null', 'columns': 'COD_CONFIG_PRODUTO,COD_PESSOA,IND_CPF,IND_EMAIL,IND_NIT,IND_EBEP,IND_VIRAVIDA,IND_TEMPO_INTEGRAL,IND_NIVEL_ESCOLARIDADE,NUM_FAIXA_ETARIA_INICIO,NUM_FAIXA_ETARIA_FIM,NUM_IDADE_MINIMA,IND_FOMENTO,COD_SERIE,IND_PARTICIPANTE,COD_PRODUTO_SERVICO,IND_CARGA_HORARIA,COD_PRODUTO_MODALIDADE,IND_CONVENIO,IND_ENDERECO,IND_FLEX_FAIXA_ETARIA,IND_TIPO_ACAO_EDUCATIVA,IND_CAPTURA_PESSOA_FISICA,IND_ACAO_EDUCATIVA,IND_CELULAR,IND_HORAS_RECON_SABERES,IND_HORAS_DESTINADAS','raw':{'coalesce': 1}}"
+				]
+			},
+			"env": {
+				"type": "object",
+				"defaultValue": {
+					"env": "dev"
+				}
+			}
+		},
+		"folder": {
+			"name": "raw/bdo/scae"
+		},
+		"annotations": [
+			"raw"
+		]
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

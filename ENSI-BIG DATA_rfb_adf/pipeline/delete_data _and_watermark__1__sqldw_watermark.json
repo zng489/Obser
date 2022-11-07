@@ -1,0 +1,169 @@
+{
+	"name": "delete_data _and_watermark__1__sqldw_watermark",
+	"properties": {
+		"description": "Deletes the watermark in SQLDW.\n\nParameters:\n\n- watermark: {\"schema\": \"test\", \"table\": \"test\"}\n\n- env: {\"env\": \"dev\"}",
+		"activities": [
+			{
+				"name": "switch_env_parameters",
+				"description": "Checks the parameter in \"env\" variable to decide which parameters and connections to use. This will avoid having to declare these parameters, cause they are going to be set based on this switch:\n    dbs, watermark and dls. \n\nDatabase connection definitions will be set based on 'env' definition. This will allow future implementation of 'dev', 'prod' and other environments to point to distinct databases.",
+				"type": "Switch",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"on": {
+						"value": "@toLower(pipeline().parameters.env.env)",
+						"type": "Expression"
+					},
+					"cases": [
+						{
+							"value": "dev",
+							"activities": [
+								{
+									"name": "set_sqldw_databse__dev",
+									"description": "Sets the correct database in sqldw to perform the operation. ",
+									"type": "SetVariable",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"variableName": "sqldw_database",
+										"value": "dev"
+									}
+								}
+							]
+						},
+						{
+							"value": "prod",
+							"activities": [
+								{
+									"name": "set_sqldw_databse__dev_prod",
+									"description": "Sets the correct database in sqldw to perform the operation. ",
+									"type": "SetVariable",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"variableName": "sqldw_database",
+										"value": "dbo"
+									}
+								}
+							]
+						}
+					],
+					"defaultActivities": [
+						{
+							"name": "unsupported_environment",
+							"description": "The declared environment is not a valid one.",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "error_implementation",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "set_table_name",
+				"description": "Concatenates the the pieces to set the correct table_name",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "switch_env_parameters",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "watermark_table_name",
+					"value": {
+						"value": "@toLower(concat(variables('prefix_watermark_tables'), '.', pipeline().parameters.watermark.schema, '.', pipeline().parameters.watermark.table))",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "query_delete_watermark",
+				"description": "Deletes the watermark",
+				"type": "Lookup",
+				"dependsOn": [
+					{
+						"activity": "set_table_name",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": {
+							"value": "DELETE FROM [@{variables('sqldw_database')}].[@{variables('sqldw_watermark')}] WHERE table_name = '@{variables('watermark_table_name')}';\nSELECT 1 AS one;",
+							"type": "Expression"
+						},
+						"queryTimeout": "00:02:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "sqldw_parameterized",
+						"type": "DatasetReference",
+						"parameters": {
+							"schema": "Inexisting_schema",
+							"table": "Inexisting_table"
+						}
+					},
+					"firstRowOnly": false
+				}
+			}
+		],
+		"parameters": {
+			"env": {
+				"type": "object",
+				"defaultValue": {
+					"env": "dev"
+				}
+			},
+			"watermark": {
+				"type": "object"
+			}
+		},
+		"variables": {
+			"sqldw_database": {
+				"type": "String",
+				"defaultValue": "dev"
+			},
+			"prefix_watermark_tables": {
+				"type": "String",
+				"defaultValue": "dbo"
+			},
+			"watermark_table_name": {
+				"type": "String"
+			},
+			"sqldw_watermark": {
+				"type": "String",
+				"defaultValue": "data_factory_watermark"
+			}
+		},
+		"folder": {
+			"name": "templates/common/delete_data_and_watermark"
+		},
+		"annotations": [
+			"delete",
+			"template",
+			"common"
+		]
+	}
+}

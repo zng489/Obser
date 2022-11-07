@@ -1,0 +1,41 @@
+{
+	"name": "metadata_profiler__0__wrapper",
+	"properties": {
+		"description": "This  implementation aims only to make it possible to parse the whole object as json to a lower level. ADF restrictions",
+		"activities": [
+			{
+				"name": "metadata_profiler__1__invoke",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "metadata_profiler__1__invoke",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"body": {
+							"value": "{'adf': {'adf_factory_name': '@{pipeline().DataFactory}', 'adf_pipeline_name': '@{pipeline().Pipeline}', 'adf_pipeline_run_id': '@{pipeline().RunId}',  'adf_trigger_id': '@{pipeline().TriggerId}', 'adf_trigger_name': '@{pipeline().TriggerName}', 'adf_trigger_time': '@{pipeline().TriggerTime}',  'adf_trigger_type': '@{pipeline().TriggerType}'}, 'table': '@{pipeline().parameters.table}','env': '@{pipeline().parameters.env}'}",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"parameters": {
+			"table": {
+				"type": "string",
+				"defaultValue": "/raw/bdo/bd_basi/tb_centro_responsabilidade"
+			},
+			"env": {
+				"type": "string",
+				"defaultValue": "prod"
+			}
+		},
+		"folder": {
+			"name": "metadata/profiler"
+		},
+		"annotations": []
+	}
+}

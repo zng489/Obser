@@ -1,0 +1,37 @@
+{
+	"name": "gov_wkf",
+	"properties": {
+		"description": "Trigger para execução completa das pipelines de governança",
+		"annotations": [],
+		"runtimeState": "Started",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "wkf_gov",
+					"type": "PipelineReference"
+				},
+				"parameters": {
+					"env": "prod"
+				}
+			}
+		],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Week",
+				"interval": 1,
+				"startTime": "2021-01-26T10:00:00",
+				"timeZone": "E. South America Standard Time",
+				"schedule": {
+					"weekDays": [
+						"Monday",
+						"Tuesday",
+						"Wednesday",
+						"Thursday",
+						"Friday"
+					]
+				}
+			}
+		}
+	}
+}

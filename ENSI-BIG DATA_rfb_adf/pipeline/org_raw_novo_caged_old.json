@@ -1,0 +1,70 @@
+{
+	"name": "org_raw_novo_caged_old",
+	"properties": {
+		"description": "This pipeline loads data from crawler, there's no partitioning and it reads from 'lnd'\n\nParameters for DEV are:\n\ntables = [\"{'schema': 'inep_censo_escolar__curso_educacao_profissional','table': 'curso_educacao_profissional'}\"]\n\ndls = {\"folders\":{\"landing\":\"/tmp/dev/lnd\",\"error\":\"/tmp/lnd/err\",\"staging\":\"/tmp/dev/stg\",\"log\":\"/tmp/dev/log\",\"raw\":\"/tmp/dev/raw\",\"archive\":\"/tmp/dev/ach\"}}\n\nwatermark ={\"raw\":{\"notebook\":{\"folder\":\"/KEYRUS/dev/raw/crw/inep_censo_escolar\",\"file\":\"org_raw_censo_educacao_profissional\"}}}\n",
+		"activities": [
+			{
+				"name": "import_crw__0__switch_env",
+				"description": "",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "import_crw__0__switch_env",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						},
+						"adf": {
+							"value": "{'adf_factory_name': '@{pipeline().DataFactory}', 'adf_pipeline_name': '@{pipeline().Pipeline}', 'adf_pipeline_run_id': '@{pipeline().RunId}',  'adf_trigger_id': '@{pipeline().TriggerId}', 'adf_trigger_name': '@{pipeline().TriggerName}', 'adf_trigger_time': '@{pipeline().TriggerTime}',  'adf_trigger_type': '@{pipeline().TriggerType}'}",
+							"type": "Expression"
+						},
+						"tables": {
+							"value": "@pipeline().parameters.tables",
+							"type": "Expression"
+						},
+						"databricks": {
+							"value": "@pipeline().parameters.databricks",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"parameters": {
+			"tables": {
+				"type": "object",
+				"defaultValue": {
+					"schema": "me",
+					"table": "novo_caged",
+					"prm_path": "/prm/usr/me/FIEC_me_novo_caged_mapeamento_unificado_raw.xlsx"
+				}
+			},
+			"databricks": {
+				"type": "object",
+				"defaultValue": {
+					"notebook": "/me/org_raw_me_novo_caged"
+				}
+			},
+			"env": {
+				"type": "object",
+				"defaultValue": {
+					"env": "dev"
+				}
+			},
+			"ach_tables": {
+				"type": "string",
+				"defaultValue": "{'schema':'me','table':'novo_caged'}"
+			}
+		},
+		"folder": {
+			"name": "raw/crw/me"
+		},
+		"annotations": []
+	}
+}

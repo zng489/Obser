@@ -1,0 +1,59 @@
+{
+	"name": "org_raw_mssqlservertest__load_incremental_partitioned_eq_int",
+	"properties": {
+		"description": "Test for loading an incremental table with control column int, partitioned and with partition column = control_column",
+		"activities": [
+			{
+				"name": "raw_load_bdo_unified__0__switch_env",
+				"description": "Run template pipeline to import tables",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "raw_load_dbo_unified__0__switch_env",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						},
+						"tables": {
+							"value": "@pipeline().parameters.tables",
+							"type": "Expression"
+						},
+						"adf": {
+							"value": "{'adf_factory_name': '@{pipeline().DataFactory}', 'adf_pipeline_name': '@{pipeline().Pipeline}', 'adf_pipeline_run_id': '@{pipeline().RunId}',  'adf_trigger_id': '@{pipeline().TriggerId}', 'adf_trigger_name': '@{pipeline().TriggerName}', 'adf_trigger_time': '@{pipeline().TriggerTime}',  'adf_trigger_type': '@{pipeline().TriggerType}'}",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"concurrency": 1,
+		"parameters": {
+			"tables": {
+				"type": "array",
+				"defaultValue": [
+					"{'schema': 'mssqlservertest', 'table':'incremental_partitioned_int','load_type':'incremental','partition_column':'pk', 'partitions': 2, 'control_column':'pk', 'control_column_type_2_db':'int', 'control_column_default_value': '0', 'control_column_mask_value': 'null', 'columns': 'pk,value','raw':{'coalesce': 1}}"
+				]
+			},
+			"env": {
+				"type": "object",
+				"defaultValue": {
+					"env": "dev"
+				}
+			}
+		},
+		"folder": {
+			"name": "test/raw/mssqlserver"
+		},
+		"annotations": [
+			"test",
+			"raw",
+			"sqlserver"
+		]
+	}
+}

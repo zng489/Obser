@@ -1,0 +1,52 @@
+{
+	"name": "query_table",
+	"properties": {
+		"description": "This is a simple implementation of a lookup query. \n\nDB is the required param. All the other params are decalred explicitly in the query itself. ",
+		"activities": [
+			{
+				"name": "query",
+				"description": "This is the query itself. Source is \"oracle_parameterized\". You have to declare \"db\" dict as pipeline param. ",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureMySqlSource",
+						"query": "\n\n\nselect MONTH(FROM_UNIXTIME(t1.group_close_date)) inscricao, t3.c_performance_score score, \nfrom_unixtime(t3.c_performance_date) data_final_aluno,\nt5.field_3 lista, t5.field_44, th2.group_name UF, t5.field_46, t5.field_48,\nt4.user_gender sexo, t4.user_birthdate Nascimento, tx3.atividade atividade, t1.group_name Nome_curso, MONTH(FROM_UNIXTIME(t2.addition_time)) inscricao_data, FROM_UNIXTIME(t2.addition_time) data_matricula, FROM_UNIXTIME(t1.group_close_date) data_termino, t4.user_id\n, cast(ge.field_1 as signed) carga_horaria \n, ge.field_11 Carga_horaria2, concat(ifnull(cast(ge.field_1 as char), ''),' ',ifnull(cast(ge.field_11 as char), '')) as Carga_horaria3\n from groups t1, users t4, users_extended t5, classifications t6, \n users_in_groups t2 \n left outer join groups_extended ge\n on ge.e_group_id = t2.group_id\n left outer join\n course_performances t3\n on\n t2.group_id = t3.group_id\nand t2.user_id = t3.user_id\n left outer join \n (\n select tz3.user_id, tz2.group_name\n from groups_in_groups tz1, groups tz2, users_in_groups tz3\nwhere tz1.parent_id =717\nand tz1.group_id = tz2.group_id\nand tz2.group_id = tz3.group_id\nUNION ALL\nselect tr3.user_id, tr2.group_name  from \nusers_in_groups tr3, groups tr2\nwhere tr2.group_id = tr3.group_id\nand tr2.group_id in (377, 260, 578)\n\n) th2\non t2.user_id = th2.user_id\n left outer join \n (\n select  tx2.user_id user_id, tx2.group_id group_id, round(tx2.quantidade * 100 / tx1.quantidade) atividade\nfrom (select group_id group_id, count(*) quantidade from assignments_in_groups\ngroup by group_id) tx1,\n(select t1.user_id user_id, t2.group_id group_id, count(*) quantidade\n from assignments_status t1, \nassignments_in_groups t2\nwhere t1.assignment_id = t2.assignment_id\nand t1.completed = 1\ngroup by t1.user_id, t2.group_id\n)tx2\nwhere tx1.group_id = tx2.group_id\n ) tx3\n on t2.user_id = tx3.user_id\n and t2.group_id = tx3.group_id\nwhere t1.classification_id = t6.classification_id\nand t4.user_id = 106158\nand t1.group_name = 'PT 2132- DETERMINACAO DE CLORO E SUAS FRACOES | PT 2167 DETERMINACAO DA APARENCIA VERSAO 2.0 | PT 2170 DETERMINACAO DA TRANSPARENCIA VERSAO 1.0| PT 2112 AMOSTRAGEM DE AGUA EFLUENTES ETD - MG (T1/22)'\n\nand t6.classification_name in (\n'GESTÃO E MERCADO',\n'FORMAÇÃO CONTINUADA DE DOCENTES E INSTRUTORES',\n'SAÚDE E SEGURANÇA NA INDÚSTRIA',\n'ATUALIZAÇÃO TECNOLÓGICA',\n'INOVAÇÃO E SERVIÇOS TECNOLÓGICOS',\n'LIDERANÇA'\n)\nand t1.group_id = t2.group_id\nand t1.group_name like '%21)%'\nand t2.user_id = t4.user_id\nand t4.user_id = t5.e_user_id\n\nUNION ALL\n\nselect MONTH(FROM_UNIXTIME(t1.group_close_date)) inscricao, t3.c_performance_score score, \nfrom_unixtime(t3.c_performance_date) data_final_aluno,\nt5.field_3 lista, t5.field_44, th2.group_name UF, t5.field_46, t5.field_48,\nt4.user_gender sexo, t4.user_birthdate Nascimento, tx3.atividade atividade, t1.group_name Nome_curso, MONTH(FROM_UNIXTIME(t2.addition_time)) inscricao_data, FROM_UNIXTIME(t2.addition_time) data_matricula, FROM_UNIXTIME(t1.group_close_date) data_termino, t4.user_id\n, cast(ge.field_1 as signed) carga_horaria \n, ge.field_11 Carga_horaria2, concat(ifnull(cast(ge.field_1 as char), ''),' ',ifnull(cast(ge.field_11 as char), '')) as Carga_horaria3\n from groups t1, users t4, users_extended t5, classifications t6, \n users_in_groups t2 \n left outer join groups_extended ge\n on ge.e_group_id = t2.group_id\n left outer join\n course_performances t3\n on\n t2.group_id = t3.group_id\nand t2.user_id = t3.user_id\n left outer join \n (\n select tz3.user_id, tz2.group_name\n from groups_in_groups tz1, groups tz2, users_in_groups tz3\nwhere tz1.parent_id =717\nand tz1.group_id = tz2.group_id\nand tz2.group_id = tz3.group_id\nUNION ALL\nselect tr3.user_id, tr2.group_name  from \nusers_in_groups tr3, groups tr2\nwhere tr2.group_id = tr3.group_id\nand tr2.group_id in (377, 260, 578)\n\n) th2\non t2.user_id = th2.user_id\n left outer join \n (\n select  tx2.user_id user_id, tx2.group_id group_id, round(tx2.quantidade * 100 / tx1.quantidade) atividade\nfrom (select group_id group_id, count(*) quantidade from assignments_in_groups\ngroup by group_id) tx1,\n(select t1.user_id user_id, t2.group_id group_id, count(*) quantidade\n from assignments_status t1, \nassignments_in_groups t2\nwhere t1.assignment_id = t2.assignment_id\nand t1.completed = 1\ngroup by t1.user_id, t2.group_id\n)tx2\nwhere tx1.group_id = tx2.group_id\n ) tx3\n on t2.user_id = tx3.user_id\n and t2.group_id = tx3.group_id\nwhere t1.classification_id = t6.classification_id\nand t4.user_id = 106158\nand t1.group_name = 'PT 2132- DETERMINACAO DE CLORO E SUAS FRACOES | PT 2167 DETERMINACAO DA APARENCIA VERSAO 2.0 | PT 2170 DETERMINACAO DA TRANSPARENCIA VERSAO 1.0| PT 2112 AMOSTRAGEM DE AGUA EFLUENTES ETD - MG (T1/22)'\n\nand t6.classification_name in (\n'GESTÃO E MERCADO',\n'FORMAÇÃO CONTINUADA DE DOCENTES E INSTRUTORES',\n'SAÚDE E SEGURANÇA NA INDÚSTRIA',\n'ATUALIZAÇÃO TECNOLÓGICA',\n'INOVAÇÃO E SERVIÇOS TECNOLÓGICOS',\n'LIDERANÇA'\n)\nand t1.group_id = t2.group_id\nand t1.group_name like '%22)%'\nand t2.user_id = t4.user_id\nand t4.user_id = t5.e_user_id",
+						"queryTimeout": "02:00:00"
+					},
+					"dataset": {
+						"referenceName": "mysql_private_endpoint_parameterized",
+						"type": "DatasetReference"
+					},
+					"firstRowOnly": false
+				}
+			}
+		],
+		"parameters": {
+			"db": {
+				"type": "object",
+				"defaultValue": {
+					"host": "azdata-lmssesi-prd.mysql.database.azure.com",
+					"service_name": "uc",
+					"username": "usr_tableau_uc@azdata-lmssesi-prd.mysql",
+					"port": "3306",
+					"vendor": "MySQL",
+					"secret": "mysqldbpassLMS",
+					"private_endpoint": "LMS_SESI"
+				}
+			}
+		},
+		"folder": {
+			"name": "test"
+		},
+		"annotations": []
+	}
+}

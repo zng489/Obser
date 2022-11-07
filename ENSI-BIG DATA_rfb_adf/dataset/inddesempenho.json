@@ -1,0 +1,21 @@
+{
+	"name": "inddesempenho",
+	"properties": {
+		"description": "use for testing",
+		"linkedServiceName": {
+			"referenceName": "inddesempenho",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "test"
+		},
+		"annotations": [],
+		"type": "OracleTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": "INDDESEMPENHO",
+			"table": "ESTABELECIMENTO"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

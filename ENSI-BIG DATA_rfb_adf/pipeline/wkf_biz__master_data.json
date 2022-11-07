@@ -1,0 +1,119 @@
+{
+	"name": "wkf_biz__master_data",
+	"properties": {
+		"activities": [
+			{
+				"name": "trs_biz_dim_hierarquia_centro_responsabilidade",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "trs_biz_dim_hierarquia_centro_responsabilidade",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"user_parameters": {
+							"value": "@json('{\"null\":\"null\"}')",
+							"type": "Expression"
+						},
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "trs_biz_dim_hierarquia_entidade_regional",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "trs_biz_dim_hierarquia_entidade_regional",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"user_parameters": {
+							"value": "@json('{\"null\":\"null\"}')",
+							"type": "Expression"
+						},
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "end",
+				"type": "Wait",
+				"dependsOn": [
+					{
+						"activity": "trs_biz_dim_hierarquia_centro_responsabilidade",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "trs_biz_dim_hierarquia_entidade_regional",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "trs_biz_fta_unidade_atendimento_ativa",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"waitTimeInSeconds": 1
+				}
+			},
+			{
+				"name": "trs_biz_fta_unidade_atendimento_ativa",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "trs_biz_fta_unidade_atendimento_ativa",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"user_parameters": {
+							"value": "@json('{\"null\":\"null\"}')",
+							"type": "Expression"
+						},
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"concurrency": 1,
+		"parameters": {
+			"env": {
+				"type": "object",
+				"defaultValue": {
+					"env": "dev"
+				}
+			}
+		},
+		"folder": {
+			"name": "workflow/master_data/biz"
+		},
+		"annotations": [
+			"workflow"
+		]
+	}
+}

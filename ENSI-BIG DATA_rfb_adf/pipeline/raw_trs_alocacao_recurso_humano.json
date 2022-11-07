@@ -1,0 +1,78 @@
+{
+	"name": "raw_trs_alocacao_recurso_humano",
+	"properties": {
+		"description": "Run trusted for \"Alocação recursos humanos\" from raw tables of oba.\n\nNo parameters is required. \n\nPaths are:\ntables =  {\"path_origin_1\": \"/raw/bdo/oba/rl_cargo_escolarid_unid_oba\", \"path_origin_2\": \"/raw/bdo/oba/unidade_oba\",  \"path_origin_3\": \"/raw/bdo/bd_basi/tb_unidade_atendimento\", \"path_origin_4\": \"/raw/usr/oba/prm_cod_detalhamento_negocio_x_cr\", \"path_destination\": \"/trs/evt/alocacao_recursos_humanos\"}\n",
+		"activities": [
+			{
+				"name": "trusted__0__switch_env",
+				"description": "Calls trusted template that switches env.",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "trusted__0__switch_env",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						},
+						"tables": {
+							"value": "@pipeline().parameters.tables",
+							"type": "Expression"
+						},
+						"databricks": {
+							"value": "@pipeline().parameters.databricks",
+							"type": "Expression"
+						},
+						"adf": {
+							"value": "{'adf_factory_name': '@{pipeline().DataFactory}', 'adf_pipeline_name': '@{pipeline().Pipeline}', 'adf_pipeline_run_id': '@{pipeline().RunId}',  'adf_trigger_id': '@{pipeline().TriggerId}', 'adf_trigger_name': '@{pipeline().TriggerName}', 'adf_trigger_time': '@{pipeline().TriggerTime}',  'adf_trigger_type': '@{pipeline().TriggerType}'}",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"parameters": {
+			"tables": {
+				"type": "object",
+				"defaultValue": {
+					"origins": [
+						"/bdo/oba/rl_cargo_escolarid_unid_oba",
+						"/bdo/oba/unidade_oba",
+						"/bdo/bd_basi/tb_unidade_atendimento",
+						"/usr/oba/prm_cod_detalhamento_negocio_x_cr"
+					],
+					"destination": "/evt/alocacao_recursos_humanos"
+				}
+			},
+			"databricks": {
+				"type": "object",
+				"defaultValue": {
+					"trs": {
+						"notebook": "/trs/alocacao_recursos_humanos/raw_trs_alocacao_recurso_humano"
+					}
+				}
+			},
+			"user_parameters": {
+				"type": "object",
+				"defaultValue": {
+					"null": "null"
+				}
+			},
+			"env": {
+				"type": "object",
+				"defaultValue": {
+					"env": "dev"
+				}
+			}
+		},
+		"folder": {
+			"name": "trs/alocacao_recursos_humanos"
+		},
+		"annotations": []
+	}
+}

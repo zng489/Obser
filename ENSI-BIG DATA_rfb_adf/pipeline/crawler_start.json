@@ -1,0 +1,123 @@
+{
+	"name": "crawler_start",
+	"properties": {
+		"activities": [
+			{
+				"name": "set env var",
+				"type": "Switch",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"on": {
+						"value": "@pipeline().parameters.env.env",
+						"type": "Expression"
+					},
+					"cases": [
+						{
+							"value": "dev",
+							"activities": [
+								{
+									"name": "CrawlerStart_dev",
+									"type": "AzureFunctionActivity",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "0.00:01:00",
+										"retry": 1,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"functionName": "CrawlerStart",
+										"method": "POST",
+										"body": {
+											"null": "null"
+										}
+									},
+									"linkedServiceName": {
+										"referenceName": "cnibigdatafunctionappdev",
+										"type": "LinkedServiceReference"
+									}
+								},
+								{
+									"name": "WaitStart_dev",
+									"type": "Wait",
+									"dependsOn": [
+										{
+											"activity": "CrawlerStart_dev",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"userProperties": [],
+									"typeProperties": {
+										"waitTimeInSeconds": 300
+									}
+								}
+							]
+						},
+						{
+							"value": "prod",
+							"activities": [
+								{
+									"name": "CrawlerStart_prod",
+									"type": "AzureFunctionActivity",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "0.00:01:00",
+										"retry": 1,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"functionName": "CrawlerStart",
+										"method": "POST",
+										"body": {
+											"null": "null"
+										}
+									},
+									"linkedServiceName": {
+										"referenceName": "cnibigdatafunctionapp",
+										"type": "LinkedServiceReference"
+									}
+								},
+								{
+									"name": "WaitStart_prod",
+									"type": "Wait",
+									"dependsOn": [
+										{
+											"activity": "CrawlerStart_prod",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"userProperties": [],
+									"typeProperties": {
+										"waitTimeInSeconds": 300
+									}
+								}
+							]
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"env": {
+				"type": "object",
+				"defaultValue": {
+					"env": "dev"
+				}
+			}
+		},
+		"folder": {
+			"name": "aut"
+		},
+		"annotations": []
+	}
+}

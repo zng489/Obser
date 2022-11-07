@@ -1,0 +1,58 @@
+{
+	"name": "update_dbfs_table",
+	"properties": {
+		"activities": [
+			{
+				"name": "update_table",
+				"description": "Invokes the common template that calls Databricks' pipelines. This template is used in all layers.",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "databricks_run_notebook",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"databricks_notebook_path": {
+							"value": "/KEYRUS/@{pipeline().parameters.env}/gov/update_dbfs_gov_tables",
+							"type": "Expression"
+						},
+						"adf": {
+							"value": "@json(string(pipeline().parameters.adf))",
+							"type": "Expression"
+						},
+						"user_parameters": "",
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						},
+						"gov_table": {
+							"value": "@pipeline().parameters.gov_table",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"parameters": {
+			"env": {
+				"type": "string",
+				"defaultValue": "dev"
+			},
+			"gov_table": {
+				"type": "string",
+				"defaultValue": "source"
+			},
+			"adf": {
+				"type": "object",
+				"defaultValue": "{'adf_factory_name': '@{pipeline().DataFactory}', 'adf_pipeline_name': '@{pipeline().Pipeline}', 'adf_pipeline_run_id': '@{pipeline().RunId}',  'adf_trigger_id': '@{pipeline().TriggerId}', 'adf_trigger_name': '@{pipeline().TriggerName}', 'adf_trigger_time': '@{pipeline().TriggerTime}',  'adf_trigger_type': '@{pipeline().TriggerType}'}"
+			}
+		},
+		"folder": {
+			"name": "gov/dbfs_tables"
+		},
+		"annotations": []
+	}
+}

@@ -1,0 +1,55 @@
+{
+	"name": "org_raw_bd_basi_tb_curso",
+	"properties": {
+		"description": "We will always run as incremental. In the first run, it will load the whole table and write the last record loaded in watermark table. The next time you load will be really incremental.\n\n- For incremental load use:\nParameter tables = [\"{'schema': 'BD_BASI', 'table':'TB_CURSO','load_type':'incremental','partition_column':'null','control_column':'DT_ATUALIZACAO','control_column_type_2_db':'datetime', 'control_column_default_value': '19000101000000', 'control_column_mask_value': 'DD/MM/YYHH24:MI:SSFF', 'columns': 'CD_CBO_6,CD_AREA_ATUACAO,DT_INICIO_OFERTA,NM_CURSO,DT_ATUALIZACAO,CD_PRODUTO_SERVICO,CD_CURSO_SCOP,CD_CURSO,FL_EXCLUIDO,NR_CARGA_HORARIA_ESTAGIO,DT_FIM_OFERTA,CD_ENTIDADE_REGIONAL,CD_CURSO_DR,NR_CARGA_HORARIA,CD_CURSO_MEC,CD_LINHA_ACAO,DS_ORIGEM,FL_PORTFOLIO'}\"]\nExecute pipeline = template_import_table_incremental\n",
+		"activities": [
+			{
+				"name": "raw_load_bdo_unified__0__switch_env",
+				"description": "Run template pipeline to import tables",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "raw_load_dbo_unified__0__switch_env",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"tables": {
+							"value": "@pipeline().parameters.tables",
+							"type": "Expression"
+						},
+						"adf": {
+							"value": "{'adf_factory_name': '@{pipeline().DataFactory}', 'adf_pipeline_name': '@{pipeline().Pipeline}', 'adf_pipeline_run_id': '@{pipeline().RunId}',  'adf_trigger_id': '@{pipeline().TriggerId}', 'adf_trigger_name': '@{pipeline().TriggerName}', 'adf_trigger_time': '@{pipeline().TriggerTime}',  'adf_trigger_type': '@{pipeline().TriggerType}'}",
+							"type": "Expression"
+						},
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"parameters": {
+			"tables": {
+				"type": "array",
+				"defaultValue": [
+					"{'schema': 'BD_BASI', 'table':'TB_CURSO','load_type':'incremental','partition_column':'null','control_column':'DT_ATUALIZACAO','control_column_type_2_db':'datetime', 'control_column_default_value': '19000101000000', 'control_column_mask_value': 'DD/MM/YYHH24:MI:SSFF', 'columns': 'CD_CBO_6,CD_AREA_ATUACAO,DT_INICIO_OFERTA,NM_CURSO,DT_ATUALIZACAO,CD_PRODUTO_SERVICO,CD_CURSO_SCOP,CD_CURSO,FL_EXCLUIDO,NR_CARGA_HORARIA_ESTAGIO,DT_FIM_OFERTA,CD_ENTIDADE_REGIONAL,CD_CURSO_DR,NR_CARGA_HORARIA,CD_CURSO_MEC,CD_LINHA_ACAO,DS_ORIGEM,FL_PORTFOLIO', 'raw': {'partition_by': [{'col_name': 'YEAR', 'implementation': 'df.withColumn(\\'YEAR\\', functions.year(functions.col(\\'DT_ATUALIZACAO\\')))'}, {'col_name': 'MONTH', 'implementation': 'df.withColumn(\\'MONTH\\', functions.month(functions.col(\\'DT_ATUALIZACAO\\')))'}]}}"
+				]
+			},
+			"env": {
+				"type": "object",
+				"defaultValue": {
+					"env": "dev"
+				}
+			}
+		},
+		"folder": {
+			"name": "raw/bdo/bd_basi"
+		},
+		"annotations": []
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

@@ -1,0 +1,58 @@
+{
+	"name": "adls_parameterized_uld_files_accepted_sink_ach",
+	"properties": {
+		"description": "Connection for uld file sink after processing the raw table. This is connection for sink and stores the original file under /ach.\n\nVersioning copies the original file under a subfolder named after the timestamp representation of the processing in databricks. \n\nI'm still testing the return from databricks as a variable in ADF. ",
+		"linkedServiceName": {
+			"referenceName": "cnibigdatadlsgen2",
+			"type": "LinkedServiceReference",
+			"parameters": {
+				"url": {
+					"value": "@dataset().url",
+					"type": "Expression"
+				}
+			}
+		},
+		"parameters": {
+			"container": {
+				"type": "string"
+			},
+			"url": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "parametrized"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"folderPath": {
+					"value": "@{pipeline().parameters.dls.folders.archive}/@{pipeline().parameters.dls.sub_folders.uld}/@{pipeline().parameters.file.namespace}/@{pipeline().parameters.file.file_folder}/@{pipeline().parameters.var_dh_insercao_raw}",
+					"type": "Expression"
+				},
+				"fileSystem": {
+					"value": "@dataset().container",
+					"type": "Expression"
+				}
+			},
+			"columnDelimiter": {
+				"value": "@pipeline().parameters.file.column_delimiter",
+				"type": "Expression"
+			},
+			"encodingName": {
+				"value": "@pipeline().parameters.file.encoding",
+				"type": "Expression"
+			},
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"nullValue": {
+				"value": "@pipeline().parameters.file.null_value",
+				"type": "Expression"
+			},
+			"quoteChar": "\""
+		},
+		"schema": []
+	}
+}

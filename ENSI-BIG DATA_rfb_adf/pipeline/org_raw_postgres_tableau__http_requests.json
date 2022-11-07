@@ -1,0 +1,60 @@
+{
+	"name": "org_raw_postgres_tableau__http_requests",
+	"properties": {
+		"description": "Incremental table\n\n- Parameters:\n[\"{'schema': 'postgres_tableau', 'table':'_http_requests','load_type':'incremental', 'control_column': 'completed_at', 'control_column_type_2_db':'datetime', 'control_column_default_value': '19000101000000', 'control_column_mask_value': 'YYYYMMDDHHMISS', 'partition_column':'null', 'columns':'controller,action,http_referer,http_user_agent,http_request_uri,remote_ip,created_at,session_id,completed_at,port,user_id,worker,vizql_session,user_ip,currentsheet,site_id'}\"]",
+		"activities": [
+			{
+				"name": "raw_load_bdo_unified__0__switch_env",
+				"description": "Run template pipeline to import tables",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "raw_load_dbo_unified__0__switch_env",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						},
+						"tables": {
+							"value": "@pipeline().parameters.tables",
+							"type": "Expression"
+						},
+						"adf": {
+							"value": "{'adf_factory_name': '@{pipeline().DataFactory}', 'adf_pipeline_name': '@{pipeline().Pipeline}', 'adf_pipeline_run_id': '@{pipeline().RunId}',  'adf_trigger_id': '@{pipeline().TriggerId}', 'adf_trigger_name': '@{pipeline().TriggerName}', 'adf_trigger_time': '@{pipeline().TriggerTime}',  'adf_trigger_type': '@{pipeline().TriggerType}'}",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"concurrency": 1,
+		"parameters": {
+			"tables": {
+				"type": "array",
+				"defaultValue": [
+					"{'schema': 'postgres_tableau', 'table':'_http_requests','load_type':'incremental', 'control_column': 'completed_at', 'control_column_type_2_db':'datetime', 'control_column_default_value': '19000101000000', 'control_column_mask_value': 'YYYYMMDDHHMISS', 'partition_column':'null', 'columns':'controller,action,http_referer,http_user_agent,http_request_uri,remote_ip,created_at,session_id,completed_at,port,user_id,worker,vizql_session,user_ip,currentsheet,site_id'}"
+				]
+			},
+			"env": {
+				"type": "object",
+				"defaultValue": {
+					"env": "dev"
+				}
+			}
+		},
+		"folder": {
+			"name": "raw/bdo/postgres_tableau"
+		},
+		"annotations": [
+			"raw",
+			"ensi-aztableau",
+			"incremental"
+		]
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

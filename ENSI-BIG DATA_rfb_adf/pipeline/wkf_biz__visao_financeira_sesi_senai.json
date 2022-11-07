@@ -1,0 +1,92 @@
+{
+	"name": "wkf_biz__visao_financeira_sesi_senai",
+	"properties": {
+		"description": "Loads a group of tables for this business area.\n\nExpected Behavior is to fail this whole step if any of these tables fail to load.",
+		"activities": [
+			{
+				"name": "trs_biz_fta_gestao_financeira",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "trs_biz_fta_gestao_financeira",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"user_parameters": {
+							"value": "@json('{\"null\":\"null\"}')",
+							"type": "Expression"
+						},
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "wait_1",
+				"type": "Wait",
+				"dependsOn": [
+					{
+						"activity": "raw_biz_fta_kpi_ipca_kpi_pivot",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"waitTimeInSeconds": 1
+				}
+			},
+			{
+				"name": "raw_biz_fta_kpi_ipca_kpi_pivot",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "trs_biz_fta_gestao_financeira",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "raw_biz_fta_kpi_ipca_kpi_pivot",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"user_parameters": {
+							"value": "@json('{\"null\":\"null\"}')",
+							"type": "Expression"
+						},
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"concurrency": 1,
+		"parameters": {
+			"env": {
+				"type": "object",
+				"defaultValue": {
+					"env": "dev"
+				}
+			}
+		},
+		"folder": {
+			"name": "workflow/visao_financeira_sesi_senai/biz"
+		},
+		"annotations": [
+			"workflow"
+		]
+	}
+}

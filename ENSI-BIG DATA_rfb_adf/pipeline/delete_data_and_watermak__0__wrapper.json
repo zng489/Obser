@@ -1,0 +1,236 @@
+{
+	"name": "delete_data_and_watermak__0__wrapper",
+	"properties": {
+		"description": "Deletes the specified watermark in sqldw and/or the relative path in adls. \n\nParameters:\n\n- watermark: {\"schema\":\"test\",\"table\":\"test\"}\n\n- datalake: {\"relative_path\":\"raw/bdo/test/test\"}\n  This parameter takes just \"relative_path\"  value cause the basis path is dynamically generated depending on the 'env' parameter.\n\n- env: {\"env\": \"<dev/prod>\"}\n\nIf you want to delete just a datalake path or just a watermark, just fill one of the parameters and leave the other null.\n\nFor testing, use:\n\n- datalake: {\"relative_path\":\"raw/bdo/test/test\"}\n\n- watermark: {\"schema\":\"test\",\"table\":\"test\"}\n\n- env: {\"env\":dev\"}\n\n",
+		"activities": [
+			{
+				"name": "if_parameter_datalake",
+				"description": "The 'datalake' param is not null, then proceed to delete the data.",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "set_variables_done",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@not(equals(pipeline().parameters.datalake, null))",
+						"type": "Expression"
+					},
+					"ifFalseActivities": [
+						{
+							"name": "skip_datalake",
+							"description": "datalake param is null, skip this step. ",
+							"type": "Wait",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"waitTimeInSeconds": 1
+							}
+						}
+					],
+					"ifTrueActivities": [
+						{
+							"name": "delete_data_and_watermark__1__adls_data",
+							"description": "Invokes the pipeline that deletes adls data",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "delete_data_and_watermark__1__adls_data",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"env": {
+										"value": "@pipeline().parameters.env",
+										"type": "Expression"
+									},
+									"datalake": {
+										"value": "@pipeline().parameters.datalake",
+										"type": "Expression"
+									},
+									"container": {
+										"value": "@variables('container')",
+										"type": "Expression"
+									},
+									"url": {
+										"value": "@variables('storage_url')",
+										"type": "Expression"
+									}
+								}
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "if_parameter_watermark",
+				"description": "The 'watermark' param is not null, then proceed to delete the data.",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "set_variables_done",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@not(equals(pipeline().parameters.watermark, null))",
+						"type": "Expression"
+					},
+					"ifFalseActivities": [
+						{
+							"name": "skip_watermark",
+							"description": "watermark param is null, skip this step. ",
+							"type": "Wait",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"waitTimeInSeconds": 1
+							}
+						}
+					],
+					"ifTrueActivities": [
+						{
+							"name": "delete_data_and_watermark__1__sqldw_watermark",
+							"description": "Invokes the pipeline that deletes the watermark in RDBMS.",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "delete_data _and_watermark__1__sqldw_watermark",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"env": {
+										"value": "@pipeline().parameters.env",
+										"type": "Expression"
+									},
+									"watermark": {
+										"value": "@pipeline().parameters.watermark",
+										"type": "Expression"
+									}
+								}
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "done",
+				"description": "Done!",
+				"type": "Wait",
+				"dependsOn": [
+					{
+						"activity": "if_parameter_datalake",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "if_parameter_watermark",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"waitTimeInSeconds": 1
+				}
+			},
+			{
+				"name": "set_container",
+				"description": "Sets storage/adls container.",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "container",
+					"value": {
+						"value": "@pipeline().globalParameters.datalake_container",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "set_storage_url",
+				"description": "Sets storage url",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "storage_url",
+					"value": {
+						"value": "@pipeline().globalParameters.datalake_storage_url",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "set_variables_done",
+				"description": "Done setting variables",
+				"type": "Wait",
+				"dependsOn": [
+					{
+						"activity": "set_container",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "set_storage_url",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"waitTimeInSeconds": 1
+				}
+			}
+		],
+		"parameters": {
+			"env": {
+				"type": "object",
+				"defaultValue": {
+					"env": "dev"
+				}
+			},
+			"datalake": {
+				"type": "object"
+			},
+			"watermark": {
+				"type": "object"
+			}
+		},
+		"variables": {
+			"container": {
+				"type": "String"
+			},
+			"storage_url": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "templates/common/delete_data_and_watermark"
+		},
+		"annotations": [
+			"delete",
+			"template",
+			"common"
+		]
+	}
+}

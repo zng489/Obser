@@ -1,0 +1,61 @@
+{
+	"name": "org_raw_systemx__load_full",
+	"properties": {
+		"description": "MySQL full load test.\nMySQL does not support partitioning when copying data.\n\nThis test is using table  systemx.customers\n",
+		"activities": [
+			{
+				"name": "raw_load_bdo_unified__0__switch_env",
+				"description": "Run template pipeline to import tables",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "raw_load_dbo_unified__0__switch_env",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"tables": {
+							"value": "@pipeline().parameters.tables",
+							"type": "Expression"
+						},
+						"adf": {
+							"value": "{'adf_factory_name': '@{pipeline().DataFactory}', 'adf_pipeline_name': '@{pipeline().Pipeline}', 'adf_pipeline_run_id': '@{pipeline().RunId}',  'adf_trigger_id': '@{pipeline().TriggerId}', 'adf_trigger_name': '@{pipeline().TriggerName}', 'adf_trigger_time': '@{pipeline().TriggerTime}',  'adf_trigger_type': '@{pipeline().TriggerType}'}",
+							"type": "Expression"
+						},
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"concurrency": 1,
+		"parameters": {
+			"tables": {
+				"type": "array",
+				"defaultValue": [
+					"{'schema': 'systemx', 'table':'customers','load_type':'full','partition_column':'null', 'columns': 'customernumber,customername,contactlastname,contactfirstname,phone,addressline1,addressline2,city,state,postalcode,country,salesrepemployeenumber,creditlimit','raw':{'coalesce': 1}}"
+				]
+			},
+			"env": {
+				"type": "object",
+				"defaultValue": {
+					"env": "dev"
+				}
+			}
+		},
+		"folder": {
+			"name": "test/raw/mysql"
+		},
+		"annotations": [
+			"raw",
+			"mysql",
+			"test",
+			"full"
+		]
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

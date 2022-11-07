@@ -1,0 +1,228 @@
+{
+	"name": "workflow_prod__raw_uld",
+	"properties": {
+		"activities": [
+			{
+				"name": "CrawlerStart",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "crawler_start",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "wkf_raw__uniepro",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_uld__uniepro",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "wkf_raw__uniepro",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "wkf_prod__lnd__wv1",
+				"type": "Wait",
+				"dependsOn": [
+					{
+						"activity": "wkf__trello",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "wkf_raw__uniepro_pt2",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "wkf_raw__uniepro",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "wkf_raw__uniepro_pt3",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"waitTimeInSeconds": 1
+				}
+			},
+			{
+				"name": "wkf_uld__uniepro",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "CrawlerStart",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "wkf_uld__uniepro",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "wkf__trello",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "CrawlerStart",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "wkf__trello",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "crawler_stop",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_prod__lnd__wv1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "crawler_stop",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "wkf_raw__uniepro_pt2",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_uld__uniepro",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "wkf_raw__uniepro_pt2",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "wkf_raw__uniepro_pt3",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_uld__uniepro",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "wkf_raw__uniepro_pt3",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"parameters": {
+			"env": {
+				"type": "object",
+				"defaultValue": {
+					"env": "prod"
+				}
+			}
+		},
+		"folder": {
+			"name": "workflow"
+		},
+		"annotations": []
+	}
+}

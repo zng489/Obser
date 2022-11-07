@@ -1,0 +1,55 @@
+{
+	"name": "org_raw_bd_basi_tb_atendimento_matricula",
+	"properties": {
+		"description": "We will always run as incremental. In the first run, it will load the whole table and write the last record loaded in watermark table. The next time you load will be really incremental.\n\n- For incremental load use:\nParameter tables = \n[\"{'schema': 'BD_BASI', 'table':'TB_ATENDIMENTO_MATRICULA','load_type':'incremental','partition_column':'CD_ATENDIMENTO','partitions':12,'control_column':'DT_ATUALIZACAO','control_column_type_2_db':'datetime', 'control_column_default_value': '19000101000000', 'control_column_mask_value': 'DD/MM/YYHH24:MI:SSFF', 'columns': 'QT_HORAS_PRATICA_PROFIS,DS_BAIRRO_RESP_FINANCEIRO,DT_ATUALIZACAO,CD_MATRICULA_SCOP,NM_BAIRRO_ALUNO,NR_CEP_ALUNO,DS_NUMERO_RESP_FINANCEIRO,DS_MUNICIPIO_ALUNO,DS_UF_RESP_FINANCEIRO,DS_CEP_RESP_FINANCEIRO,DS_MES_REFERENCIA_ULTIMA_CH,DS_MUNICIPIO_RESP_FINANCEIRO,DS_MES_REF_CONGELAMENTO,DS_TELEFONE_RESP_FINANCEIRO,CD_TIPO_SITUACAO_MATRICULA,CD_TIPO_ESCOLA_ORIGEM,DS_NOME_RESP_FINANCEIRO,CD_ALUNO_DR,DT_INI_CONTRATO_APRENDIZAGEM,DS_EMAIL_RESP_FINANCEIRO,DS_COMPLEMENTO_ALUNO,CD_CURSO,FL_EXCLUIDO,CD_TIPO_CONDICAO_ALUNO,DT_CONGELAMENTO_MATRICULA,DT_FIM_CONTRATO_APRENDIZAGEM,DS_ENDERECO_RESP_FINANCEIRO,NR_CPF_RESP_FINANCEIRO,NR_ENDERECO_ALUNO,CD_MATRICULA_DR,CD_TIPO_VINCULO_PRONATEC,DS_COMPLEMENTO_RESP_FINANCEIRO,DS_ENDERECO_ALUNO,DS_UF_ALUNO,FL_ARTICULACAO_SESI_SENAI,DS_FAX_RESP_FINANCEIRO,DS_CONTATO_RESP_FINANCEIRO,CD_TIPO_ENTRADA_ALUNO,CD_ATENDIMENTO,FL_TIPO_RESP_FINANCEIRO,CD_ALUNO_SCOP', 'raw': {'partition_by': [{'col_name': 'YEAR', 'implementation': 'df.withColumn(\\\\'YEAR\\\\', functions.year(functions.col(\\\\'DT_ATUALIZACAO\\\\')))'}, {'col_name': 'MONTH', 'implementation': 'df.withColumn(\\\\'MONTH\\\\', functions.month(functions.col(\\\\'DT_ATUALIZACAO\\\\')))'}]}}\"]",
+		"activities": [
+			{
+				"name": "raw_load_bdo_unified__0__switch_env",
+				"description": "Run template pipeline to import tables",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "raw_load_dbo_unified__0__switch_env",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"tables": {
+							"value": "@pipeline().parameters.tables",
+							"type": "Expression"
+						},
+						"adf": {
+							"value": "{'adf_factory_name': '@{pipeline().DataFactory}', 'adf_pipeline_name': '@{pipeline().Pipeline}', 'adf_pipeline_run_id': '@{pipeline().RunId}',  'adf_trigger_id': '@{pipeline().TriggerId}', 'adf_trigger_name': '@{pipeline().TriggerName}', 'adf_trigger_time': '@{pipeline().TriggerTime}',  'adf_trigger_type': '@{pipeline().TriggerType}'}",
+							"type": "Expression"
+						},
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"parameters": {
+			"tables": {
+				"type": "array",
+				"defaultValue": [
+					"{'schema': 'BD_BASI', 'table':'TB_ATENDIMENTO_MATRICULA','load_type':'incremental','partition_column':'CD_ATENDIMENTO','partitions':12,'control_column':'DT_ATUALIZACAO','control_column_type_2_db':'datetime', 'control_column_default_value': '19000101000000', 'control_column_mask_value': 'DD/MM/YYHH24:MI:SSFF', 'columns': 'QT_HORAS_PRATICA_PROFIS,DS_BAIRRO_RESP_FINANCEIRO,DT_ATUALIZACAO,CD_MATRICULA_SCOP,NM_BAIRRO_ALUNO,NR_CEP_ALUNO,DS_NUMERO_RESP_FINANCEIRO,DS_MUNICIPIO_ALUNO,DS_UF_RESP_FINANCEIRO,DS_CEP_RESP_FINANCEIRO,DS_MES_REFERENCIA_ULTIMA_CH,DS_MUNICIPIO_RESP_FINANCEIRO,DS_MES_REF_CONGELAMENTO,DS_TELEFONE_RESP_FINANCEIRO,CD_TIPO_SITUACAO_MATRICULA,CD_TIPO_ESCOLA_ORIGEM,DS_NOME_RESP_FINANCEIRO,CD_ALUNO_DR,DT_INI_CONTRATO_APRENDIZAGEM,DS_EMAIL_RESP_FINANCEIRO,DS_COMPLEMENTO_ALUNO,CD_CURSO,FL_EXCLUIDO,CD_TIPO_CONDICAO_ALUNO,DT_CONGELAMENTO_MATRICULA,DT_FIM_CONTRATO_APRENDIZAGEM,DS_ENDERECO_RESP_FINANCEIRO,NR_CPF_RESP_FINANCEIRO,NR_ENDERECO_ALUNO,CD_MATRICULA_DR,CD_TIPO_VINCULO_PRONATEC,DS_COMPLEMENTO_RESP_FINANCEIRO,DS_ENDERECO_ALUNO,DS_UF_ALUNO,FL_ARTICULACAO_SESI_SENAI,DS_FAX_RESP_FINANCEIRO,DS_CONTATO_RESP_FINANCEIRO,CD_TIPO_ENTRADA_ALUNO,CD_ATENDIMENTO,FL_TIPO_RESP_FINANCEIRO,CD_ALUNO_SCOP', 'raw': {'partition_by': [{'col_name': 'YEAR', 'implementation': 'df.withColumn(\\'YEAR\\', functions.year(functions.col(\\'DT_ATUALIZACAO\\')))'}, {'col_name': 'MONTH', 'implementation': 'df.withColumn(\\'MONTH\\', functions.month(functions.col(\\'DT_ATUALIZACAO\\')))'}]}}"
+				]
+			},
+			"env": {
+				"type": "object",
+				"defaultValue": {
+					"env": "dev"
+				}
+			}
+		},
+		"folder": {
+			"name": "raw/bdo/bd_basi"
+		},
+		"annotations": []
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

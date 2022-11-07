@@ -1,0 +1,59 @@
+{
+	"name": "org_raw_protheus_ctt010",
+	"properties": {
+		"description": "Will always be loaded as full.\n\n- For full load with partitioning use:\nParameter tables = [\"{'schema': 'PROTHEUS', 'table':'CTT010','load_type':'full','partition_column':'R_E_C_N_O_','partitions':5, 'columns': 'CTT_FILIAL,CTT_CUSTO,CTT_CLASSE,CTT_NORMAL,CTT_DESC01,CTT_DESC02,CTT_DESC03,CTT_DESC04,CTT_DESC05,CTT_BLOQ,CTT_DTBLIN,CTT_DTBLFI,CTT_DTEXIS,CTT_DTEXSF,CTT_CCLP,CTT_CCPON,CTT_BOOK,CTT_TIPO00,CTT_CCSUP,CTT_TIPO01,CTT_RES,CTT_CRGNV1,CTT_RGNV2,CTT_RGNV3,CTT_STATUS,CTT_FILMAT,CTT_MAT,CTT_PERCAC,CTT_PERFPA,CTT_NOME,CTT_ENDER,CTT_BAIRRO,CTT_CEP,CTT_ESTADO,CTT_MUNIC,CTT_TIPO,CTT_CEI,CTT_VALFAT,CTT_RETIDO,CTT_LOCAL,CTT_OCORRE,CTT_ITOBRG,CTT_CLOBRG,CTT_ACITEM,CTT_CCVM,CTT_ACCLVL,CTT_CCRED,CTT_OPERAC,CTT_XIDESB,CTT_CSINCO,CTT_PEREMP,CTT_CODMUN,CTT_RHEXP,CTT_ACAT04,CTT_AT01OB,CTT_TPO03,CTT_ATOBRG,CTT_ACAT03,CTT_ACAT02,CTT_ACAT01,CTT_TPO01,CTT_AT04OB,CTT_TPO04,CTT_AT03OB,CTT_AT02OB,CTT_ACATIV,CTT_TPO02,CTT_USER,CTT_XTEL,D_E_L_E_T_,R_E_C_N_O_,R_E_C_D_E_L_,CTT_TPLOT,CTT_TIPO2,CTT_CEI2,CTT_FPAS,CTT_CODTER,CTT_FAP,CTT_PERRAT,CTT_RECFAT,CTT_ICTPAT,CTT_CNAE,CTT_TPINCT,CTT_NRINCT,CTT_TPINPR,CTT_NRINPR,CTT_RESERV,CTT_CESCRI,CTT_CPART,CTT_EMAIL,CTT_INTRES'}\"]\nExecute pipeline = template_import_table_full\n\nAs this object is really small, you can add: 'raw':{'coalesce': 1}",
+		"activities": [
+			{
+				"name": "raw_load_bdo_unified__0__switch_env",
+				"description": "Run template pipeline to import tables",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "raw_load_dbo_unified__0__switch_env",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"tables": {
+							"value": "@pipeline().parameters.tables",
+							"type": "Expression"
+						},
+						"adf": {
+							"value": "{'adf_factory_name': '@{pipeline().DataFactory}', 'adf_pipeline_name': '@{pipeline().Pipeline}', 'adf_pipeline_run_id': '@{pipeline().RunId}',  'adf_trigger_id': '@{pipeline().TriggerId}', 'adf_trigger_name': '@{pipeline().TriggerName}', 'adf_trigger_time': '@{pipeline().TriggerTime}',  'adf_trigger_type': '@{pipeline().TriggerType}'}",
+							"type": "Expression"
+						},
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"concurrency": 1,
+		"parameters": {
+			"tables": {
+				"type": "array",
+				"defaultValue": [
+					"{'schema': 'PROTHEUS', 'table':'CTT010','load_type':'full','partition_column':'R_E_C_N_O_','partitions':5, 'columns': 'CTT_FILIAL,CTT_CUSTO,CTT_CLASSE,CTT_NORMAL,CTT_DESC01,CTT_DESC02,CTT_DESC03,CTT_DESC04,CTT_DESC05,CTT_BLOQ,CTT_DTBLIN,CTT_DTBLFI,CTT_DTEXIS,CTT_DTEXSF,CTT_CCLP,CTT_CCPON,CTT_BOOK,CTT_TIPO00,CTT_CCSUP,CTT_TIPO01,CTT_RES,CTT_CRGNV1,CTT_RGNV2,CTT_RGNV3,CTT_STATUS,CTT_FILMAT,CTT_MAT,CTT_PERCAC,CTT_PERFPA,CTT_NOME,CTT_ENDER,CTT_BAIRRO,CTT_CEP,CTT_ESTADO,CTT_MUNIC,CTT_TIPO,CTT_CEI,CTT_VALFAT,CTT_RETIDO,CTT_LOCAL,CTT_OCORRE,CTT_ITOBRG,CTT_CLOBRG,CTT_ACITEM,CTT_CCVM,CTT_ACCLVL,CTT_CCRED,CTT_OPERAC,CTT_XIDESB,CTT_CSINCO,CTT_PEREMP,CTT_CODMUN,CTT_RHEXP,CTT_ACAT04,CTT_AT01OB,CTT_TPO03,CTT_ATOBRG,CTT_ACAT03,CTT_ACAT02,CTT_ACAT01,CTT_TPO01,CTT_AT04OB,CTT_TPO04,CTT_AT03OB,CTT_AT02OB,CTT_ACATIV,CTT_TPO02,CTT_USER,CTT_XTEL,D_E_L_E_T_,R_E_C_N_O_,R_E_C_D_E_L_,CTT_TPLOT,CTT_TIPO2,CTT_CEI2,CTT_FPAS,CTT_CODTER,CTT_FAP,CTT_PERRAT,CTT_RECFAT,CTT_ICTPAT,CTT_CNAE,CTT_TPINCT,CTT_NRINCT,CTT_TPINPR,CTT_NRINPR,CTT_RESERV,CTT_CESCRI,CTT_CPART,CTT_EMAIL,CTT_INTRES','raw':{'coalesce': 1}}"
+				]
+			},
+			"env": {
+				"type": "object",
+				"defaultValue": {
+					"env": "dev"
+				}
+			}
+		},
+		"folder": {
+			"name": "raw/bdo/protheus"
+		},
+		"annotations": [
+			"raw",
+			"protheus11"
+		]
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

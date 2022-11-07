@@ -1,0 +1,354 @@
+{
+	"name": "control_column_checker__2__switch_db",
+	"properties": {
+		"description": "This sublevel implements the basic call of the templates, avoiding to recreate all this all the time for all database definitions.",
+		"activities": [
+			{
+				"name": "delete_lnd_folder_before_load",
+				"description": "Whatever happens, lnd folder has to be deleted. Since there's some limitations in here, we might keep it as a separated workflow.",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "delete_landing_data",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"db": {
+							"value": "@pipeline().parameters.db",
+							"type": "Expression"
+						},
+						"tables": {
+							"value": "@pipeline().parameters.tables",
+							"type": "Expression"
+						},
+						"dls": {
+							"value": "@pipeline().parameters.dls",
+							"type": "Expression"
+						},
+						"watermark": {
+							"value": "@pipeline().parameters.watermark",
+							"type": "Expression"
+						},
+						"databricks": {
+							"value": "@pipeline().parameters.databricks",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "delete_lnd_folder_after_load__success",
+				"description": "Whatever happens, lnd folder has to be deleted. Since there's some limitations in here, we might keep it as a separated workflow.",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "switch_database_vendor",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "delete_landing_data",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"db": {
+							"value": "@pipeline().parameters.db",
+							"type": "Expression"
+						},
+						"tables": {
+							"value": "@pipeline().parameters.tables",
+							"type": "Expression"
+						},
+						"dls": {
+							"value": "@pipeline().parameters.dls",
+							"type": "Expression"
+						},
+						"watermark": {
+							"value": "@pipeline().parameters.watermark",
+							"type": "Expression"
+						},
+						"databricks": {
+							"value": "@pipeline().parameters.databricks",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "switch_database_vendor",
+				"description": "Switches dbs implementation to redirect to Oracle databases instances. ",
+				"type": "Switch",
+				"dependsOn": [
+					{
+						"activity": "sqldw_healthy_check",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"on": {
+						"value": "@toLower(pipeline().parameters.db.vendor)",
+						"type": "Expression"
+					},
+					"cases": [
+						{
+							"value": "oracle",
+							"activities": [
+								{
+									"name": "control_column_checker__3__db_oracle",
+									"description": "Executes the pipeline responsible for \n sources on Oracle Databases.",
+									"type": "ExecutePipeline",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "control_column_checker__3__db_oracle",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": true,
+										"parameters": {
+											"tables": {
+												"value": "@pipeline().parameters.tables",
+												"type": "Expression"
+											},
+											"dls": {
+												"value": "@pipeline().parameters.dls",
+												"type": "Expression"
+											},
+											"adf": {
+												"value": "@pipeline().parameters.adf",
+												"type": "Expression"
+											},
+											"watermark": {
+												"value": "@pipeline().parameters.watermark",
+												"type": "Expression"
+											},
+											"databricks": {
+												"value": "@pipeline().parameters.databricks",
+												"type": "Expression"
+											},
+											"db": {
+												"value": "@pipeline().parameters.db",
+												"type": "Expression"
+											},
+											"container": {
+												"value": "@pipeline().parameters.container",
+												"type": "Expression"
+											},
+											"url": {
+												"value": "@pipeline().parameters.url",
+												"type": "Expression"
+											}
+										}
+									}
+								}
+							]
+						},
+						{
+							"value": "sqlserver",
+							"activities": [
+								{
+									"name": "raw_load_dbo_unified__3__db_mssqlserver",
+									"description": "Executes the pipeline responsible for \n sources on MS SQL Server.",
+									"type": "ExecutePipeline",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "raw_load_dbo_unified__3__db_mssqlserver",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": true,
+										"parameters": {
+											"tables": {
+												"value": "@pipeline().parameters.tables",
+												"type": "Expression"
+											},
+											"dls": {
+												"value": "@pipeline().parameters.dls",
+												"type": "Expression"
+											},
+											"adf": {
+												"value": "@pipeline().parameters.adf",
+												"type": "Expression"
+											},
+											"watermark": {
+												"value": "@pipeline().parameters.watermark",
+												"type": "Expression"
+											},
+											"databricks": {
+												"value": "@pipeline().parameters.databricks",
+												"type": "Expression"
+											},
+											"db": {
+												"value": "@pipeline().parameters.db",
+												"type": "Expression"
+											},
+											"container": {
+												"value": "@pipeline().parameters.container",
+												"type": "Expression"
+											},
+											"url": {
+												"value": "@pipeline().parameters.url",
+												"type": "Expression"
+											}
+										}
+									}
+								}
+							]
+						}
+					],
+					"defaultActivities": [
+						{
+							"name": "error__db_vendor_not_implemented",
+							"description": "There's no implementation for the defined database vendor. You must review your pipeline settings or implement this technology if it is not yet available in here.",
+							"type": "WebHook",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"url": "https://thisisthewaytosimuateanerrormyfriend.com/api",
+								"method": "POST",
+								"headers": {
+									"Content-Type": "application/json"
+								},
+								"body": {
+									"error": true
+								},
+								"timeout": "00:10:00"
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "sqldw_healthy_check",
+				"description": "Check if SQLDW is up and healthy in order to be able to write in watermark table used later in the pipeline. It prevents us to save data without refreshing the watermark table.",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "delete_lnd_folder_before_load",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "sqldw_healthy_check",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "delete_lnd_folder_after_load__error",
+				"description": "Whatever happens, lnd folder has to be deleted. Since there's some limitations in here, we might keep it as a separated workflow.",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "switch_database_vendor",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "delete_landing_data",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"db": {
+							"value": "@pipeline().parameters.db",
+							"type": "Expression"
+						},
+						"tables": {
+							"value": "@pipeline().parameters.tables",
+							"type": "Expression"
+						},
+						"dls": {
+							"value": "@pipeline().parameters.dls",
+							"type": "Expression"
+						},
+						"watermark": {
+							"value": "@pipeline().parameters.watermark",
+							"type": "Expression"
+						},
+						"databricks": {
+							"value": "@pipeline().parameters.databricks",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "error_loading_table",
+				"description": "Using a webhook with a bad HTTP request, we can introduce errors in out pipelines when we need.",
+				"type": "WebHook",
+				"dependsOn": [
+					{
+						"activity": "delete_lnd_folder_after_load__error",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"url": "https://thisisthewaytosimuateanerrormyfriend.com/api",
+					"method": "POST",
+					"headers": {
+						"Content-Type": "application/json"
+					},
+					"body": {
+						"error": true
+					},
+					"timeout": "00:10:00"
+				}
+			}
+		],
+		"parameters": {
+			"tables": {
+				"type": "array"
+			},
+			"dls": {
+				"type": "object"
+			},
+			"adf": {
+				"type": "object"
+			},
+			"watermark": {
+				"type": "object"
+			},
+			"databricks": {
+				"type": "object"
+			},
+			"db": {
+				"type": "object"
+			},
+			"container": {
+				"type": "string"
+			},
+			"url": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "templates/raw/bdo/tools/control_column_checker"
+		},
+		"annotations": []
+	}
+}

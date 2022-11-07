@@ -1,0 +1,41 @@
+{
+	"name": "postgres_parameterized",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"type": "PostgreSql",
+		"parameters": {
+			"DBHost": {
+				"type": "String"
+			},
+			"DBPort": {
+				"type": "String"
+			},
+			"DBServiceName": {
+				"type": "String"
+			},
+			"DBUserName": {
+				"type": "String"
+			},
+			"DBPasswordSecret": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"typeProperties": {
+			"connectionString": "Host=@{linkedService().DBHost};Port=@{linkedService().DBPort};Database=@{linkedService().DBServiceName};UID=@{linkedService().DBUserName};EncryptionMethod=0",
+			"password": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "cnibigdatakeyvault",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "@{linkedService().DBPasswordSecret}"
+			}
+		},
+		"connectVia": {
+			"referenceName": "cnibigdatafactoryshir",
+			"type": "IntegrationRuntimeReference"
+		},
+		"description": "Parameterized connection for Postgres. Works only with the declarations on json. Remember to keep the name in the JSON the same as declared up above."
+	}
+}

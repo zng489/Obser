@@ -1,0 +1,55 @@
+{
+	"name": "org_hst_scae_tb_smd_materializada_congela",
+	"properties": {
+		"description": "We will always run as incremental. In the first run, it will load the whole table and write the last record loaded in watermark table. The next time you load will be really incremental.\n\nNote: In case of history load, we need to replace the path from raw to hst. Parameter var_table must contain key \"is_history\" that should be set to 'True' or 'true'. If it's not history, the parameter isn't needed.\n\n- For incremental load use:\nParameter tables =\n[\"{'schema': 'SCAE', 'table':'TB_SMD_MATERIALIZADA_CONGELA', 'is_history':'True','load_type':'incremental','partition_column':'COD_CICLO','partitions':12,'control_column':'CICLO', 'control_column_type_2_db':'datetime', 'control_column_default_value': '20111101000000',  'control_column_mask_value': 'YYYY-MM', 'columns': 'COD_DEPARTAMENTO,COD_CICLO,COD_MATRICULA,DR,CICLO,NOM_ESTUDANTE,UNIDADE,NOME_PRODUTO,NOM_CENTRO_RESPONSABILIDADE,NOM_CURSO,CARGA_HORARIA,NOM_TURMA,TURMA_INI,TURMA_FIM,IND_EBEP,IND_VIRAVIDA,IND_TEMPO_INTEGRAL,DES_FINANCIAMENTO,NUM_CNPJ,DES_VINCULO,DES_SITUACAO,COD_ESTUDANTE,COD_UNIDADE,COD_PRODUTO_SERVICO,COD_CENTRO_RESPONSABILIDADE,COD_MODALIDADE,COD_TURMA,COD_CURSO,COD_FINANCIAMENTO,COD_VINCULO,COD_SITUACAO,IND_SERIE,IND_PARTICIPANTE,DAT_INICIO_EXERCICIO,DAT_FIM_EXERCICIO,DAT_INICIO,DAT_TERMINO,NUM_CARGA_HORARIA_MINUTO,NUM_CARGA_HORARIA_HORA,DAT_MOVIMENTACAO,TURMA_FIRST_DAY,TURMA_LAST_DAY,NUM_HORA_DESTINADA,NUM_HORA_RECON_SABERES',\n'raw': {'partition_by': [{'col_name': 'YEAR', 'implementation': 'df.withColumn(\\\\'YEAR\\\\', functions.substring(functions.col(\\\\'CICLO\\\\'), 1, 4)).withColumn(\\\\'YEAR\\\\', functions.col(\\\\'YEAR\\\\').cast(\\\\'int\\\\'))'},{'col_name': 'MONTH', 'implementation': 'df.withColumn(\\\\'MONTH\\\\', functions.substring(functions.col(\\\\'CICLO\\\\'), 6, 7)).withColumn(\\\\'MONTH\\\\', functions.col(\\\\'MONTH\\\\').cast(\\\\'int\\\\'))'}]}}\"]",
+		"activities": [
+			{
+				"name": "raw_load_bdo_unified__0__switch_env",
+				"description": "Run template pipeline to import tables",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "raw_load_dbo_unified__0__switch_env",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						},
+						"tables": {
+							"value": "@pipeline().parameters.tables",
+							"type": "Expression"
+						},
+						"adf": {
+							"value": "{'adf_factory_name': '@{pipeline().DataFactory}', 'adf_pipeline_name': '@{pipeline().Pipeline}', 'adf_pipeline_run_id': '@{pipeline().RunId}',  'adf_trigger_id': '@{pipeline().TriggerId}', 'adf_trigger_name': '@{pipeline().TriggerName}', 'adf_trigger_time': '@{pipeline().TriggerTime}',  'adf_trigger_type': '@{pipeline().TriggerType}'}",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"parameters": {
+			"tables": {
+				"type": "array",
+				"defaultValue": [
+					"{'schema': 'SCAE', 'table':'TB_SMD_MATERIALIZADA_CONGELA', 'is_history':'True','load_type':'incremental','partition_column':'COD_CICLO','partitions':12,'control_column':'CICLO', 'control_column_type_2_db':'datetime', 'merge_schema': 1,'control_column_default_value': '20111101000000',  'control_column_mask_value': 'YYYY-MM', 'columns': 'COD_DEPARTAMENTO,COD_CICLO,COD_MATRICULA,DR,CICLO,NOM_ESTUDANTE,UNIDADE,NOME_PRODUTO,NOM_CENTRO_RESPONSABILIDADE,NOM_CURSO,CARGA_HORARIA,NOM_TURMA,TURMA_INI,TURMA_FIM,IND_EBEP,IND_VIRAVIDA,IND_TEMPO_INTEGRAL,DES_FINANCIAMENTO,NUM_CNPJ,DES_VINCULO,DES_SITUACAO,COD_ESTUDANTE,COD_UNIDADE,COD_PRODUTO_SERVICO,COD_CENTRO_RESPONSABILIDADE,COD_MODALIDADE,COD_TURMA,COD_CURSO,COD_FINANCIAMENTO,COD_VINCULO,COD_SITUACAO,IND_SERIE,IND_PARTICIPANTE,DAT_INICIO_EXERCICIO,DAT_FIM_EXERCICIO,DAT_INICIO,DAT_TERMINO,NUM_CARGA_HORARIA_MINUTO,NUM_CARGA_HORARIA_HORA,DAT_MOVIMENTACAO,TURMA_FIRST_DAY,TURMA_LAST_DAY,NUM_HORA_DESTINADA,NUM_HORA_RECON_SABERES', 'raw': {'partition_by': [{'col_name': 'YEAR', 'implementation': 'df.withColumn(\\'YEAR\\', functions.substring(functions.col(\\'CICLO\\'), 1, 4)).withColumn(\\'YEAR\\', functions.col(\\'YEAR\\').cast(\\'int\\'))'},{'col_name': 'MONTH', 'implementation': 'df.withColumn(\\'MONTH\\', functions.substring(functions.col(\\'CICLO\\'), 6, 7)).withColumn(\\'MONTH\\', functions.col(\\'MONTH\\').cast(\\'int\\'))'}]}}"
+				]
+			},
+			"env": {
+				"type": "object",
+				"defaultValue": {
+					"env": "dev"
+				}
+			}
+		},
+		"folder": {
+			"name": "hst/scae"
+		},
+		"annotations": []
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

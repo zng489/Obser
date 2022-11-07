@@ -1,0 +1,59 @@
+{
+	"name": "org_raw_postgres_tableau_identity_based_activation_admin_view",
+	"properties": {
+		"description": "Will always be loaded as full.\n\n- Parameters:\n[\"{'schema': 'postgres_tableau', 'table':'identity_based_activation_admin_view','load_type':'full','partition_column':'null', 'columns': 'iba_user_id,site_id,device_fingerprint,product_type,user_role,host_name,product_version,registration_first_name,registration_last_name,registration_email,registration_date,client_user_name,atr_expiration_date,hardware_serial_number,registration_custom_field,machine_os,virtual_machine,atr_chain_id,domain_information,date_atr_issued,date_atr_failed,date_last_updated,server_user_name,server_email,site_luid,date_activated,date_last_used,date_creator_role_assigned,date_creator_role_unassigned,site_name','raw':{'coalesce': 1}}\"]",
+		"activities": [
+			{
+				"name": "raw_load_bdo_unified__0__switch_env",
+				"description": "Run template pipeline to import tables",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "raw_load_dbo_unified__0__switch_env",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						},
+						"tables": {
+							"value": "@pipeline().parameters.tables",
+							"type": "Expression"
+						},
+						"adf": {
+							"value": "{'adf_factory_name': '@{pipeline().DataFactory}', 'adf_pipeline_name': '@{pipeline().Pipeline}', 'adf_pipeline_run_id': '@{pipeline().RunId}',  'adf_trigger_id': '@{pipeline().TriggerId}', 'adf_trigger_name': '@{pipeline().TriggerName}', 'adf_trigger_time': '@{pipeline().TriggerTime}',  'adf_trigger_type': '@{pipeline().TriggerType}'}",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"concurrency": 1,
+		"parameters": {
+			"tables": {
+				"type": "array",
+				"defaultValue": [
+					"{'schema': 'postgres_tableau', 'table':'identity_based_activation_admin_view','load_type':'full','partition_column':'null', 'columns': 'iba_user_id,site_id,device_fingerprint,product_type,user_role,host_name,product_version,registration_first_name,registration_last_name,registration_email,registration_date,client_user_name,atr_expiration_date,hardware_serial_number,registration_custom_field,machine_os,virtual_machine,atr_chain_id,domain_information,date_atr_issued,date_atr_failed,date_last_updated,server_user_name,server_email,site_luid,date_activated,date_last_used,date_creator_role_assigned,date_creator_role_unassigned,site_name','raw':{'coalesce': 1}}"
+				]
+			},
+			"env": {
+				"type": "object",
+				"defaultValue": {
+					"env": "dev"
+				}
+			}
+		},
+		"folder": {
+			"name": "raw/bdo/postgres_tableau"
+		},
+		"annotations": [
+			"raw",
+			"ensi-aztableau"
+		]
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

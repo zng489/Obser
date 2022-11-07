@@ -1,0 +1,281 @@
+{
+	"name": "gov_load_metadata_unified",
+	"properties": {
+		"activities": [
+			{
+				"name": "vendor_case",
+				"type": "Switch",
+				"dependsOn": [
+					{
+						"activity": "set default_dir",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "set_container",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "set_storage_url",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"on": {
+						"value": "@toLower(pipeline().parameters.vendor)",
+						"type": "Expression"
+					},
+					"cases": [
+						{
+							"value": "oracle",
+							"activities": [
+								{
+									"name": "oracle_metadata_load",
+									"type": "Copy",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "7.00:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "OracleSource",
+											"oracleReaderQuery": {
+												"value": "SELECT * FROM SYS.ALL_TAB_COLS\nWHERE OWNER NOT IN ('APEX_030200','CTXSYS','DMSYS','EXFSYS','LUMISPORTALJAVA_NOVO',\n'MDSYS','OBIEE_NAVTEQ','OLAPSYS','ORDDATA','ORDSYS','SYS','SYSTEM','WMSYS','XDB',\n'PESQUISASCONJUNTURAIS','WEBENSINO','USR_FORMATO_SCAE','PORTAL')",
+												"type": "Expression"
+											},
+											"partitionOption": "None",
+											"queryTimeout": "02:00:00"
+										},
+										"sink": {
+											"type": "ParquetSink",
+											"storeSettings": {
+												"type": "AzureBlobFSWriteSettings"
+											},
+											"formatSettings": {
+												"type": "ParquetWriteSettings"
+											}
+										},
+										"enableStaging": false,
+										"dataIntegrationUnits": 2,
+										"translator": {
+											"type": "TabularTranslator",
+											"typeConversion": true,
+											"typeConversionSettings": {
+												"allowDataTruncation": true,
+												"treatBooleanAsNumber": false
+											}
+										}
+									},
+									"inputs": [
+										{
+											"referenceName": "oracle_metadata_parameterized",
+											"type": "DatasetReference"
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "adls2_gov_metadata",
+											"type": "DatasetReference",
+											"parameters": {
+												"host": {
+													"value": "@toLower(pipeline().parameters.host)",
+													"type": "Expression"
+												},
+												"vendor": {
+													"value": "@toLower(pipeline().parameters.vendor)",
+													"type": "Expression"
+												},
+												"default_dir": {
+													"value": "@variables('default_dir')",
+													"type": "Expression"
+												},
+												"container": {
+													"value": "@variables('container')",
+													"type": "Expression"
+												},
+												"url": {
+													"value": "@variables('storage_url')",
+													"type": "Expression"
+												}
+											}
+										}
+									]
+								}
+							]
+						},
+						{
+							"value": "sqlserver",
+							"activities": [
+								{
+									"name": "sqlserver_metadata_load",
+									"type": "Copy",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "7.00:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "SqlServerSource",
+											"sqlReaderQuery": "select \nCONCAT(TABLE_CATALOG,'.', TABLE_SCHEMA) AS OWNER\n,TABLE_NAME\n,COLUMN_NAME\n,DATA_TYPE\n,ISNULL(CHARACTER_MAXIMUM_LENGTH, NUMERIC_PRECISION) AS DATA_LENGTH\n,NUMERIC_PRECISION_RADIX AS DATA_PRECISION\n,IS_NULLABLE AS NULLABLE\nfrom PROTHEUS.INFORMATION_SCHEMA.COLUMNS",
+											"queryTimeout": "02:00:00",
+											"partitionOption": "None"
+										},
+										"sink": {
+											"type": "ParquetSink",
+											"storeSettings": {
+												"type": "AzureBlobFSWriteSettings"
+											},
+											"formatSettings": {
+												"type": "ParquetWriteSettings"
+											}
+										},
+										"enableStaging": false,
+										"translator": {
+											"type": "TabularTranslator",
+											"typeConversion": true,
+											"typeConversionSettings": {
+												"allowDataTruncation": true,
+												"treatBooleanAsNumber": false
+											}
+										}
+									},
+									"inputs": [
+										{
+											"referenceName": "sqlserver_parametrized",
+											"type": "DatasetReference"
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "adls2_gov_metadata",
+											"type": "DatasetReference",
+											"parameters": {
+												"host": {
+													"value": "@toLower(pipeline().parameters.host)",
+													"type": "Expression"
+												},
+												"vendor": {
+													"value": "@toLower(pipeline().parameters.vendor)",
+													"type": "Expression"
+												},
+												"default_dir": {
+													"value": "@variables('default_dir')",
+													"type": "Expression"
+												},
+												"container": {
+													"value": "@variables('container')",
+													"type": "Expression"
+												},
+												"url": {
+													"value": "@variables('storage_url')",
+													"type": "Expression"
+												}
+											}
+										}
+									]
+								}
+							]
+						}
+					]
+				}
+			},
+			{
+				"name": "set default_dir",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "default_dir",
+					"value": {
+						"value": "@if(equals(pipeline().parameters.env, 'dev'), '/tmp/dev/raw/gov', '')",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "set_container",
+				"description": "Sets adls/datalake container.",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "container",
+					"value": {
+						"value": "@pipeline().globalParameters.datalake_container",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "set_storage_url",
+				"description": "Sets storage url",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "storage_url",
+					"value": {
+						"value": "@pipeline().globalParameters.datalake_storage_url",
+						"type": "Expression"
+					}
+				}
+			}
+		],
+		"parameters": {
+			"host": {
+				"type": "string"
+			},
+			"port": {
+				"type": "string"
+			},
+			"service_name": {
+				"type": "string"
+			},
+			"username": {
+				"type": "string"
+			},
+			"vendor": {
+				"type": "string"
+			},
+			"env": {
+				"type": "string",
+				"defaultValue": "dev"
+			},
+			"db": {
+				"type": "object"
+			}
+		},
+		"variables": {
+			"default_dir": {
+				"type": "String",
+				"defaultValue": "/tmp/dev/raw/gov"
+			},
+			"container": {
+				"type": "String"
+			},
+			"storage_url": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "templates/gov"
+		},
+		"annotations": []
+	}
+}

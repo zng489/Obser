@@ -1,0 +1,88 @@
+{
+	"name": "metadata_profiler__1__invoke",
+	"properties": {
+		"description": "Invokes AppProfile via webhook.\nEven if it fails in functions app, it will be succeeded here. Veriricatin of output key \"status\" is needed for true decision on success or failures. ",
+		"activities": [
+			{
+				"name": "AppProfile",
+				"description": "Calls AppProfile via webhook method. As AppProfile is implemented over a AppService plan of leve EP1, there's no limit for timeout. \nA callback is expected and also we'll be able to check Databricks notebook from here.",
+				"type": "WebHook",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"url": "https://bigdatafunctionappmtd.azurewebsites.net/api/orchestrators/AppProfileOrchestrator?code=gCqnq4J34Gdz68ohIFQwZOklkaXAkDUsHDt52sO2blJz6zP5qBAbkg==",
+					"method": "POST",
+					"body": {
+						"value": "@json(pipeline().parameters.body)",
+						"type": "Expression"
+					},
+					"timeout": "03:00:00"
+				}
+			},
+			{
+				"name": "is_status_success",
+				"description": "In case webhook activity succeeds, checks for a true success in key \"status_code\" = 200. ",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "AppProfile",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@equals(int(activity('AppProfile').status_code), 200)",
+						"type": "Expression"
+					},
+					"ifFalseActivities": [
+						{
+							"name": "AppProfile__failed",
+							"description": "Using a webhook with a bad HTTP request, we can introduce errors in out pipelines when we need.",
+							"type": "WebHook",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"url": "https://thisisthewaytosimuateanerrormyfriend.com/api",
+								"method": "POST",
+								"headers": {
+									"Content-Type": "application/json"
+								},
+								"body": {
+									"error": true
+								},
+								"timeout": "00:10:00"
+							}
+						}
+					],
+					"ifTrueActivities": [
+						{
+							"name": "AppProfile__success",
+							"type": "Wait",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"waitTimeInSeconds": 1
+							}
+						}
+					]
+				}
+			}
+		],
+		"concurrency": 1,
+		"parameters": {
+			"body": {
+				"type": "string",
+				"defaultValue": {
+					"null": "null"
+				}
+			}
+		},
+		"folder": {
+			"name": "metadata/profiler"
+		},
+		"annotations": []
+	}
+}

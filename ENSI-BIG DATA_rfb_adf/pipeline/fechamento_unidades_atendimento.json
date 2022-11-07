@@ -1,0 +1,119 @@
+{
+	"name": "fechamento_unidades_atendimento",
+	"properties": {
+		"description": "Wrapper for wkf_fechamento_unidade_atendimento_sesi_senai to be called from Databricks.",
+		"activities": [
+			{
+				"name": "wkf_fechamento_unidade_atendimento_sesi_senai",
+				"description": "Invokes wkf_fechamento_unidade_atendimento_sesi_senai.",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "wkf_fechamento_unidade_atendimento_sesi_senai",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						},
+						"user_parameters": {
+							"value": "@pipeline().parameters.user_parameters",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "business_closing__send_mail__succeeded",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_fechamento_unidade_atendimento_sesi_senai",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "business__closing__send_mail",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						},
+						"user_parameters": {
+							"value": "@pipeline().parameters.user_parameters",
+							"type": "Expression"
+						},
+						"adf": {
+							"value": "{'adf_factory_name': '@{pipeline().DataFactory}', 'adf_pipeline_name': '@{pipeline().Pipeline}', 'adf_pipeline_run_id': '@{pipeline().RunId}', 'adf_trigger_id': '@{pipeline().TriggerId}', 'adf_trigger_name': '@{pipeline().TriggerName}', 'adf_trigger_time': '@{pipeline().TriggerTime}', 'adf_trigger_type': '@{pipeline().TriggerType}'}",
+							"type": "Expression"
+						},
+						"status": "succeeded"
+					}
+				}
+			},
+			{
+				"name": "business_closing__send_mail__failed",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "wkf_fechamento_unidade_atendimento_sesi_senai",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "business__closing__send_mail",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						},
+						"user_parameters": {
+							"value": "@pipeline().parameters.user_parameters",
+							"type": "Expression"
+						},
+						"adf": {
+							"value": "{'adf_factory_name': '@{pipeline().DataFactory}', 'adf_pipeline_name': '@{pipeline().Pipeline}', 'adf_pipeline_run_id': '@{pipeline().RunId}', 'adf_trigger_id': '@{pipeline().TriggerId}', 'adf_trigger_name': '@{pipeline().TriggerName}', 'adf_trigger_time': '@{pipeline().TriggerTime}', 'adf_trigger_type': '@{pipeline().TriggerType}'}",
+							"type": "Expression"
+						},
+						"status": "failed"
+					}
+				}
+			}
+		],
+		"concurrency": 1,
+		"parameters": {
+			"env": {
+				"type": "object"
+			},
+			"user_parameters": {
+				"type": "object"
+			}
+		},
+		"folder": {
+			"name": "workflow/fechamentos_wrapper"
+		},
+		"annotations": [
+			"workflow",
+			"closing",
+			"wrapper"
+		]
+	}
+}

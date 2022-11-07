@@ -1,0 +1,55 @@
+{
+	"name": "org_raw_inddesempenho_valorlanc_pessoaf",
+	"properties": {
+		"description": "Will always be loaded as full_balance.\n\nObs: For full_balance loads, we'll always declare a dictionary inside \"raw\" called \"full_balance\" that must contain a \"key_column\", \"sort_column\" and \"flag\", where the key_columns is a list of columns that define the table's key(s), the sort_column is actually a list of dictionaries that contains a \"column\" and a \"sort\" key where the columns is the name of the column which we want to sort by and the sort should be \"desc\" or \"asc\" for descending order or ascending order. Finally, \"flag\" is just the name of a column that will be the flag of the raw, as follows the exemple:\n 'raw': {'full_balance': {'key_column': ['id'], 'sort_column': [{'column': 'dh_insercao_raw', 'sort': 'desc'}], 'flag': 'fl_excluido'}}\n\n\n- For full balance load partitioning use:\nParameter tables = [\"{'schema': 'INDDESEMPENHO', 'table':'VALORLANC_PESSOAF','load_type':'full_balance','partition_column':'ID','partitions':12, 'columns': 'VALOR_ID,PF_ID,ATENDIMENTO_PF,ID', 'raw': {'full_balance': {'key_column': ['id'], 'sort_column': [{'column': 'dh_insercao_raw', 'sort': 'desc'}], 'flag': 'fl_excluido'}}}\"]",
+		"activities": [
+			{
+				"name": "raw_load_bdo_unified__0__switch_env",
+				"description": "Invokes the \"raw_load_bdo_unified\" implementation.",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "raw_load_dbo_unified__0__switch_env",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						},
+						"tables": {
+							"value": "@pipeline().parameters.tables",
+							"type": "Expression"
+						},
+						"adf": {
+							"value": "{'adf_factory_name': '@{pipeline().DataFactory}', 'adf_pipeline_name': '@{pipeline().Pipeline}', 'adf_pipeline_run_id': '@{pipeline().RunId}',  'adf_trigger_id': '@{pipeline().TriggerId}', 'adf_trigger_name': '@{pipeline().TriggerName}', 'adf_trigger_time': '@{pipeline().TriggerTime}',  'adf_trigger_type': '@{pipeline().TriggerType}'}",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"parameters": {
+			"tables": {
+				"type": "array",
+				"defaultValue": [
+					"{'schema': 'INDDESEMPENHO', 'table':'VALORLANC_PESSOAF','load_type':'full_balance','partition_column':'ID','partitions':12, 'columns': 'VALOR_ID,PF_ID,ATENDIMENTO_PF,ID', 'raw': {'full_balance': {'key_column': ['id'], 'sort_column': [{'column': 'dh_insercao_raw', 'sort': 'desc'}], 'flag': 'fl_excluido'}}}"
+				]
+			},
+			"env": {
+				"type": "object",
+				"defaultValue": {
+					"env": "dev"
+				}
+			}
+		},
+		"folder": {
+			"name": "raw/bdo/inddesempenho"
+		},
+		"annotations": []
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

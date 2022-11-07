@@ -1,0 +1,569 @@
+{
+	"name": "postgres_import_incremental__1__wrapper",
+	"properties": {
+		"description": "Well, this one uses a Filter condition for making things work for incremental loads.\n\n\n",
+		"activities": [
+			{
+				"name": "filter_control_column_type_2_db_datetime",
+				"description": "Filtering control column type as datetime, if parameter \"control_column_type_2_db\" in table dictionary is datetime.\n\nThe column in Postgres MUST be type timestamp. This is a change in the default implementation. Oracle still deals with as many types to datetime, but this won't do for Postgres. ",
+				"type": "Filter",
+				"dependsOn": [
+					{
+						"activity": "wait_to_filter_control_column_type",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@pipeline().parameters.tables",
+						"type": "Expression"
+					},
+					"condition": {
+						"value": "@equals(toLower(json(item()).control_column_type_2_db), 'datetime')",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "1_for_control_column_datetime",
+				"description": "This makes our pipeline generic and iterable. After filtering the incremental tables that have the control column that IS datetime and you want to load all the data until the current datetime (not by year), we shall proceed working with on any of them . \n\nAfter passing through this loop, \"tables\" pipeline parameter must be casted to json when needed.",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "filter_control_column_type_2_db_datetime",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('filter_control_column_type_2_db_datetime').output.value\n",
+						"type": "Expression"
+					},
+					"isSequential": false,
+					"batchCount": 4,
+					"activities": [
+						{
+							"name": "1_run_raw_notebook",
+							"description": "Invokes the pipeline that runs the Databricks' notebook. ",
+							"type": "ExecutePipeline",
+							"dependsOn": [
+								{
+									"activity": "1_join_after_setting_schema",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "raw_load_dbo_unified__4__run_databricks_notebook",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"databricks": {
+										"value": "@pipeline().parameters.databricks",
+										"type": "Expression"
+									},
+									"adf": {
+										"value": "@pipeline().parameters.adf",
+										"type": "Expression"
+									},
+									"dls": {
+										"value": "@pipeline().parameters.dls",
+										"type": "Expression"
+									},
+									"table": {
+										"value": "@item()",
+										"type": "Expression"
+									}
+								}
+							}
+						},
+						{
+							"name": "1__ensi-aztableau__workgroup__filter postgres_conn",
+							"description": "Filters the connection that points to ensi-aztableau",
+							"type": "Filter",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"items": {
+									"value": "@array(toLower(concat(pipeline().parameters.db.host, '__', pipeline().parameters.db.service_name)))",
+									"type": "Expression"
+								},
+								"condition": {
+									"value": "@equals(item(), 'ensi-aztableau__workgroup')",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "1___ensi-aztableau__set_db_schema",
+							"description": "Sets 'db_schema' variable with the schema name for Postgres.",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "1__ensi-aztableau__workgroup__filter postgres_conn",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "db_schema",
+								"value": "public"
+							}
+						},
+						{
+							"name": "1_join_after_setting_schema",
+							"description": "This activity is just to join the many the connections to follow a single flow after setting the schema name. ",
+							"type": "Wait",
+							"dependsOn": [
+								{
+									"activity": "postgres_imp_incremental__3__loader_dt_ensi-aztableau",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"waitTimeInSeconds": 1
+							}
+						},
+						{
+							"name": "postgres_imp_incremental__3__loader_dt_ensi-aztableau",
+							"description": "Invokes the pipeline that implements incremental loads for datetime/timestamp columns.",
+							"type": "ExecutePipeline",
+							"dependsOn": [
+								{
+									"activity": "1___ensi-aztableau__set_db_schema",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "postgres_import_incremental__3__loader_datetime_ensi-aztableau",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"db": {
+										"value": "@pipeline().parameters.db",
+										"type": "Expression"
+									},
+									"tables": {
+										"value": "@array(item())",
+										"type": "Expression"
+									},
+									"dls": {
+										"value": "@pipeline().parameters.dls",
+										"type": "Expression"
+									},
+									"container": {
+										"value": "@pipeline().parameters.container",
+										"type": "Expression"
+									},
+									"schema_name": {
+										"value": "@variables('db_schema')",
+										"type": "Expression"
+									},
+									"increment": {
+										"value": "@pipeline().parameters.increment",
+										"type": "Expression"
+									},
+									"url": {
+										"value": "@pipeline().parameters.url",
+										"type": "Expression"
+									}
+								}
+							}
+						},
+						{
+							"name": "1_raw_load_dbo_unified__5_update_watermark_in_db",
+							"description": "Updates the watermark in watermark's database.",
+							"type": "ExecutePipeline",
+							"dependsOn": [
+								{
+									"activity": "1_run_raw_notebook",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "raw_load_dbo_unified__5__update_watermark_in_db",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"watermark": {
+										"value": "@pipeline().parameters.watermark",
+										"type": "Expression"
+									},
+									"increment": {
+										"value": "@pipeline().parameters.increment",
+										"type": "Expression"
+									},
+									"table": {
+										"value": "@json(item())",
+										"type": "Expression"
+									}
+								}
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "filter_control_column_type_2_db_bigint",
+				"description": "Filtering control column type as bigint, if parameter \"control_column_type_2_db\".\n\nThis parameter \"control_column_type_2_db\" IS the original type from database. For Postgres, we're implementing this exactly as should be for any data type. ",
+				"type": "Filter",
+				"dependsOn": [
+					{
+						"activity": "wait_to_filter_control_column_type",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@pipeline().parameters.tables",
+						"type": "Expression"
+					},
+					"condition": {
+						"value": "@equals(toLower(json(item()).control_column_type_2_db), 'bigint')",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "2_for_control_column_bigint",
+				"description": "This makes our pipeline generic and iterable. After filtering the incremental tables that have the control column that is a  bigint. \nAgain, the column must be BIGINT in source Postgres. \n",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "filter_control_column_type_2_db_bigint",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('filter_control_column_type_2_db_bigint').output.value\n",
+						"type": "Expression"
+					},
+					"isSequential": false,
+					"batchCount": 4,
+					"activities": [
+						{
+							"name": "2_run_raw_notebook",
+							"description": "Invokes the pipeline that runs the Databricks' notebook.",
+							"type": "ExecutePipeline",
+							"dependsOn": [
+								{
+									"activity": "wait__ensi-aztableau",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "raw_load_dbo_unified__4__run_databricks_notebook",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"databricks": {
+										"value": "@pipeline().parameters.databricks",
+										"type": "Expression"
+									},
+									"adf": {
+										"value": "@pipeline().parameters.adf",
+										"type": "Expression"
+									},
+									"dls": {
+										"value": "@pipeline().parameters.dls",
+										"type": "Expression"
+									},
+									"table": {
+										"value": "@string(item())",
+										"type": "Expression"
+									}
+								}
+							}
+						},
+						{
+							"name": "2__ensi-aztableau__workgroup__filter_postgres_conn",
+							"description": "Filters the connection that points to ensi-aztableau",
+							"type": "Filter",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"items": {
+									"value": "@array(toLower(concat(pipeline().parameters.db.host, '__', pipeline().parameters.db.service_name)))",
+									"type": "Expression"
+								},
+								"condition": {
+									"value": "@equals(item(), 'ensi-aztableau__workgroup')",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "2__ensi-aztableau__set_schema",
+							"description": "Sets 'db_schema' variable with the schema name for Postgres.",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "2__ensi-aztableau__workgroup__filter_postgres_conn",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "db_schema",
+								"value": "public"
+							}
+						},
+						{
+							"name": "2__ensi-aztableau__get_upperbound_bigint",
+							"description": "Until this moment, the upperbound was a BIGINT representation of the CURRENT_TIMESTAMP. Right now, we've got get the new upperboud, type BIGINT, in the source table in the connection set for ensi-aztableau.",
+							"type": "Lookup",
+							"dependsOn": [
+								{
+									"activity": "2__ensi-aztableau__set_schema",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.03:00:00",
+								"retry": 2,
+								"retryIntervalInSeconds": 60,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "PostgreSqlSource",
+									"query": {
+										"value": "SELECT \nCAST(\n  COALESCE(MAX(@{json(item()).control_column}), @{json(item()).control_column_default_value}) \nAS BIGINT) AS UPPERBOUND\nFROM @{variables('db_schema')}.@{json(item()).table}\n",
+										"type": "Expression"
+									}
+								},
+								"dataset": {
+									"referenceName": "postgres_tableau",
+									"type": "DatasetReference"
+								}
+							}
+						},
+						{
+							"name": "wait__ensi-aztableau",
+							"description": "As connections are fixed, then the lookups are fixed too. So the update_watermarks are also fixed. Every schema will need it's own wait and also it's own update.",
+							"type": "Wait",
+							"dependsOn": [
+								{
+									"activity": "postgres_imp_incremental__3__bigint_ensi-aztableau",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"waitTimeInSeconds": 1
+							}
+						},
+						{
+							"name": "postgres_imp_incremental__3__bigint_ensi-aztableau",
+							"description": "Invokes the pipeline that loads from ensi-aztableau with incremental load for a bigint control_column",
+							"type": "ExecutePipeline",
+							"dependsOn": [
+								{
+									"activity": "2__ensi-aztableau__set_upperbound",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "postgres_import_incremental__3__loader_bigint_ensi-aztableau",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"db": {
+										"value": "@pipeline().parameters.db",
+										"type": "Expression"
+									},
+									"tables": {
+										"value": "@pipeline().parameters.tables",
+										"type": "Expression"
+									},
+									"dls": {
+										"value": "@pipeline().parameters.dls",
+										"type": "Expression"
+									},
+									"container": {
+										"value": "@pipeline().parameters.container",
+										"type": "Expression"
+									},
+									"schema_name": {
+										"value": "@variables('db_schema')",
+										"type": "Expression"
+									},
+									"increment": {
+										"value": "@json(concat('{\"control_column\": {\"lowerbound\":' , string(pipeline().parameters.increment.control_column.lowerbound), ', \"upperbound\":', string(variables('upperbound_bigint')), '}}'))",
+										"type": "Expression"
+									},
+									"url": {
+										"value": "@pipeline().parameters.url",
+										"type": "Expression"
+									}
+								}
+							}
+						},
+						{
+							"name": "2__ensi-aztableau__set_upperbound",
+							"description": "Sets upperbound variable for this connection, avoiding tons of distinct implementatios fo 'update watermark'",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "2__ensi-aztableau__get_upperbound_bigint",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "upperbound_bigint",
+								"value": {
+									"value": "@string(activity('2__ensi-aztableau__get_upperbound_bigint').output.firstRow.UPPERBOUND)",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "2_raw_load_dbo_unified__5_update_watermark_in_db_copy1",
+							"description": "Updates the watermark in watermark's database.",
+							"type": "ExecutePipeline",
+							"dependsOn": [
+								{
+									"activity": "2_run_raw_notebook",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "raw_load_dbo_unified__5__update_watermark_in_db",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"watermark": {
+										"value": "@pipeline().parameters.watermark",
+										"type": "Expression"
+									},
+									"increment": {
+										"value": "@pipeline().parameters.increment",
+										"type": "Expression"
+									},
+									"table": {
+										"value": "@json(item())",
+										"type": "Expression"
+									}
+								}
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "wait_to_filter_control_column_type",
+				"description": "Just a wait to keep thing together.",
+				"type": "Wait",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"waitTimeInSeconds": 1
+				}
+			}
+		],
+		"parameters": {
+			"db": {
+				"type": "object"
+			},
+			"tables": {
+				"type": "array"
+			},
+			"dls": {
+				"type": "object"
+			},
+			"watermark": {
+				"type": "object"
+			},
+			"databricks": {
+				"type": "object"
+			},
+			"adf": {
+				"type": "object"
+			},
+			"increment": {
+				"type": "object"
+			},
+			"container": {
+				"type": "string"
+			},
+			"url": {
+				"type": "string"
+			}
+		},
+		"variables": {
+			"db_schema": {
+				"type": "String"
+			},
+			"upperbound_bigint": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "templates/raw/bdo/postgres/import_incremental"
+		},
+		"annotations": [
+			"template",
+			"raw",
+			"postgres"
+		]
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

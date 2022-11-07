@@ -1,0 +1,38 @@
+{
+	"name": "adls_reporter",
+	"properties": {
+		"description": "Weekly run of adls_reporter",
+		"annotations": [
+			"adls_reporter"
+		],
+		"runtimeState": "Stopped",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "wkf_adls",
+					"type": "PipelineReference"
+				}
+			}
+		],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Week",
+				"interval": 1,
+				"startTime": "2021-01-15T21:27:00",
+				"timeZone": "E. South America Standard Time",
+				"schedule": {
+					"minutes": [
+						0
+					],
+					"hours": [
+						9
+					],
+					"weekDays": [
+						"Saturday"
+					]
+				}
+			}
+		}
+	}
+}

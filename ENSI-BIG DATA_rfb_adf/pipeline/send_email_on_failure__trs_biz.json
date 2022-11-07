@@ -1,0 +1,77 @@
+{
+	"name": "send_email_on_failure__trs_biz",
+	"properties": {
+		"description": "Based on the process for \"Educacao SENAI\".\n\nAll parameters point to inexisting objects, in ADLS and also in Databricks. \n",
+		"activities": [
+			{
+				"name": "fta_unidade_atendimento_ativa_business__0__switch_env",
+				"description": "Calls business template \"template_business\".",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "business__0__switch_env",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						},
+						"table": {
+							"value": "@pipeline().parameters.tables.inexisting_business",
+							"type": "Expression"
+						},
+						"adf": {
+							"value": "{'adf_factory_name': '@{pipeline().DataFactory}', 'adf_pipeline_name': '@{pipeline().Pipeline}', 'adf_pipeline_run_id': '@{pipeline().RunId}',  'adf_trigger_id': '@{pipeline().TriggerId}', 'adf_trigger_name': '@{pipeline().TriggerName}', 'adf_trigger_time': '@{pipeline().TriggerTime}',  'adf_trigger_type': '@{pipeline().TriggerType}'}",
+							"type": "Expression"
+						},
+						"user_parameters": {
+							"value": "@pipeline().parameters.user_parameters",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"concurrency": 1,
+		"parameters": {
+			"tables": {
+				"type": "object",
+				"defaultValue": {
+					"inexisting_business": {
+						"origins": [
+							"/inexisting_origin"
+						],
+						"destination": "/inexisting_destination",
+						"databricks": {
+							"notebook": "/inesxisting_notebook"
+						}
+					}
+				}
+			},
+			"user_parameters": {
+				"type": "object",
+				"defaultValue": {
+					"null": "null"
+				}
+			},
+			"env": {
+				"type": "object",
+				"defaultValue": {
+					"env": "dev"
+				}
+			}
+		},
+		"folder": {
+			"name": "test/send_email"
+		},
+		"annotations": [
+			"business",
+			"parameterized",
+			"closing date"
+		]
+	}
+}

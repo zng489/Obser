@@ -1,0 +1,57 @@
+{
+	"name": "adls_gov_metadata",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "cnibigdatadlsgen2",
+			"type": "LinkedServiceReference",
+			"parameters": {
+				"url": {
+					"value": "@dataset().url",
+					"type": "Expression"
+				}
+			}
+		},
+		"parameters": {
+			"host": {
+				"type": "string"
+			},
+			"vendor": {
+				"type": "string"
+			},
+			"default_dir": {
+				"type": "string",
+				"defaultValue": "/tmp/dev/raw/gov"
+			},
+			"container": {
+				"type": "string"
+			},
+			"url": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "gov"
+		},
+		"annotations": [],
+		"type": "Parquet",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": {
+					"value": "@{dataset().host}_metadata.parquet",
+					"type": "Expression"
+				},
+				"folderPath": {
+					"value": "@{dataset().default_dir}/lnd/gov/@{dataset().vendor}/@{formatDateTime(addhours(utcnow(),-3), 'yyyyMMdd')}",
+					"type": "Expression"
+				},
+				"fileSystem": {
+					"value": "@dataset().container",
+					"type": "Expression"
+				}
+			},
+			"compressionCodec": "snappy"
+		},
+		"schema": []
+	}
+}

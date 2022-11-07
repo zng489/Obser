@@ -1,0 +1,41 @@
+{
+	"name": "mysql_table_parameterized",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "mysql_parameterized",
+			"type": "LinkedServiceReference",
+			"parameters": {
+				"DBHost": {
+					"value": "@pipeline().parameters.db.host",
+					"type": "Expression"
+				},
+				"DBPort": {
+					"value": "@pipeline().parameters.db.port",
+					"type": "Expression"
+				},
+				"DBServiceName": {
+					"value": "@pipeline().parameters.db.service_name",
+					"type": "Expression"
+				},
+				"DBUserName": {
+					"value": "@pipeline().parameters.db.username",
+					"type": "Expression"
+				},
+				"DBPasswordSecret": {
+					"value": "@pipeline().parameters.db.secret",
+					"type": "Expression"
+				}
+			}
+		},
+		"folder": {
+			"name": "parametrized"
+		},
+		"annotations": [
+			"dataset",
+			"raw",
+			"mysql"
+		],
+		"type": "MySqlTable",
+		"schema": []
+	}
+}

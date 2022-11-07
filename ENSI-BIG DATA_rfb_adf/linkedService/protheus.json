@@ -1,0 +1,24 @@
+{
+	"name": "protheus",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"description": "Protheus, on premises Oracle Database",
+		"annotations": [],
+		"type": "Oracle",
+		"typeProperties": {
+			"connectionString": "host=ensi-datavrt01;port=1521;serviceName=odbprd;user id=usr_bigdata",
+			"password": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "cnibigdatakeyvault",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "oracledbpass"
+			}
+		},
+		"connectVia": {
+			"referenceName": "cnibigdatafactoryshir",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

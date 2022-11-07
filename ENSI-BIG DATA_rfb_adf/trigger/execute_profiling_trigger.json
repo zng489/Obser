@@ -1,0 +1,18 @@
+{
+	"name": "execute_profiling_trigger",
+	"properties": {
+		"description": "Trigger criada especificamente para a execução de componentes de data quality em cada uma das tabelas do catálogo de dados",
+		"annotations": [],
+		"runtimeState": "Stopped",
+		"pipelines": [],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Day",
+				"interval": 1,
+				"startTime": "2021-01-25T11:00:00Z",
+				"timeZone": "UTC"
+			}
+		}
+	}
+}

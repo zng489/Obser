@@ -1,0 +1,72 @@
+{
+	"name": "test__fechamento_wrapper",
+	"properties": {
+		"activities": [
+			{
+				"name": "business_closing__send_mail",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "business__closing__send_mail",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						},
+						"user_parameters": {
+							"value": "@pipeline().parameters.user_params",
+							"type": "Expression"
+						},
+						"adf": {
+							"value": "{'adf_factory_name': '@{pipeline().DataFactory}', 'adf_pipeline_name': '@{pipeline().Pipeline}', 'adf_pipeline_run_id': '@{pipeline().RunId}', 'adf_trigger_id': '@{pipeline().TriggerId}', 'adf_trigger_name': '@{pipeline().TriggerName}', 'adf_trigger_time': '@{pipeline().TriggerTime}', 'adf_trigger_type': '@{pipeline().TriggerType}'}",
+							"type": "Expression"
+						},
+						"status": {
+							"value": "@pipeline().parameters.status",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"concurrency": 1,
+		"parameters": {
+			"env": {
+				"type": "object",
+				"defaultValue": {
+					"env": "dev"
+				}
+			},
+			"user_params": {
+				"type": "object",
+				"defaultValue": {
+					"closing": {
+						"year": 2021,
+						"month": 1,
+						"dt_closing": "2021-02-07"
+					},
+					"email": "thomaz.moreira@keyrus.com.br",
+					"from_databricks_wrapper": 1
+				}
+			},
+			"status": {
+				"type": "string",
+				"defaultValue": "succeeded"
+			}
+		},
+		"folder": {
+			"name": "test/workflow/fechamento_wrapper"
+		},
+		"annotations": [
+			"workflow",
+			"closing",
+			"wrapper",
+			"test"
+		]
+	}
+}

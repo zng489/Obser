@@ -1,0 +1,560 @@
+{
+	"name": "gov_copy_delta_to_parquet",
+	"properties": {
+		"description": "This pipeline copies data from delta to parquet. This is generally used when we've got to use the 'copy data' activity, but storage's linked service is unable to understand delta.\n\nPlease keep the mock parameters for debug and test purposes.",
+		"activities": [
+			{
+				"name": "copy_delta_to_parquet_tmp",
+				"description": "Copies the delta to parquet in a temporary folder.\nAs this is a simple copy and change format task, dev cluster can be used in both scenarios. \nDatabricks parameters have to parsed to string.\ntable[\"table\"] msut be an adls path, so it starts with '/', you don't have to add '/' to the concat function.\n",
+				"type": "DatabricksNotebook",
+				"dependsOn": [
+					{
+						"activity": "set_parquet_tmp_path",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 2,
+					"retryIntervalInSeconds": 120,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"notebookPath": {
+						"value": "@concat( replace(variables('databricks_workspace_prefix'),'/KEYRUS/prod','/KEYRUS'), '/utils/copy_delta_to_parquet_tmp')",
+						"type": "Expression"
+					},
+					"baseParameters": {
+						"table": {
+							"value": "@string(pipeline().parameters.table)",
+							"type": "Expression"
+						},
+						"dls": {
+							"value": "@variables('dls_to_use')",
+							"type": "Expression"
+						},
+						"adf_job_run_id": {
+							"value": "@pipeline().parameters.adf.adf_pipeline_run_id",
+							"type": "Expression"
+						}
+					},
+					"libraries": [
+						{
+							"egg": "dbfs:/libs/impl/cni_connector.egg"
+						}
+					]
+				},
+				"linkedServiceName": {
+					"referenceName": "cnibigdatabricks_job_cluster",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "delete_adls_tmp_after_failure",
+				"description": "Deletes ADLS data in tmp folder after writing it without partitions to sqldw.",
+				"type": "Delete",
+				"dependsOn": [
+					{
+						"activity": "copy_delta_to_parquet_tmp",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 3,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "adls_parameterized_tmp_to_sqldw",
+						"type": "DatasetReference",
+						"parameters": {
+							"filepath": {
+								"value": "@variables('parquet_tmp_path')",
+								"type": "Expression"
+							},
+							"container": {
+								"value": "@variables('container')",
+								"type": "Expression"
+							},
+							"url": {
+								"value": "@variables('storage_url')",
+								"type": "Expression"
+							}
+						}
+					},
+					"enableLogging": false,
+					"storeSettings": {
+						"type": "AzureBlobFSReadSettings",
+						"maxConcurrentConnections": 8,
+						"recursive": true
+					}
+				}
+			},
+			{
+				"name": "copy_from_adls_to_sqldw",
+				"description": "Source is a parameterized ADLS and should be as generic as possible. Let's not keep anything related to paths in more than one parameter in this case. \n\nSink already checks for existing tables and drop it automatically in the pre-copy script! This makes things a lot cleaner and straight.",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "copy_delta_to_parquet_tmp",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.04:00:00",
+					"retry": 2,
+					"retryIntervalInSeconds": 120,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "ParquetSource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": true,
+							"wildcardFileName": "*.parquet",
+							"enablePartitionDiscovery": false
+						}
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": {
+							"value": "IF OBJECT_ID('[@{variables('sqldw_schema')}].[@{substring(pipeline().parameters.table.table, add(lastindexof(string(pipeline().parameters.table.table), '/'), 1) , sub(length(pipeline().parameters.table.table), add(lastindexof(string(pipeline().parameters.table.table), '/'), 1) ))}]', 'U') IS NOT NULL DROP TABLE [@{variables('sqldw_schema')}].[@{substring(pipeline().parameters.table.table, add(lastindexof(string(pipeline().parameters.table.table), '/'), 1) , sub(length(pipeline().parameters.table.table), add(lastindexof(string(pipeline().parameters.table.table), '/'), 1) ))}];",
+							"type": "Expression"
+						},
+						"allowPolyBase": true,
+						"polyBaseSettings": {
+							"rejectValue": 0,
+							"rejectType": "value",
+							"useTypeDefault": true
+						},
+						"tableOption": "autoCreate",
+						"disableMetricsCollection": true
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "cnibigdatapolybasestg",
+							"type": "LinkedServiceReference"
+						},
+						"path": "tmp-data",
+						"enableCompression": true
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "adls_parameterized_tmp_to_sqldw",
+						"type": "DatasetReference",
+						"parameters": {
+							"filepath": {
+								"value": "@variables('parquet_tmp_path')",
+								"type": "Expression"
+							},
+							"container": {
+								"value": "@variables('container')",
+								"type": "Expression"
+							},
+							"url": {
+								"value": "@variables('storage_url')",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "sqldw_parameterized",
+						"type": "DatasetReference",
+						"parameters": {
+							"schema": {
+								"value": "@variables('sqldw_schema')",
+								"type": "Expression"
+							},
+							"table": {
+								"value": "@substring(pipeline().parameters.table.table, add(lastindexof(string(pipeline().parameters.table.table), '/'), 1) , sub(length(pipeline().parameters.table.table), add(lastindexof(string(pipeline().parameters.table.table), '/'), 1) ))",
+								"type": "Expression"
+							}
+						}
+					}
+				]
+			},
+			{
+				"name": "delete_adls_tmp_data_after_success",
+				"description": "Deletes ADLS data in tmp folder after writing it without partitions to sqldw.",
+				"type": "Delete",
+				"dependsOn": [
+					{
+						"activity": "copy_from_adls_to_sqldw",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 3,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "adls_parameterized_tmp_to_sqldw",
+						"type": "DatasetReference",
+						"parameters": {
+							"filepath": {
+								"value": "@variables('parquet_tmp_path')",
+								"type": "Expression"
+							},
+							"container": {
+								"value": "@variables('container')",
+								"type": "Expression"
+							},
+							"url": {
+								"value": "@variables('storage_url')",
+								"type": "Expression"
+							}
+						}
+					},
+					"enableLogging": false,
+					"storeSettings": {
+						"type": "AzureBlobFSReadSettings",
+						"maxConcurrentConnections": 8,
+						"recursive": true
+					}
+				}
+			},
+			{
+				"name": "switch_env",
+				"description": "Switches the env variable to set the correct paths for 'dls'.",
+				"type": "Switch",
+				"dependsOn": [
+					{
+						"activity": "set_storage_url",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "set_container",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"on": {
+						"value": "@pipeline().parameters.env.env",
+						"type": "Expression"
+					},
+					"cases": [
+						{
+							"value": "dev",
+							"activities": [
+								{
+									"name": "set_dls_to_dev",
+									"description": "Sets 'dls' to dev values",
+									"type": "SetVariable",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"variableName": "dls_to_use",
+										"value": {
+											"value": "@string(pipeline().globalParameters.dls_dev)",
+											"type": "Expression"
+										}
+									}
+								},
+								{
+									"name": "set_env_path_prefix_to_dev",
+									"description": "Sets env path prefix",
+									"type": "SetVariable",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"variableName": "env_prefix",
+										"value": "/tmp/dev"
+									}
+								},
+								{
+									"name": "set_env_to_dev_done",
+									"type": "Wait",
+									"dependsOn": [
+										{
+											"activity": "set_dls_to_dev",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										},
+										{
+											"activity": "set_env_path_prefix_to_dev",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										},
+										{
+											"activity": "set_sqldw_schema_to_dev",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										},
+										{
+											"activity": "set_databricks_workspace_prefix_to_dev",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"userProperties": [],
+									"typeProperties": {
+										"waitTimeInSeconds": 1
+									}
+								},
+								{
+									"name": "set_sqldw_schema_to_dev",
+									"description": "Set sqldw_schema to dev.",
+									"type": "SetVariable",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"variableName": "sqldw_schema",
+										"value": {
+											"value": "@pipeline().globalParameters.sqldw_schemas.development",
+											"type": "Expression"
+										}
+									}
+								},
+								{
+									"name": "set_databricks_workspace_prefix_to_dev",
+									"description": "Sets databricks_workspace_prefix to dev",
+									"type": "SetVariable",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"variableName": "databricks_workspace_prefix",
+										"value": {
+											"value": "@pipeline().globalParameters.databricks_notebook_base_dev",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						},
+						{
+							"value": "prod",
+							"activities": [
+								{
+									"name": "set_dls_to_prod",
+									"description": "Sets 'dls' to prod values",
+									"type": "SetVariable",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"variableName": "dls_to_use",
+										"value": {
+											"value": "@string(pipeline().globalParameters.dls_prod)",
+											"type": "Expression"
+										}
+									}
+								},
+								{
+									"name": "set_env_to_prod__done",
+									"type": "Wait",
+									"dependsOn": [
+										{
+											"activity": "set_dls_to_prod",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										},
+										{
+											"activity": "set_sqldw_schema_to_prod",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										},
+										{
+											"activity": "set_databricks_workspace_prefix_to_prod",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"userProperties": [],
+									"typeProperties": {
+										"waitTimeInSeconds": 1
+									}
+								},
+								{
+									"name": "set_sqldw_schema_to_prod",
+									"description": "Set sqldw_schema to prod schema, in this case 'governance'.",
+									"type": "SetVariable",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"variableName": "sqldw_schema",
+										"value": {
+											"value": "@pipeline().globalParameters.sqldw_schemas.governance",
+											"type": "Expression"
+										}
+									}
+								},
+								{
+									"name": "set_databricks_workspace_prefix_to_prod",
+									"description": "Sets databricks_workspace_prefix to prod",
+									"type": "SetVariable",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"variableName": "databricks_workspace_prefix",
+										"value": {
+											"value": "@pipeline().globalParameters.databricks_notebook_base_prod",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						}
+					],
+					"defaultActivities": [
+						{
+							"name": "invalid_environment",
+							"description": "The selected env is invalid.",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "error_implementation",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "set_parquet_tmp_path",
+				"description": "Sets parquet tmp path, so we can use it for delete conditions later.",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "switch_env",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "parquet_tmp_path",
+					"value": {
+						"value": "@concat(json(variables('dls_to_use')).folders.staging, '/', pipeline().parameters.adf.adf_pipeline_run_id, replace(pipeline().parameters.table.table, '/', '_'))",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "set_storage_url",
+				"description": "Sets storage url",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "storage_url",
+					"value": {
+						"value": "@pipeline().globalParameters.datalake_storage_url",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "set_container",
+				"description": "Sets storage container",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "container",
+					"value": {
+						"value": "@pipeline().globalParameters.datalake_container",
+						"type": "Expression"
+					}
+				}
+			}
+		],
+		"parameters": {
+			"table": {
+				"type": "object",
+				"defaultValue": {
+					"table": "/gov/tables/table"
+				}
+			},
+			"adf": {
+				"type": "object",
+				"defaultValue": {
+					"adf_factory_name": "cnibigdatafactory",
+					"adf_pipeline_name": "copy_delta_to_parquet_tmp",
+					"adf_pipeline_run_id": "99999jh",
+					"adf_trigger_id": "666",
+					"adf_trigger_name": "black_sabbath",
+					"adf_trigger_time": "2021-11-08T06:06:06.0829994Z",
+					"adf_trigger_type": "Manual"
+				}
+			},
+			"env": {
+				"type": "object",
+				"defaultValue": {
+					"env": "dev"
+				}
+			}
+		},
+		"variables": {
+			"dls_to_use": {
+				"type": "String"
+			},
+			"env_prefix": {
+				"type": "String"
+			},
+			"sqldw_schema": {
+				"type": "String"
+			},
+			"parquet_tmp_path": {
+				"type": "String"
+			},
+			"databricks_workspace_prefix": {
+				"type": "String"
+			},
+			"storage_url": {
+				"type": "String"
+			},
+			"container": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "templates/gov"
+		},
+		"annotations": [
+			"template",
+			"common"
+		]
+	}
+}

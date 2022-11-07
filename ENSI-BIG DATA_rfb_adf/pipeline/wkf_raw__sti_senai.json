@@ -1,0 +1,24 @@
+{
+	"name": "wkf_raw__sti_senai",
+	"properties": {
+		"description": "Loads a group of tables for this business area.\n\nExpected Behavior is to fail this whole step if any of these tables fail to load.\n\nAll raws for sti_senai is already runned by educacao_senai",
+		"activities": [
+			{
+				"name": "raw_sti_senai_succeeded",
+				"type": "Wait",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"waitTimeInSeconds": 1
+				}
+			}
+		],
+		"concurrency": 1,
+		"folder": {
+			"name": "workflow/sti_senai/raw"
+		},
+		"annotations": [
+			"workflow"
+		]
+	}
+}

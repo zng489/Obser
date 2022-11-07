@@ -1,0 +1,107 @@
+{
+	"name": "import_crw__3__archive",
+	"properties": {
+		"description": "This seems to be a possible way to pass databricks' returned time of processing to the necessary functions, not attaching this to any activity name neither to a system variable.",
+		"activities": [
+			{
+				"name": "1_archive_original_file_with_versioning",
+				"description": "Copies the original file from /crw folder to the correct corresponding structure in /ach.",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 2,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "ParquetSource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": true,
+							"wildcardFileName": "*",
+							"enablePartitionDiscovery": false
+						}
+					},
+					"sink": {
+						"type": "ParquetSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "ParquetWriteSettings"
+						}
+					},
+					"enableStaging": false,
+					"enableSkipIncompatibleRow": true,
+					"redirectIncompatibleRowSettings": {
+						"linkedServiceName": {
+							"referenceName": "cnibigdatadlsgen2stg",
+							"type": "LinkedServiceReference"
+						},
+						"path": {
+							"value": "@{pipeline().parameters.container}/@{pipeline().parameters.dls.folders.error}/@{pipeline().parameters.dls.folders.archive}/@{pipeline().parameters.table.schema}/@{pipeline().parameters.table.table}",
+							"type": "Expression"
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "adls_parameterized_crw_source",
+						"type": "DatasetReference",
+						"parameters": {
+							"container": {
+								"value": "@pipeline().parameters.container",
+								"type": "Expression"
+							},
+							"url": {
+								"value": "@pipeline().parameters.url",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "adls_parameterized_crw_sink",
+						"type": "DatasetReference",
+						"parameters": {
+							"container": {
+								"value": "@pipeline().parameters.container",
+								"type": "Expression"
+							},
+							"url": {
+								"value": "@pipeline().parameters.url",
+								"type": "Expression"
+							}
+						}
+					}
+				]
+			}
+		],
+		"parameters": {
+			"table": {
+				"type": "object"
+			},
+			"dls": {
+				"type": "object"
+			},
+			"var_dh_insercao_raw": {
+				"type": "string"
+			},
+			"container": {
+				"type": "string"
+			},
+			"url": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "templates/raw/crw"
+		},
+		"annotations": []
+	}
+}

@@ -1,0 +1,128 @@
+{
+	"name": "send_email",
+	"properties": {
+		"description": "Centralized template to send email. This one should be placed in the root level on the implementation template for each layer. \n\nParameters are absolutely needed. \n\nParameters:\n\nemail_users::array: complete email address, This array will be concatenated to varaibles().email_users_default.\n\nemail_groups::array: AAD group DisplayName. This array will be concatenated to varaibles().email_groups_default.\n\nmessage:object: json message with all the needed information. Is widely used by crawlers. \n\nstatus::sting: 'failed'/'success'\n\nenv::object: the widely used env dict\n\nadf:: object: the widely used adf dict, that comes from the parent pipeline. \n\nIf this is not supposed to run on prod or dev environment, take away the undesired environment from the variable 'allowed_envs'\n\n\n",
+		"activities": [
+			{
+				"name": "if_env_is_in_allowed_envs",
+				"description": "To simplify the maintenance on which environments this template is enabled, there's the variable 'allowed_envs\". Mail is sent only if 'env' is in this variable.",
+				"type": "IfCondition",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@contains(variables('allowed_envs'), pipeline().parameters.env.env)",
+						"type": "Expression"
+					},
+					"ifFalseActivities": [
+						{
+							"name": "env_is_not_allowed_no_mail_sent",
+							"description": "The received parameter for 'env' is not in the variable 'allowed_envs' . Mail wasn't sent. ",
+							"type": "Wait",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"waitTimeInSeconds": 1
+							}
+						}
+					],
+					"ifTrueActivities": [
+						{
+							"name": "call_logic_app",
+							"description": "HTTP call for the logic app that sends email.",
+							"type": "WebActivity",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 2,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"url": "https://prod-59.eastus2.logic.azure.com:443/workflows/5c7c4d5cb2344386a9efbdd24c308338/triggers/manual/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=RFndCu0aYCMeV5aOWvz-G2F2GKWNjGpBceuLACuoIFk",
+								"method": "POST",
+								"headers": {
+									"Content-Type": "application/json"
+								},
+								"body": {
+									"value": "{\"adf\": @{pipeline().parameters.adf},\n\"email_users\": @{if(and(equals(length(pipeline().parameters.email_users), 1), equals(pipeline().parameters.email_users[0], 'default')), variables('email_users_default'), union(pipeline().parameters.email_users, variables('email_users_default')))},\n\"email_groups\": @{if(and(equals(length(pipeline().parameters.email_groups), 1), equals(pipeline().parameters.email_groups[0], 'default')), variables('email_groups_default'), union(pipeline().parameters.email_groups, variables('email_groups_default')))},\n\"status\": \"@{pipeline().parameters.status}\",\n\"message\": \"@{pipeline().parameters.message}\",\n\"env\": \"@{pipeline().parameters.env.env}\"\n}",
+									"type": "Expression"
+								}
+							}
+						}
+					]
+				}
+			}
+		],
+		"concurrency": 50,
+		"parameters": {
+			"status": {
+				"type": "string",
+				"defaultValue": "failed"
+			},
+			"email_users": {
+				"type": "array",
+				"defaultValue": [
+					"default"
+				]
+			},
+			"email_groups": {
+				"type": "array",
+				"defaultValue": [
+					"default"
+				]
+			},
+			"adf": {
+				"type": "object",
+				"defaultValue": {
+					"adf_factory_name": "test",
+					"adf_pipeline_name": "send_mail",
+					"adf_pipeline_run_id": "0",
+					"adf_trigger_id": "0",
+					"adf_trigger_name": "test",
+					"adf_trigger_time": "2021-04-14T00:00:00",
+					"adf_trigger_type": "test"
+				}
+			},
+			"env": {
+				"type": "object",
+				"defaultValue": {
+					"env": "dev"
+				}
+			},
+			"message": {
+				"type": "string"
+			}
+		},
+		"variables": {
+			"email_users_default": {
+				"type": "Array",
+				"defaultValue": [
+					""
+				]
+			},
+			"email_groups_default": {
+				"type": "Array",
+				"defaultValue": [
+					"DESENV_SUSTENTACAO_STI"
+				]
+			},
+			"allowed_envs": {
+				"type": "Array",
+				"defaultValue": [
+					"dev",
+					"prod"
+				]
+			}
+		},
+		"folder": {
+			"name": "templates/common"
+		},
+		"annotations": [
+			"template",
+			"common"
+		]
+	}
+}

@@ -1,0 +1,14 @@
+{
+	"name": "cnibigdatabricks",
+	"properties": {
+		"description": "Databricks instance of this project",
+		"annotations": [],
+		"type": "AzureDatabricks",
+		"typeProperties": {
+			"domain": "https://eastus2.azuredatabricks.net",
+			"authentication": "MSI",
+			"workspaceResourceId": "/subscriptions/3e3a21e3-9551-4945-8c46-c02f558392ce/resourceGroups/bigdata/providers/Microsoft.Databricks/workspaces/cnibigdatabricks1",
+			"existingClusterId": "0414-181217-plods502"
+		}
+	}
+}

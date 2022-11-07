@@ -1,0 +1,44 @@
+{
+	"name": "oracle_parameterized",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"description": "This is the parameterized version for connecting to the on-premises Oracle DBS. All dbs must have the same password for connection, and it must be stored on the keystore. All other parameters are dynamic, and must be specified on the pipeline scope. \nPort is type string!",
+		"parameters": {
+			"DBHost": {
+				"type": "String"
+			},
+			"DBPort": {
+				"type": "String"
+			},
+			"DBServiceName": {
+				"type": "String"
+			},
+			"DBUserName": {
+				"type": "String"
+			},
+			"DBPasswordSecret": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "Oracle",
+		"typeProperties": {
+			"connectionString": "host=@{linkedService().DBHost};port=@{linkedService().DBPort};serviceName=@{linkedService().DBServiceName};user id=@{linkedService().DBUserName}",
+			"password": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "cnibigdatakeyvault",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": {
+					"value": "@linkedService().DBPasswordSecret",
+					"type": "Expression"
+				}
+			}
+		},
+		"connectVia": {
+			"referenceName": "cnibigdatafactoryshir",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

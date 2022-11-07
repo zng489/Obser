@@ -1,0 +1,1038 @@
+{
+	"name": "wkf_lnd__uniepro_pt2",
+	"properties": {
+		"activities": [
+			{
+				"name": "lnd_org_raw_inep_rmd",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "INEP",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "lnd_org_raw_inep_rmd",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "INEP",
+				"type": "Wait",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"waitTimeInSeconds": 1
+				}
+			},
+			{
+				"name": "IBGE",
+				"type": "Wait",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"waitTimeInSeconds": 1
+				}
+			},
+			{
+				"name": "lnd_org_raw_ibge_pintec_tipo_programa",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "IBGE",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "lnd_org_raw_ibge_pintec_tipo_programa",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "lnd_org_raw_ibge_pintec_bio_nano",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "IBGE",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "lnd_org_raw_ibge_pintec_bio_nano",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "INSS_CAT",
+				"type": "Wait",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"waitTimeInSeconds": 1
+				}
+			},
+			{
+				"name": "lnd_org_raw_inss_cat",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "INSS_CAT",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "lnd_org_raw_inss_cat",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "lnd_org_raw_ibge_pintec_org_mkt",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "IBGE",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "lnd_org_raw_ibge_pintec_org_mkt",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "lnd_org_raw_inep_iqes",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "INEP",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "lnd_org_raw_inep_iqes",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "lnd_org_raw_ibge_pintec_prob_obst",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "IBGE",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "lnd_org_raw_ibge_pintec_prob_obst",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "ANEEL_GERA_ENERGIA_DISTRIB",
+				"type": "Wait",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"waitTimeInSeconds": 1
+				}
+			},
+			{
+				"name": "lnd_org_raw_aneel_gera_energia_distrib",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "ANEEL_GERA_ENERGIA_DISTRIB",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "lnd_org_raw_aneel_gera_energia_distrib",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "lnd_org_raw_ibge_pintec_rel_coop_loc",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "IBGE",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "lnd_org_raw_ibge_pintec_rel_coop_loc",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "lnd_org_raw_ibge_pintec_rel_coop",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "IBGE",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "lnd_org_raw_ibge_pintec_rel_coop",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "lnd_org_raw_ibge_pintec_prod_vend_int",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "IBGE",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "lnd_org_raw_ibge_pintec_prod_vend_int",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "MS_SINAN",
+				"type": "Wait",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"waitTimeInSeconds": 1
+				}
+			},
+			{
+				"name": "lnd_org_raw_ms_sinan_acgr",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "MS_SINAN",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "lnd_org_raw_ms_sinan_acgr",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "lnd_org_raw_ms_sinan_canc",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "MS_SINAN",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "lnd_org_raw_ms_sinan_canc",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "lnd_org_raw_ibge_pintec_tipo_inov_proj",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "IBGE",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "lnd_org_raw_ibge_pintec_tipo_inov_proj",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "COMPLETED",
+				"type": "Wait",
+				"dependsOn": [
+					{
+						"activity": "lnd_org_raw_inep_iqes",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "lnd_org_raw_inep_rmd",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "lnd_org_raw_ibge_pintec_org_mkt",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "lnd_org_raw_ibge_pintec_rel_coop_loc",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "lnd_org_raw_ibge_pintec_rel_coop",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "lnd_org_raw_ibge_pintec_tipo_programa",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "lnd_org_raw_ibge_pintec_prob_obst",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "lnd_org_raw_ibge_pintec_prod_vend_int",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "lnd_org_raw_ibge_pintec_tipo_inov_proj",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "lnd_org_raw_ibge_pintec_bio_nano",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "lnd_org_raw_inss_cat",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "lnd_org_raw_aneel_gera_energia_distrib",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "lnd_org_raw_ms_sinan_acgr",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "lnd_org_raw_ms_sinan_canc",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "lnd_org_raw_ms_sinan_acbi",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "lnd_org_raw_ms_sinan_derm",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "lnd_org_raw_ibge_pintec_grau_nov_imp",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "lnd_org_raw_ibge_pintec_resp_imp",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "lnd_org_raw_banco_mundial_indicadores_selecionados",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "lnd_org_raw_ocde_projecoes_economicas",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "lnd_org_raw_ms_sinan_pair",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "lnd_org_raw_fmi_proj",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "lnd_org_raw_ms_sinan_lerd",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "lnd_org_raw_ms_sinan_ment",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "lnd_org_raw_estrutura_territorial",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "lnd_org_raw_ms_sinan_pneu",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "lnd_org_raw_ms_sinan_iexo",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "lnd_org_raw_ms_sinan_anim",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "lnd_org_raw_mtp_aeat_motivo_div",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"waitTimeInSeconds": 1
+				}
+			},
+			{
+				"name": "lnd_org_raw_ms_sinan_acbi",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "MS_SINAN",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "lnd_org_raw_ms_sinan_acbi",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "lnd_org_raw_ms_sinan_derm",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "MS_SINAN",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "lnd_org_raw_ms_sinan_derm",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "lnd_org_raw_ibge_pintec_grau_nov_imp",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "IBGE",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "lnd_org_raw_ibge_pintec_grau_nov_imp",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "lnd_org_raw_ibge_pintec_resp_imp",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "IBGE",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "lnd_org_raw_ibge_pintec_resp_imp",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "lnd_org_raw_banco_mundial_indicadores_selecionados",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "BANCO_MUNDIAL_INDICADORES_SELECIONADOS",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "lnd_org_raw_banco_mundial_indicadores_selecionados",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "BANCO_MUNDIAL_INDICADORES_SELECIONADOS",
+				"type": "Wait",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"waitTimeInSeconds": 1
+				}
+			},
+			{
+				"name": "OCDE",
+				"type": "Wait",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"waitTimeInSeconds": 1
+				}
+			},
+			{
+				"name": "lnd_org_raw_ocde_projecoes_economicas",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "OCDE",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "lnd_org_raw_ocde_projecoes_economicas",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "lnd_org_raw_ms_sinan_pair",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "MS_SINAN",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "lnd_org_raw_ms_sinan_pair",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "FMI_PROJ",
+				"type": "Wait",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"waitTimeInSeconds": 1
+				}
+			},
+			{
+				"name": "lnd_org_raw_fmi_proj",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "FMI_PROJ",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "lnd_org_raw_fmi_proj",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "lnd_org_raw_ms_sinan_lerd",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "MS_SINAN",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "lnd_org_raw_ms_sinan_lerd",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "lnd_org_raw_ms_sinan_ment",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "MS_SINAN",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "lnd_org_raw_ms_sinan_ment",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "lnd_org_raw_estrutura_territorial",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "IBGE",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "lnd_org_raw_estrutura_territorial",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "lnd_org_raw_ms_sinan_pneu",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "MS_SINAN",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "lnd_org_raw_ms_sinan_pneu",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "lnd_org_raw_ms_sinan_iexo",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "MS_SINAN",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "lnd_org_raw_ms_sinan_iexo",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "lnd_org_raw_ms_sinan_anim",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "MS_SINAN",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "lnd_org_raw_ms_sinan_anim",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "MTP_AEAT",
+				"type": "Wait",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"waitTimeInSeconds": 1
+				}
+			},
+			{
+				"name": "lnd_org_raw_mtp_aeat_motivo_div",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "MTP_AEAT",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "lnd_org_raw_mtp_aeat_motivo_div",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"parameters": {
+			"env": {
+				"type": "object",
+				"defaultValue": {
+					"env": "dev"
+				}
+			}
+		},
+		"folder": {
+			"name": "workflow/uniepro/lnd"
+		},
+		"annotations": []
+	}
+}

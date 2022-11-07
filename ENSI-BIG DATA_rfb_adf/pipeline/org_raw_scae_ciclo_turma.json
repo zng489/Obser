@@ -1,0 +1,59 @@
+{
+	"name": "org_raw_scae_ciclo_turma",
+	"properties": {
+		"description": "We'll always run as incremental\n\n- Parameters:\n[\"{'schema': 'SCAE', 'table':'CICLO_TURMA','load_type':'incremental','partition_column':'null', 'control_column':'DAT_ALTERACAO', 'control_column_type_2_db':'datetime', 'control_column_default_value': '19000101000000', 'control_column_mask_value': 'DD/MM/YYHH24:MI:SSFF', 'columns': 'COD_CICLO,COD_TURMA,DAT_VINCULO,COD_RESPONSAVEL,IND_STATUS,DAT_ALTERACAO,COD_RESPONSAVEL_ALTERACAO', 'raw': {'partition_by': [{'col_name': 'YEAR', 'implementation': 'df.withColumn(\\\\'YEAR\\\\', functions.year(functions.col(\\\\'DAT_ALTERACAO\\\\')))'}, {'col_name': 'MONTH', 'implementation': 'df.withColumn(\\\\'MONTH\\\\', functions.month(functions.col(\\\\'DAT_ALTERACAO\\\\')))'}]}}\"]\n\nThis objetc is ~250MB in size. You can user coalesce(4) for partitions to be about 128MB in size.",
+		"activities": [
+			{
+				"name": "raw_load_bdo_unified__0__switch_env",
+				"description": "Run template pipeline to import tables",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "raw_load_dbo_unified__0__switch_env",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"tables": {
+							"value": "@pipeline().parameters.tables",
+							"type": "Expression"
+						},
+						"adf": {
+							"value": "{'adf_factory_name': '@{pipeline().DataFactory}', 'adf_pipeline_name': '@{pipeline().Pipeline}', 'adf_pipeline_run_id': '@{pipeline().RunId}',  'adf_trigger_id': '@{pipeline().TriggerId}', 'adf_trigger_name': '@{pipeline().TriggerName}', 'adf_trigger_time': '@{pipeline().TriggerTime}',  'adf_trigger_type': '@{pipeline().TriggerType}'}",
+							"type": "Expression"
+						},
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"concurrency": 1,
+		"parameters": {
+			"tables": {
+				"type": "array",
+				"defaultValue": [
+					"{'schema': 'SCAE', 'table':'CICLO_TURMA','load_type':'incremental','partition_column':'null', 'control_column':'DAT_ALTERACAO', 'control_column_type_2_db':'datetime', 'control_column_default_value': '19000101000000', 'control_column_mask_value': 'DD/MM/YYHH24:MI:SSFF', 'columns': 'COD_CICLO,COD_TURMA,DAT_VINCULO,COD_RESPONSAVEL,IND_STATUS,DAT_ALTERACAO,COD_RESPONSAVEL_ALTERACAO', 'raw': {'partition_by': [{'col_name': 'YEAR', 'implementation': 'df.withColumn(\\'YEAR\\', functions.year(functions.col(\\'DAT_ALTERACAO\\')))'}, {'col_name': 'MONTH', 'implementation': 'df.withColumn(\\'MONTH\\', functions.month(functions.col(\\'DAT_ALTERACAO\\')))'}], 'coalesce': 4}}"
+				]
+			},
+			"env": {
+				"type": "object",
+				"defaultValue": {
+					"env": "dev"
+				}
+			}
+		},
+		"folder": {
+			"name": "raw/bdo/scae"
+		},
+		"annotations": [
+			"raw",
+			"scae"
+		]
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

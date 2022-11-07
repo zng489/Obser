@@ -1,0 +1,58 @@
+{
+	"name": "org_raw_robo_legisdata_complemento_forma",
+	"properties": {
+		"description": "Will always be loaded as full.\n\n- For full load use:\nParameter tables = [\"{'schema': 'BD_BASI', 'table':'ECT_PAIS','load_type':'full','partition_column':'null', 'columns': 'PAI_SG, PAI_SG_ALTERNATIVA, PAI_NO_PORTUGUES, PAI_NO_INGLES, PAI_NO_FRANCES, PAI_ABREVIATURA'}\"]\nExecute pipeline = template_import_table_full\n",
+		"activities": [
+			{
+				"name": "raw_load_bdo_unified__0__switch_env",
+				"description": "Run template pipeline to import tables",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "raw_load_dbo_unified__0__switch_env",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						},
+						"tables": {
+							"value": "@pipeline().parameters.tables",
+							"type": "Expression"
+						},
+						"adf": {
+							"value": "{'adf_factory_name': '@{pipeline().DataFactory}', 'adf_pipeline_name': '@{pipeline().Pipeline}', 'adf_pipeline_run_id': '@{pipeline().RunId}',  'adf_trigger_id': '@{pipeline().TriggerId}', 'adf_trigger_name': '@{pipeline().TriggerName}', 'adf_trigger_time': '@{pipeline().TriggerTime}',  'adf_trigger_type': '@{pipeline().TriggerType}'}",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"concurrency": 1,
+		"parameters": {
+			"tables": {
+				"type": "array",
+				"defaultValue": [
+					"{'schema': 'ROBO_LEGISDATA', 'table':'COMPLEMENTO_FORMA', 'load_type':'full', 'partition_column':'null', 'columns': 'COD_COMPLEMENTO_FORMA,NOM_COMPLEMENTO_FORMA,IND_ORDEM,IND_COMPLEMENTO_TIPO,IND_VETO' }"
+				]
+			},
+			"env": {
+				"type": "object",
+				"defaultValue": {
+					"env": "dev"
+				}
+			}
+		},
+		"folder": {
+			"name": "raw/bdo/robo_legisdata"
+		},
+		"annotations": [
+			"raw"
+		]
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

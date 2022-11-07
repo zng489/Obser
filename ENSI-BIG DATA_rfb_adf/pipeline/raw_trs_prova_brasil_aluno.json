@@ -1,0 +1,81 @@
+{
+	"name": "raw_trs_prova_brasil_aluno",
+	"properties": {
+		"activities": [
+			{
+				"name": "trusted__0__switch_env",
+				"description": "Calls trusted template that switches env.",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "trusted__0__switch_env",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						},
+						"tables": {
+							"value": "@pipeline().parameters.tables",
+							"type": "Expression"
+						},
+						"databricks": {
+							"value": "@pipeline().parameters.databricks",
+							"type": "Expression"
+						},
+						"adf": {
+							"value": "{'adf_factory_name': '@{pipeline().DataFactory}', 'adf_pipeline_name': '@{pipeline().Pipeline}', 'adf_pipeline_run_id': '@{pipeline().RunId}',  'adf_trigger_id': '@{pipeline().TriggerId}', 'adf_trigger_name': '@{pipeline().TriggerName}', 'adf_trigger_time': '@{pipeline().TriggerTime}',  'adf_trigger_type': '@{pipeline().TriggerType}'}",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"parameters": {
+			"tables": {
+				"type": "object",
+				"defaultValue": {
+					"pb_qt_aluno": "/crw/inep_prova_brasil/ts_quest_aluno/",
+					"pb_rs_aluno": "/crw/inep_prova_brasil/ts_resultado_aluno/",
+					"pb_rp_aluno": "/crw/inep_prova_brasil/ts_resposta_aluno/",
+					"sb_qt_aluno": "/crw/inep_saeb/ts_quest_aluno/",
+					"sb_rs_aluno": "/crw/inep_saeb/ts_resultado_aluno/",
+					"sb_rp_aluno": "/crw/inep_saeb/ts_resposta_aluno/",
+					"raw_sb_table": "/crw/inep_saeb/saeb_aluno_unificado/",
+					"trs_pb_2011_table": "/inep_saeb/prova_brasil_2011/",
+					"trs_pb_unified_table": "/inep_saeb/prova_brasil_saeb_aluno_unificado/",
+					"partition_col": "ID_PROVA_BRASIL",
+					"prm_path": "/prm/usr/inep_prova_brasil/KC2332_SAEB_Prova_Brasil_mapeamento_trusted.xlsx"
+				}
+			},
+			"databricks": {
+				"type": "object",
+				"defaultValue": {
+					"trs": {
+						"notebook": "/trs/inep_saeb/raw_trs_prova_brasil_aluno"
+					}
+				}
+			},
+			"user_parameters": {
+				"type": "object",
+				"defaultValue": {
+					"null": "null"
+				}
+			},
+			"env": {
+				"type": "object",
+				"defaultValue": {
+					"env": "prod"
+				}
+			}
+		},
+		"folder": {
+			"name": "trs/inep_saeb"
+		},
+		"annotations": []
+	}
+}

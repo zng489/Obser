@@ -1,0 +1,188 @@
+{
+	"name": "import_uld_files_unigest__2__reject",
+	"properties": {
+		"activities": [
+			{
+				"name": "1_for_each_file_reject",
+				"description": "",
+				"type": "ForEach",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@pipeline().parameters.return_databricks",
+						"type": "Expression"
+					},
+					"isSequential": false,
+					"batchCount": 4,
+					"activities": [
+						{
+							"name": "1_archive_original_file_with_versioning",
+							"description": "Copies the original files rejects from /uld folder to the correct corresponding structure in /rjt.\n\nStill missing the subfolder specification on sink and also on the logging settings here. They will be added after testing with databricks returned values to variables.",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 2,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "DelimitedTextSource",
+									"storeSettings": {
+										"type": "AzureBlobFSReadSettings",
+										"recursive": true,
+										"enablePartitionDiscovery": false
+									},
+									"formatSettings": {
+										"type": "DelimitedTextReadSettings"
+									}
+								},
+								"sink": {
+									"type": "DelimitedTextSink",
+									"storeSettings": {
+										"type": "AzureBlobFSWriteSettings"
+									},
+									"formatSettings": {
+										"type": "DelimitedTextWriteSettings",
+										"quoteAllText": true,
+										"fileExtension": {
+											"value": "@{pipeline().parameters.file.extension}",
+											"type": "Expression"
+										}
+									}
+								},
+								"enableStaging": false,
+								"enableSkipIncompatibleRow": true,
+								"redirectIncompatibleRowSettings": {
+									"linkedServiceName": {
+										"referenceName": "cnibigdatadlsgen2stg",
+										"type": "LinkedServiceReference"
+									},
+									"path": {
+										"value": "@{pipeline().parameters.container}/@{pipeline().parameters.dls.folders.error}/@{pipeline().parameters.dls.sub_folders.uld}/@{pipeline().parameters.file.namespace}/@{pipeline().parameters.file.file_folder}",
+										"type": "Expression"
+									}
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "adls_parameterized_uld_files_reject_source",
+									"type": "DatasetReference",
+									"parameters": {
+										"container": {
+											"value": "@pipeline().parameters.container",
+											"type": "Expression"
+										},
+										"url": {
+											"value": "@pipeline().parameters.url",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "adls_parameterized_uld_files_reject_sink_rjt",
+									"type": "DatasetReference",
+									"parameters": {
+										"container": {
+											"value": "@pipeline().parameters.container",
+											"type": "Expression"
+										},
+										"url": {
+											"value": "@pipeline().parameters.url",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						},
+						{
+							"name": "1_delete_original_file_from_uld",
+							"description": "Deletes the original files in /uld folder.",
+							"type": "Delete",
+							"dependsOn": [
+								{
+									"activity": "1_archive_original_file_with_versioning",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 2,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"dataset": {
+									"referenceName": "adls_parameterized_uld_files_reject_source",
+									"type": "DatasetReference",
+									"parameters": {
+										"container": {
+											"value": "@pipeline().parameters.container",
+											"type": "Expression"
+										},
+										"url": {
+											"value": "@pipeline().parameters.url",
+											"type": "Expression"
+										}
+									}
+								},
+								"logStorageSettings": {
+									"linkedServiceName": {
+										"referenceName": "cnibigdatadlsgen2stg",
+										"type": "LinkedServiceReference"
+									},
+									"path": {
+										"value": "@{pipeline().parameters.container}/@{pipeline().parameters.dls.folders.log}/@{pipeline().parameters.dls.folders.archive}/@{pipeline().parameters.file.namespace}/@{pipeline().parameters.file.file_folder}",
+										"type": "Expression"
+									}
+								},
+								"enableLogging": true,
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": true
+								}
+							}
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"file": {
+				"type": "object"
+			},
+			"dls": {
+				"type": "object"
+			},
+			"var_dh_insercao_raw": {
+				"type": "string"
+			},
+			"adf": {
+				"type": "object"
+			},
+			"return_databricks": {
+				"type": "array"
+			},
+			"container": {
+				"type": "string"
+			},
+			"url": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "templates/raw/uld"
+		},
+		"annotations": []
+	}
+}

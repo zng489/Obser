@@ -1,0 +1,20 @@
+{
+	"name": "cnibigdatafunctionappdev",
+	"properties": {
+		"description": "linked service for dev slot of cnibigdatafuntionapp",
+		"annotations": [],
+		"type": "AzureFunction",
+		"typeProperties": {
+			"functionAppUrl": "https://cnibigdatafunctionapp-dev.azurewebsites.net",
+			"functionKey": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "cnibigdatakeyvault",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "cnibigdatafunctionappdev"
+			},
+			"authentication": "Anonymous"
+		}
+	}
+}

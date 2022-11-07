@@ -1,0 +1,86 @@
+{
+	"name": "org_raw_kpi_geral_calculado_mensal",
+	"properties": {
+		"description": "Will always be loaded as incremental.Implemented via user updated files\n\nParameter tables = [\"{'namespace':'unigest','file_folder':'kpi_meta','extension':'CSV','column_delimiter':';','encoding':'UTF-8','null_value':''}\"]",
+		"activities": [
+			{
+				"name": "import_uld_files_unigest__0__switch_env",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "import_uld_files_unigest__0__switch_env",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						},
+						"files": {
+							"value": "@pipeline().parameters.files",
+							"type": "Expression"
+						},
+						"adf": {
+							"value": "@json(concat('{\"adf_factory_name\": \"', pipeline().DataFactory, '\", \"adf_pipeline_name\": \"', pipeline().Pipeline, '\", \"adf_pipeline_run_id\": \"', pipeline().RunId, '\", \"adf_trigger_id\": \"', pipeline().TriggerId, '\", \"adf_trigger_name\": \"', pipeline().TriggerName, '\", \"adf_trigger_time\": \"', pipeline().TriggerTime, '\", \"adf_trigger_type\": \"', pipeline().TriggerType, '\"}'))",
+							"type": "Expression"
+						},
+						"file_parse": {
+							"value": "@pipeline().parameters.file_parse",
+							"type": "Expression"
+						},
+						"databricks": {
+							"value": "@pipeline().parameters.databricks",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"concurrency": 1,
+		"parameters": {
+			"files": {
+				"type": "array",
+				"defaultValue": [
+					"{'namespace':'unigest','file_folder':'kpi_geral_calculado_mensal','extension':'CSV','column_delimiter':';','encoding':'utf-8-sig','null_value':''}"
+				]
+			},
+			"file_parse": {
+				"type": "object",
+				"defaultValue": {
+					"file_path": "/prm/usr/unigest/CNI_BigData_KPIs_origens_planilhas_layouts_v02.6.xlsx",
+					"headers": {
+						"name_header": "campo",
+						"pos_header": "A",
+						"pos_org": "A",
+						"pos_dst": "A",
+						"pos_type": "B",
+						"pos_file_name_mask": "A",
+						"index_file_name_mask": 0
+					}
+				}
+			},
+			"env": {
+				"type": "object",
+				"defaultValue": {
+					"env": "dev"
+				}
+			},
+			"databricks": {
+				"type": "object",
+				"defaultValue": {
+					"notebook": "org_raw_kpi_geral_calculado_mensal"
+				}
+			}
+		},
+		"folder": {
+			"name": "raw/usr/unigest"
+		},
+		"annotations": [
+			"raw",
+			"usr"
+		]
+	}
+}

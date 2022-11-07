@@ -1,0 +1,364 @@
+{
+	"name": "control_column_checker__3__db_oracle",
+	"properties": {
+		"description": "This sublevel implements the basic call of the templates, avoiding to recreate all this all the time for all database definitions.",
+		"activities": [
+			{
+				"name": "oracle__switch_load_type",
+				"description": "Will switch load type. This way we avoid to run the other load type executions when we know exactly what might be implemented.\n\n\"tables\" is downstreammed as a array. That's why you have to compare with element [0]",
+				"type": "Switch",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"on": {
+						"value": "@json(pipeline().parameters.tables[0]).load_type",
+						"type": "Expression"
+					},
+					"cases": [
+						{
+							"value": "full",
+							"activities": [
+								{
+									"name": "oracle_import_full",
+									"type": "ExecutePipeline",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "oracle_import_full",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": true,
+										"parameters": {
+											"db": {
+												"value": "@pipeline().parameters.db",
+												"type": "Expression"
+											},
+											"tables": {
+												"value": "@pipeline().parameters.tables",
+												"type": "Expression"
+											},
+											"dls": {
+												"value": "@pipeline().parameters.dls",
+												"type": "Expression"
+											},
+											"watermark": {
+												"value": "@pipeline().parameters.watermark",
+												"type": "Expression"
+											},
+											"databricks": {
+												"value": "@pipeline().parameters.databricks",
+												"type": "Expression"
+											},
+											"adf": {
+												"value": "@pipeline().parameters.adf",
+												"type": "Expression"
+											},
+											"container": {
+												"value": "@pipeline().parameters.container",
+												"type": "Expression"
+											},
+											"url": {
+												"value": "@pipeline().parameters.url",
+												"type": "Expression"
+											}
+										}
+									}
+								}
+							]
+						},
+						{
+							"value": "incremental",
+							"activities": [
+								{
+									"name": "1_check_control_column__db_oracle",
+									"description": "Invokes the pipeline for checking the control column.",
+									"type": "ExecutePipeline",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "control_column_checker__3__check_control_column__db_oracle",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": true,
+										"parameters": {
+											"db": {
+												"value": "@pipeline().parameters.db",
+												"type": "Expression"
+											},
+											"tables": {
+												"value": "@pipeline().parameters.tables",
+												"type": "Expression"
+											},
+											"dls": {
+												"value": "@pipeline().parameters.dls",
+												"type": "Expression"
+											},
+											"watermark": {
+												"value": "@pipeline().parameters.watermark",
+												"type": "Expression"
+											},
+											"adf": {
+												"value": "@pipeline().parameters.adf",
+												"type": "Expression"
+											},
+											"container": {
+												"value": "@pipeline().parameters.container",
+												"type": "Expression"
+											}
+										}
+									}
+								}
+							]
+						},
+						{
+							"value": "incremental_with_join",
+							"activities": [
+								{
+									"name": "oracle_import_incremental_with_join__0__evaluator_copy1",
+									"description": "Exactly as said. Parameter mapping is direct and straight.",
+									"type": "ExecutePipeline",
+									"dependsOn": [
+										{
+											"activity": "2_check_control_column__db_oracle",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "oracle_import_incremental_with_join__0__evaluator",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": true,
+										"parameters": {
+											"db": {
+												"value": "@pipeline().parameters.db",
+												"type": "Expression"
+											},
+											"tables": {
+												"value": "@pipeline().parameters.tables",
+												"type": "Expression"
+											},
+											"dls": {
+												"value": "@pipeline().parameters.dls",
+												"type": "Expression"
+											},
+											"watermark": {
+												"value": "@pipeline().parameters.watermark",
+												"type": "Expression"
+											},
+											"databricks": {
+												"value": "@pipeline().parameters.databricks",
+												"type": "Expression"
+											},
+											"adf": {
+												"value": "@pipeline().parameters.adf",
+												"type": "Expression"
+											},
+											"container": {
+												"value": "@pipeline().parameters.container",
+												"type": "Expression"
+											}
+										}
+									}
+								},
+								{
+									"name": "2_check_control_column__db_oracle",
+									"description": "Invokes the pipeline for checking the control column.",
+									"type": "ExecutePipeline",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "control_column_checker__3__check_control_column__db_oracle",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": true,
+										"parameters": {
+											"db": {
+												"value": "@pipeline().parameters.db",
+												"type": "Expression"
+											},
+											"tables": {
+												"value": "@pipeline().parameters.tables",
+												"type": "Expression"
+											},
+											"dls": {
+												"value": "@pipeline().parameters.dls",
+												"type": "Expression"
+											},
+											"watermark": {
+												"value": "@pipeline().parameters.watermark",
+												"type": "Expression"
+											},
+											"adf": {
+												"value": "@pipeline().parameters.adf",
+												"type": "Expression"
+											},
+											"container": {
+												"value": "@pipeline().parameters.container",
+												"type": "Expression"
+											}
+										}
+									}
+								}
+							]
+						},
+						{
+							"value": "year_overwrite",
+							"activities": [
+								{
+									"name": "oracle_import_year_overwrite",
+									"description": "Executes the template for this load_type.",
+									"type": "ExecutePipeline",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "oracle_import_year_overwrite",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": true,
+										"parameters": {
+											"db": {
+												"value": "@pipeline().parameters.db",
+												"type": "Expression"
+											},
+											"tables": {
+												"value": "@pipeline().parameters.tables",
+												"type": "Expression"
+											},
+											"dls": {
+												"value": "@pipeline().parameters.dls",
+												"type": "Expression"
+											},
+											"watermark": {
+												"value": "@pipeline().parameters.watermark",
+												"type": "Expression"
+											},
+											"databricks": {
+												"value": "@pipeline().parameters.databricks",
+												"type": "Expression"
+											},
+											"adf": {
+												"value": "@pipeline().parameters.adf",
+												"type": "Expression"
+											},
+											"container": {
+												"value": "@pipeline().parameters.container",
+												"type": "Expression"
+											}
+										}
+									}
+								}
+							]
+						},
+						{
+							"value": "full_balance",
+							"activities": [
+								{
+									"name": "oracle_import_full_balance",
+									"description": "Runs full load template. It will be different inside databricks.",
+									"type": "ExecutePipeline",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "oracle_import_full",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": true,
+										"parameters": {
+											"db": {
+												"value": "@pipeline().parameters.db",
+												"type": "Expression"
+											},
+											"tables": {
+												"value": "@pipeline().parameters.tables",
+												"type": "Expression"
+											},
+											"dls": {
+												"value": "@pipeline().parameters.dls",
+												"type": "Expression"
+											},
+											"watermark": {
+												"value": "@pipeline().parameters.watermark",
+												"type": "Expression"
+											},
+											"databricks": {
+												"value": "@pipeline().parameters.databricks",
+												"type": "Expression"
+											},
+											"adf": {
+												"value": "@pipeline().parameters.adf",
+												"type": "Expression"
+											},
+											"container": {
+												"value": "@pipeline().parameters.container",
+												"type": "Expression"
+											}
+										}
+									}
+								}
+							]
+						}
+					],
+					"defaultActivities": [
+						{
+							"name": "error__undefined_load_type",
+							"description": "\"load_type\" is undefined, that's why you've reached the \"default\" condition in this switch. We are not assuming defaults. Please review your implementation.",
+							"type": "WebHook",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"url": "https://thisisthewaytosimuateanerrormyfriend.com/api",
+								"method": "POST",
+								"headers": {
+									"Content-Type": "application/json"
+								},
+								"body": {
+									"error": true
+								},
+								"timeout": "00:10:00"
+							}
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"tables": {
+				"type": "array"
+			},
+			"dls": {
+				"type": "object"
+			},
+			"adf": {
+				"type": "object"
+			},
+			"watermark": {
+				"type": "object"
+			},
+			"databricks": {
+				"type": "object"
+			},
+			"db": {
+				"type": "object"
+			},
+			"container": {
+				"type": "string"
+			},
+			"url": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "templates/raw/bdo/tools/control_column_checker"
+		},
+		"annotations": []
+	}
+}

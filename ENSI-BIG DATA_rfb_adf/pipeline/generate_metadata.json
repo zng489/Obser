@@ -1,0 +1,174 @@
+{
+	"name": "generate_metadata",
+	"properties": {
+		"activities": [
+			{
+				"name": "generate_infer_source",
+				"description": "Invokes the common template that calls Databricks' pipelines. This template is used in all layers.",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "databricks_run_notebook",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"databricks_notebook_path": {
+							"value": "/KEYRUS/@{pipeline().parameters.env}/gov/catalog/infer/generate_infer_source",
+							"type": "Expression"
+						},
+						"adf": {
+							"value": "@json(string(pipeline().parameters.adf))",
+							"type": "Expression"
+						},
+						"user_parameters": "",
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						},
+						"source_name": {
+							"value": "@pipeline().parameters.source_name",
+							"type": "Expression"
+						},
+						"source_type": {
+							"value": "@pipeline().parameters.source_type",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "generate_infer_schema",
+				"description": "Invokes the common template that calls Databricks' pipelines. This template is used in all layers.",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "databricks_run_notebook",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"databricks_notebook_path": {
+							"value": "/KEYRUS/@{pipeline().parameters.env}/gov/catalog/infer/generate_infer_schema",
+							"type": "Expression"
+						},
+						"adf": {
+							"value": "@json(string(pipeline().parameters.adf))",
+							"type": "Expression"
+						},
+						"user_parameters": "",
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						},
+						"source_name": {
+							"value": "@pipeline().parameters.source_name",
+							"type": "Expression"
+						},
+						"source_type": {
+							"value": "@pipeline().parameters.source_type",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "generate_infer_field",
+				"description": "Invokes the common template that calls Databricks' pipelines. This template is used in all layers.",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "databricks_run_notebook",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"databricks_notebook_path": {
+							"value": "/KEYRUS/@{pipeline().parameters.env}/gov/catalog/infer/generate_infer_field",
+							"type": "Expression"
+						},
+						"adf": {
+							"value": "@json(string(pipeline().parameters.adf))",
+							"type": "Expression"
+						},
+						"user_parameters": "",
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						},
+						"source_name": {
+							"value": "@pipeline().parameters.source_name",
+							"type": "Expression"
+						},
+						"source_type": {
+							"value": "@pipeline().parameters.source_type",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "generate_infer_table",
+				"description": "Invokes the common template that calls Databricks' pipelines. This template is used in all layers.",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "databricks_run_notebook",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"databricks_notebook_path": {
+							"value": "/KEYRUS/@{pipeline().parameters.env}/gov/catalog/infer/generate_infer_table",
+							"type": "Expression"
+						},
+						"adf": {
+							"value": "@json(string(pipeline().parameters.adf))",
+							"type": "Expression"
+						},
+						"user_parameters": "",
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						},
+						"source_name": {
+							"value": "@pipeline().parameters.source_name",
+							"type": "Expression"
+						},
+						"source_type": {
+							"value": "@pipeline().parameters.source_type",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"parameters": {
+			"env": {
+				"type": "string",
+				"defaultValue": "dev"
+			},
+			"adf": {
+				"type": "object"
+			},
+			"source_name": {
+				"type": "string"
+			},
+			"source_type": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "gov/infer_schema"
+		},
+		"annotations": []
+	}
+}

@@ -1,0 +1,22 @@
+{
+	"name": "sqlserver_parametrized",
+	"properties": {
+		"description": "This dataset is used to connect to the SQLServer database, with a specified host, database and username.\nWARNING: This dataset only works if the host is divided by the \"\\\".  Ex: CLUSTER-SQL010\\INSTANCIASQL010\nIn this case, the first part of the host is identified by the HostPart1 parameter and the second part is identified by the HostPart2 parameter.. Ex: HostPart1 =  CLUSTER-SQL010 and HostPart2 = INSTANCIASQL010.\nThe parameter used in the pipeline looks like:\n{\"host_part1\":\"CLUSTER-SQL010\", \"host_part2\": \"INSTANCIASQL010\",\"db_name\":\"dbCDISOrcamento\",\"username\":\"usr_bigdata\",\"vendor\":\"SQLServer\"}\n",
+		"linkedServiceName": {
+			"referenceName": "mssqlserver_parameterized",
+			"type": "LinkedServiceReference",
+			"parameters": {
+				"DBHost": "@pipeline().parameters.db.host",
+				"DBName": "@pipeline().parameters.db.db_name",
+				"DBUser": "@pipeline().parameters.db.username",
+				"DBPasswordSecret": "@pipeline().parameters.db.secret"
+			}
+		},
+		"folder": {
+			"name": "parametrized"
+		},
+		"annotations": [],
+		"type": "SqlServerTable",
+		"schema": []
+	}
+}

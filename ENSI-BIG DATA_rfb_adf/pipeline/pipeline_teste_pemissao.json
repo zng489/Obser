@@ -1,0 +1,20 @@
+{
+	"name": "pipeline_teste_pemissao",
+	"properties": {
+		"activities": [
+			{
+				"name": "Wait1",
+				"type": "Wait",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"waitTimeInSeconds": 3
+				}
+			}
+		],
+		"folder": {
+			"name": "dev"
+		},
+		"annotations": []
+	}
+}

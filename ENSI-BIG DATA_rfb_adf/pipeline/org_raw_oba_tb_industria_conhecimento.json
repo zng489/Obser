@@ -1,0 +1,55 @@
+{
+	"name": "org_raw_oba_tb_industria_conhecimento",
+	"properties": {
+		"description": "Will always be loaded as full.\n\n- For full load with partitioning use:\nParameter tables = [\"{'schema': 'OBA', 'table':'TB_INDUSTRIA_CONHECIMENTO','load_type':'full','partition_column':'null','columns': 'CD_INDUSTRIA_CONHECIMENTO,NM_INDUSTRIA_CONHECIMENTO,NR_CNPJ_INDUSTRIA_CONHECIMENTO,CD_SGF,NR_ANO_INAUGURACAO_IC,CD_ENTIDADE_NACIONAL,CD_ENTIDADE_REGIONAL,CD_UNIDADE_MATRIZ_RESPONSAVEL,CD_TIPO_ESTRUTURA_IC,NM_RESPONSAVEL_IC,NR_CPF_RESPONSAVEL_IC,DS_EMAIL_RESPONSAVEL_IC,NR_TELEFONE_IC,NR_SAC1_IC,NR_SAC2_IC,DS_HOME_PAGE,DS_LATITUDE,DS_LONGITUDE,FL_ATIVAINATIVA,FL_CATEGORIA_IC_FIXAMOVEL,DT_CRIACAO,DT_ATUALIZACAO,FL_EXCLUIDO'}\"]",
+		"activities": [
+			{
+				"name": "raw_load_bdo_unified__0__switch_env",
+				"description": "Invokes the \"raw_load_bdo_unified\" implementation.",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "raw_load_dbo_unified__0__switch_env",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						},
+						"tables": {
+							"value": "@pipeline().parameters.tables",
+							"type": "Expression"
+						},
+						"adf": {
+							"value": "{'adf_factory_name': '@{pipeline().DataFactory}', 'adf_pipeline_name': '@{pipeline().Pipeline}', 'adf_pipeline_run_id': '@{pipeline().RunId}',  'adf_trigger_id': '@{pipeline().TriggerId}', 'adf_trigger_name': '@{pipeline().TriggerName}', 'adf_trigger_time': '@{pipeline().TriggerTime}',  'adf_trigger_type': '@{pipeline().TriggerType}'}",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"parameters": {
+			"tables": {
+				"type": "array",
+				"defaultValue": [
+					"{'schema': 'OBA', 'table':'TB_INDUSTRIA_CONHECIMENTO','load_type':'full','partition_column':'null','columns': 'CD_INDUSTRIA_CONHECIMENTO,NM_INDUSTRIA_CONHECIMENTO,NR_CNPJ_INDUSTRIA_CONHECIMENTO,CD_SGF,NR_ANO_INAUGURACAO_IC,CD_ENTIDADE_NACIONAL,CD_ENTIDADE_REGIONAL,CD_UNIDADE_MATRIZ_RESPONSAVEL,CD_TIPO_ESTRUTURA_IC,NM_RESPONSAVEL_IC,NR_CPF_RESPONSAVEL_IC,DS_EMAIL_RESPONSAVEL_IC,NR_TELEFONE_IC,NR_SAC1_IC,NR_SAC2_IC,DS_HOME_PAGE,DS_LATITUDE,DS_LONGITUDE,FL_ATIVAINATIVA,FL_CATEGORIA_IC_FIXAMOVEL,DT_CRIACAO,DT_ATUALIZACAO,FL_EXCLUIDO'}"
+				]
+			},
+			"env": {
+				"type": "object",
+				"defaultValue": {
+					"env": "dev"
+				}
+			}
+		},
+		"folder": {
+			"name": "raw/bdo/oba"
+		},
+		"annotations": []
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

@@ -1,0 +1,848 @@
+{
+	"name": "wkf_lnd__uniepro",
+	"properties": {
+		"activities": [
+			{
+				"name": "lnd_org_raw_estrutura_cnae",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "IBGE",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "lnd_org_raw_estrutura_cnae",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "lnd_org_raw_ibge_pop_estimada",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "IBGE",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "lnd_org_raw_ibge_pop_estimada",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "lnd_org_raw_ipca",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "lnd_org_raw_ibge_pop_estimada",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "lnd_org_raw_ipca",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "IBGE",
+				"type": "Wait",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"waitTimeInSeconds": 1
+				}
+			},
+			{
+				"name": "IDEB INEP ICG INSE",
+				"type": "Wait",
+				"dependsOn": [
+					{
+						"activity": "lnd_org_raw_estrutura_cnae",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "lnd_org_raw_deflatores",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "lnd_org_raw_scnt",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"waitTimeInSeconds": 1
+				}
+			},
+			{
+				"name": "lnd_org_raw_ideb",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "IDEB",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "lnd_org_raw_ideb",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "IDEB",
+				"type": "Wait",
+				"dependsOn": [
+					{
+						"activity": "IDEB INEP ICG INSE",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"waitTimeInSeconds": 1
+				}
+			},
+			{
+				"name": "INSE",
+				"type": "Wait",
+				"dependsOn": [
+					{
+						"activity": "IDEB INEP ICG INSE",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"waitTimeInSeconds": 1
+				}
+			},
+			{
+				"name": "lnd_org_raw_inse_afd",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "INSE",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "lnd_org_raw_inse_afd",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "lnd_org_raw_inse_nivel_socioeconomico",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "INSE",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "lnd_org_raw_inse_nivel_socioeconomico",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "ME",
+				"type": "Wait",
+				"dependsOn": [
+					{
+						"activity": "ME PROVA_BRASIL SAEB",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"waitTimeInSeconds": 1
+				}
+			},
+			{
+				"name": "lnd_org_raw_microdados_caged",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "ME",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "lnd_org_raw_microdados_caged",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "lnd_org_raw_microdados_caged_ajustes",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "lnd_org_raw_microdados_caged",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "lnd_org_raw_microdados_caged_ajustes",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "PROVA_BRASIL",
+				"type": "Wait",
+				"dependsOn": [
+					{
+						"activity": "ME PROVA_BRASIL SAEB",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"waitTimeInSeconds": 1
+				}
+			},
+			{
+				"name": "lnd_org_raw_prova_brasil",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "PROVA_BRASIL",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "lnd_org_raw_prova_brasil",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "lnd_org_raw_rais_estabelecimento",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "ME",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "lnd_org_raw_rais_estabelecimento",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "lnd_org_raw_rais_vinculo",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "lnd_org_raw_rais_estabelecimento",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "lnd_org_raw_rais_vinculo",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "INEP_Taxa_rendimento",
+				"type": "Wait",
+				"dependsOn": [
+					{
+						"activity": "IDEB INEP ICG INSE",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"waitTimeInSeconds": 1
+				}
+			},
+			{
+				"name": "lnd_org_raw_inse_taxa_rendimento",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "INEP_Taxa_rendimento",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "lnd_org_raw_inse_taxa_rendimento",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "lnd_org_raw_saeb",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "SAEB",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "lnd_org_raw_saeb",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "SAEB",
+				"type": "Wait",
+				"dependsOn": [
+					{
+						"activity": "ME PROVA_BRASIL SAEB",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"waitTimeInSeconds": 1
+				}
+			},
+			{
+				"name": "lnd_org_raw_icg",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "ICG",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "lnd_org_raw_icg",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "ICG",
+				"type": "Wait",
+				"dependsOn": [
+					{
+						"activity": "IDEB INEP ICG INSE",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"waitTimeInSeconds": 1
+				}
+			},
+			{
+				"name": "lnd_org_raw_deflatores",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "IBGE",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "lnd_org_raw_deflatores",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "lnd_org_raw_scnt",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "lnd_org_raw_ipca",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "lnd_org_raw_scnt",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "INEP_Aluno_turma",
+				"type": "Wait",
+				"dependsOn": [
+					{
+						"activity": "IDEB INEP ICG INSE",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"waitTimeInSeconds": 1
+				}
+			},
+			{
+				"name": "lnd_org_raw_inep_atu",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "INEP_Aluno_turma",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "lnd_org_raw_inep_atu",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "INEP_had",
+				"type": "Wait",
+				"dependsOn": [
+					{
+						"activity": "IDEB INEP ICG INSE",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"waitTimeInSeconds": 1
+				}
+			},
+			{
+				"name": "lnd_org_raw_inep_had",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "INEP_had",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "lnd_org_raw_inep_had",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "INEP_ird",
+				"type": "Wait",
+				"dependsOn": [
+					{
+						"activity": "IDEB INEP ICG INSE",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"waitTimeInSeconds": 1
+				}
+			},
+			{
+				"name": "lnd_org_raw_inep_ird",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "INEP_ird",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "lnd_org_raw_inep_ird",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "ME PROVA_BRASIL SAEB",
+				"type": "Wait",
+				"dependsOn": [
+					{
+						"activity": "lnd_org_raw_ideb",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "lnd_org_raw_inep_ird",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "lnd_org_raw_inse_taxa_rendimento",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "lnd_org_raw_inep_had",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "lnd_org_raw_dsu",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "lnd_org_raw_tdi",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "lnd_org_raw_inep_atu",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "lnd_org_raw_icg",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "lnd_org_raw_inse_afd",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "lnd_org_raw_inse_nivel_socioeconomico",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"waitTimeInSeconds": 1
+				}
+			},
+			{
+				"name": "lnd_org_raw_tdi",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "INEP_dsu E TDI",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "lnd_org_raw_tdi",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "INEP_dsu E TDI",
+				"type": "Wait",
+				"dependsOn": [
+					{
+						"activity": "IDEB INEP ICG INSE",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"waitTimeInSeconds": 1
+				}
+			},
+			{
+				"name": "lnd_org_raw_dsu",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "INEP_dsu E TDI",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "lnd_org_raw_dsu",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"parameters": {
+			"env": {
+				"type": "object",
+				"defaultValue": {
+					"env": "dev"
+				}
+			}
+		},
+		"folder": {
+			"name": "workflow/uniepro/lnd"
+		},
+		"annotations": []
+	}
+}

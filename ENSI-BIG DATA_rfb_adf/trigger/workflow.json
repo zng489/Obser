@@ -1,0 +1,40 @@
+{
+	"name": "workflow",
+	"properties": {
+		"description": "For now, runs on 23:55PM (UTC) every week day. It is assuming the direct operation of the workflow, but will be soon encapsulated on the biggest idea of a wrapper workflow.",
+		"annotations": [],
+		"runtimeState": "Started",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "workflow",
+					"type": "PipelineReference"
+				}
+			}
+		],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Week",
+				"interval": 1,
+				"startTime": "2020-06-05T12:22:00Z",
+				"timeZone": "UTC",
+				"schedule": {
+					"minutes": [
+						55
+					],
+					"hours": [
+						23
+					],
+					"weekDays": [
+						"Monday",
+						"Tuesday",
+						"Thursday",
+						"Wednesday",
+						"Friday"
+					]
+				}
+			}
+		}
+	}
+}

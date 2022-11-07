@@ -1,0 +1,70 @@
+{
+	"name": "wkf_lnd_cno",
+	"properties": {
+		"activities": [
+			{
+				"name": "COMPLETED",
+				"type": "Wait",
+				"dependsOn": [
+					{
+						"activity": "lnd_org_raw_rfb_cno",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"waitTimeInSeconds": 1
+				}
+			},
+			{
+				"name": "CNO",
+				"type": "Wait",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"waitTimeInSeconds": 1
+				}
+			},
+			{
+				"name": "lnd_org_raw_rfb_cno",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "CNO",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "lnd_org_raw_rfb_cno",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"env": {
+							"value": "@pipeline().parameters.env",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"parameters": {
+			"env": {
+				"type": "object",
+				"defaultValue": {
+					"env": "dev"
+				}
+			}
+		},
+		"folder": {
+			"name": "workflow/uniepro/lnd"
+		},
+		"annotations": []
+	}
+}
